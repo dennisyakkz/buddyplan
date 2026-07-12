@@ -1,35 +1,41 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="page-header">
-    <h1>Installatie</h1>
-    <p>Maak het eerste beheerdersaccount aan om {{ app_name }} te gebruiken.</p>
+<div class="auth-layout">
+    <div class="auth-card settings-section person-detail">
+        <div class="auth-brand">
+            {% with variant='auth' %}
+            {% include "_brand_logo.html" %}
+            {% endwith %}
+        </div>
+
+        <h1 class="auth-title">Installatie</h1>
+        <p class="auth-subtitle">Maak het eerste beheerdersaccount aan om {{ app_name }} te gebruiken.</p>
+
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/setup">
+            <div class="form-group">
+                <label for="name">Naam</label>
+                <input type="text" id="name" name="name" maxlength="100" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" maxlength="50" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Wachtwoord</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Account aanmaken</button>
+            </div>
+        </form>
+    </div>
 </div>
-
-<section class="settings-section person-detail">
-    {% if error %}
-        <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
-
-    <form method="post" action="/setup">
-        <div class="form-group">
-            <label for="name">Naam</label>
-            <input type="text" id="name" name="name" maxlength="100" required autofocus>
-        </div>
-
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" maxlength="50" required>
-        </div>
-
-        <div class="form-group">
-            <label for="password">Wachtwoord</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Account aanmaken</button>
-        </div>
-    </form>
-</section>
 {% endblock %}

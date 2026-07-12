@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.models import AgendaItem, GoogleApiConfig, PersonGoogleAuth, PersonGoogleCalendarFeed
+from app.services.color_palette import normalize_stored_color
 from app.services.google_calendar_service import (
     GOOGLE_COLORS,
     SyncTokenExpiredError,
@@ -234,7 +235,8 @@ def _ensure_feed_calendar_color(
     try:
         for cal in list_calendars(access_token):
             if cal.get("id") == feed.google_calendar_id:
-                feed.calendar_color = (cal.get("backgroundColor") or "").strip() or None
+                raw_color = (cal.get("backgroundColor") or "").strip() or None
+                feed.calendar_color = normalize_stored_color(raw_color)
                 db.commit()
                 break
     except Exception:

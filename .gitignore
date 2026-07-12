@@ -26,3 +26,6 @@ local.properties
 .DS_Store
 .~lock.*
 **/.~lock.*#
+
+# Node (Tailwind build toolchain)
+backend/node_modules/

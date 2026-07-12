@@ -10,8 +10,9 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.icons import LEGACY_ICON_MAP, load_icons, normalize_icon_id
+from app.services.color_palette import normalize_stored_color
 from app.services.dashboard_service import AgendaService, DashboardService, PersonService, TaskService
-from app.services.ical_sync_service import sync_feed
+from app.services.ical_sync_service import sync_feed, sync_feed_from_content
 from app.services.current_user import get_current_user, require_admin
 from app.services.ical_validation import validate_ical_feed
 
@@ -650,7 +651,8 @@ def add_person_feed(person_id: int, data: PersonFeedCreate, _admin=Depends(requi
         raise HTTPException(404, "Persoon niet gevonden")
 
     try:
-        sync_feed(db, feed.id)
+        content = validate_ical_feed(url)
+        sync_feed_from_content(db, feed.id, content)
     except Exception as exc:
         db.refresh(feed)
         return {
@@ -1434,7 +1436,7 @@ def me_google_add_feed(
         auth_id=auth.id,
         google_calendar_id=data.google_calendar_id,
         calendar_name=data.calendar_name,
-        calendar_color=data.calendar_color,
+        calendar_color=normalize_stored_color(data.calendar_color),
         color_filters=_json.dumps(data.color_filters) if data.color_filters else None,
         enabled=data.enabled,
     )
@@ -1455,7 +1457,7 @@ def me_google_update_feed(
     if data.calendar_name is not None:
         feed.calendar_name = data.calendar_name
     if data.calendar_color is not None:
-        feed.calendar_color = data.calendar_color
+        feed.calendar_color = normalize_stored_color(data.calendar_color)
     if data.color_filters is not None:
         feed.color_filters = _json.dumps(data.color_filters) if data.color_filters else None
         feed.sync_token = None  # reset sync so color filter applies from scratch
@@ -1599,7 +1601,7 @@ def admin_user_google_update_feed(
     if data.calendar_name is not None:
         feed.calendar_name = data.calendar_name
     if data.calendar_color is not None:
-        feed.calendar_color = data.calendar_color
+        feed.calendar_color = normalize_stored_color(data.calendar_color)
     if data.color_filters is not None:
         feed.color_filters = _json.dumps(data.color_filters) if data.color_filters else None
         feed.sync_token = None

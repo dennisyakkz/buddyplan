@@ -4,7 +4,6 @@ import threading
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-import requests
 from icalendar import Calendar
 from sqlalchemy.orm import Session
 
@@ -59,29 +58,42 @@ def sync_feed(db: Session, feed_id: int) -> int:
 
 
 def _do_sync(db: Session, feed: PersonCalendarFeed) -> int:
-    from app.services.ical_validation import normalize_ical_url
+    from app.services.ical_validation import fetch_ical_response
 
-    headers: dict[str, str] = {}
-    if feed.etag:
-        headers["If-None-Match"] = feed.etag
-    if feed.last_modified:
-        headers["If-Modified-Since"] = feed.last_modified
+    existing_count = (
+        db.query(AgendaItem)
+        .filter(
+            AgendaItem.feed_id == feed.id,
+            AgendaItem.source == "ical",
+        )
+        .count()
+    )
 
     try:
-        response = requests.get(normalize_ical_url(feed.url), headers=headers, timeout=30)
+        response = fetch_ical_response(
+            feed.url,
+            etag=feed.etag if existing_count else None,
+            last_modified=feed.last_modified if existing_count else None,
+            force_full=existing_count == 0,
+        )
 
-        if response.status_code == 304:
-            # Content unchanged — only update the sync timestamp.
-            feed.last_synced_at = utcnow()
-            feed.last_error = None
-            feed.updated_at = utcnow()
-            db.commit()
-            logger.debug("Feed %s: 304 Not Modified, skipped import", feed.id)
-            return 0
+        if response.status_code == 304 and not response.content:
+            if existing_count > 0:
+                feed.last_synced_at = utcnow()
+                feed.last_error = None
+                feed.updated_at = utcnow()
+                db.commit()
+                logger.debug("Feed %s: 304 Not Modified, kept %s items", feed.id, existing_count)
+                return 0
+            response = fetch_ical_response(feed.url, force_full=True)
+
+        if response.status_code == 304 and not response.content:
+            raise ValueError(
+                "Agenda-server gaf geen data terug (304). Probeer later opnieuw."
+            )
 
         response.raise_for_status()
 
-        # Store caching headers for the next request.
         new_etag = response.headers.get("ETag")
         new_last_modified = response.headers.get("Last-Modified")
         if new_etag is not None:
@@ -103,6 +115,30 @@ def _do_sync(db: Session, feed: PersonCalendarFeed) -> int:
         feed.updated_at = utcnow()
         db.commit()
         raise
+
+
+def sync_feed_from_content(db: Session, feed_id: int, content: bytes) -> int:
+    """Import a pre-fetched iCal payload (e.g. right after validation)."""
+    feed = db.query(PersonCalendarFeed).filter(PersonCalendarFeed.id == feed_id).first()
+    if not feed:
+        return 0
+
+    _sync_lock.acquire()
+    try:
+        calendar = Calendar.from_ical(content)
+        imported = _import_calendar(db, feed, calendar)
+        feed.last_synced_at = utcnow()
+        feed.last_error = None
+        feed.updated_at = utcnow()
+        db.commit()
+        return imported
+    except Exception as exc:
+        feed.last_error = str(exc)
+        feed.updated_at = utcnow()
+        db.commit()
+        raise
+    finally:
+        _sync_lock.release()
 
 
 def _import_calendar(db: Session, feed: PersonCalendarFeed, calendar: Calendar) -> int:

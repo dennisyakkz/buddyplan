@@ -1,0 +1,12 @@
+{% set logo_variant = variant|default("header") %}
+{% if logo_variant == "auth" %}
+<a href="/" class="brand-logo brand-logo--auth no-underline text-main">
+    <img src="/static/branding/buddyplan-icon.svg" alt="" class="auth-logo-icon" width="96" height="96">
+    <span class="auth-logo-text">Buddyplan</span>
+</a>
+{% else %}
+<a href="/dashboard" class="header-logo brand-logo brand-logo--header no-underline text-white">
+    {% include "_brand_icon_header.html" %}
+    <span class="brand-logo-text font-heading text-xl font-bold text-white">Buddyplan</span>
+</a>
+{% endif %}

@@ -47,22 +47,16 @@ function renderTodoTile(task) {
     `;
 }
 
-function contrastColor(hex) {
-    if (!hex || hex.length < 7) return "#000000";
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-    return (0.299 * r + 0.587 * g + 0.114 * b) > 0.5 ? "#000000" : "#ffffff";
-}
-
 function renderCalItem(item) {
     const text = typeof item === "string" ? item : (item.text || "");
-    const color = typeof item === "object" ? (item.color || "") : "";
-    if (color) {
-        const fg = contrastColor(color);
-        return `<span class="cal-chip" style="background:${escapeHtml(color)};color:${fg}">${escapeHtml(text)}</span>`;
+    const safeText = escapeHtml(text);
+    if (typeof item === "object" && item.color_label) {
+        return badgeHtml(item.color_label, safeText);
     }
-    return `<span class="cal-chip">${escapeHtml(text)}</span>`;
+    if (typeof item === "object" && item.badge_classes) {
+        return `<span class="${escapeHtml(item.badge_classes)}">${safeText}</span>`;
+    }
+    return `<span class="cal-chip">${safeText}</span>`;
 }
 
 function renderWeekGrid(data) {

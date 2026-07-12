@@ -17,29 +17,6 @@ function formatInterval(minutes) {
     return "Elk uur";
 }
 
-const FEED_COLORS = [
-    { hex: "#e74c3c", name: "Rood" },
-    { hex: "#e67e22", name: "Oranje" },
-    { hex: "#f1c40f", name: "Geel" },
-    { hex: "#27ae60", name: "Groen" },
-    { hex: "#1abc9c", name: "Turquoise" },
-    { hex: "#3498db", name: "Blauw" },
-    { hex: "#2980b9", name: "Donkerblauw" },
-    { hex: "#9b59b6", name: "Paars" },
-    { hex: "#e91e63", name: "Roze" },
-    { hex: "#795548", name: "Bruin" },
-    { hex: "#607d8b", name: "Grijs" },
-    { hex: "#2c3e50", name: "Antraciet" },
-];
-
-function buildColorSwatches(selectedColor) {
-    const noneSelected = !selectedColor;
-    const swatches = FEED_COLORS.map(c =>
-        `<button type="button" class="color-swatch${selectedColor === c.hex ? " selected" : ""}" data-color="${c.hex}" title="${c.name}" style="background:${c.hex}"></button>`
-    ).join("");
-    return `<button type="button" class="color-swatch swatch-none${noneSelected ? " selected" : ""}" data-color="" title="Geen kleur">✕</button>${swatches}`;
-}
-
 function showFeedEditModal(feed, onSave) {
     const interval = feed.sync_interval_minutes || 60;
     const showTimes = feed.show_times || false;

@@ -1,6 +1,7 @@
 """Display text helpers for agenda items (feed prefix, times, hide title)."""
 
 from app.models import AgendaItem, PersonCalendarFeed
+from app.services.color_palette import label_to_badge_classes
 
 
 def build_agenda_display_text(
@@ -39,6 +40,7 @@ def build_agenda_event_dict(
     *,
     prefix: str | None = None,
     color: str | None = None,
+    color_label: str | None = None,
 ) -> dict:
     """Structured calendar event; times are always included when present on the item."""
     prefix_value = prefix if prefix is not None else (
@@ -47,6 +49,8 @@ def build_agenda_event_dict(
     return {
         "text": build_agenda_display_text(item, feed, prefix=prefix_value),
         "color": color,
+        "color_label": color_label,
+        "badge_classes": label_to_badge_classes(color_label),
         "title": item.title,
         "start_time": item.start_time,
         "end_time": item.end_time,

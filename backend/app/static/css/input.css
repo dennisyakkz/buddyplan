@@ -1,0 +1,32 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .agenda-badge-rood {
+    @apply bg-agenda-rood-bg text-agenda-rood-text;
+  }
+  .agenda-badge-oranje {
+    @apply bg-agenda-oranje-bg text-agenda-oranje-text;
+  }
+  .agenda-badge-geel {
+    @apply bg-agenda-geel-bg text-agenda-geel-text;
+  }
+  .agenda-badge-groen {
+    @apply bg-agenda-groen-bg text-agenda-groen-text;
+  }
+  .agenda-badge-blauw {
+    @apply bg-agenda-blauw-bg text-agenda-blauw-text;
+  }
+  .agenda-badge-teal {
+    @apply bg-agenda-teal-bg text-agenda-teal-text;
+  }
+  .agenda-badge-paars {
+    @apply bg-agenda-paars-bg text-agenda-paars-text;
+  }
+  .agenda-badge-bruin {
+    @apply bg-agenda-bruin-bg text-agenda-bruin-text;
+  }
+}

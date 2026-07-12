@@ -218,7 +218,7 @@ def setup_page(request: Request):
             return RedirectResponse(url="/login", status_code=303)
     finally:
         db.close()
-    return templates.TemplateResponse("setup.html", {"request": request, "page": "login"})
+    return templates.TemplateResponse("setup.html", {"request": request, "page": "setup"})
 
 
 @router.post("/setup")
@@ -238,7 +238,7 @@ async def setup_submit(request: Request):
                 "setup.html",
                 {
                     "request": request,
-                    "page": "login",
+                    "page": "setup",
                     "error": "Naam, username en wachtwoord zijn verplicht",
                 },
                 status_code=400,
@@ -249,7 +249,7 @@ async def setup_submit(request: Request):
         except ValueError as exc:
             return templates.TemplateResponse(
                 "setup.html",
-                {"request": request, "page": "login", "error": str(exc)},
+                {"request": request, "page": "setup", "error": str(exc)},
                 status_code=400,
             )
     finally:

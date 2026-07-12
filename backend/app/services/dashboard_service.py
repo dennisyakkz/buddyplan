@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.models import AgendaItem, AgendaManager, Person, PersonCalendarFeed, PersonGoogleCalendarFeed, Task, TaskCompletion, TaskDayOrder, TaskManager
 from app.services.agenda_display import agenda_event_sort_key, build_agenda_event_dict, feed_for_item
+from app.services.color_palette import normalize_stored_color, resolve_color_label
 from app.services.recurrence import (
     DAY_KEYS,
     format_dutch_date,
@@ -182,16 +183,22 @@ class DashboardService:
                         continue
                     feed = feed_for_item(item, feeds)
                     prefix = (feed.prefix or "").strip() if feed else ""
-                    # Priority: event-level color → calendar color (Google) → feed color (iCal)
-                    if item.event_color:
-                        color = item.event_color
-                    elif item.google_feed_id:
-                        gfeed = google_feeds.get(item.google_feed_id)
-                        color = (gfeed.calendar_color or "").strip() if gfeed else ""
-                    else:
-                        color = (feed.color or "").strip() if feed else ""
+                    gfeed = google_feeds.get(item.google_feed_id) if item.google_feed_id else None
+                    feed_color = (feed.color or "").strip() if feed else ""
+                    google_calendar_color = (gfeed.calendar_color or "").strip() if gfeed else ""
+                    event_color = (item.event_color or "").strip() or None
+                    color_label = resolve_color_label(
+                        feed_color=feed_color or None,
+                        event_color=event_color,
+                        google_calendar_color=google_calendar_color or None,
+                    )
+                    legacy_color = event_color or google_calendar_color or feed_color or None
                     text = build_agenda_event_dict(
-                        item, feed, prefix=prefix, color=color or None
+                        item,
+                        feed,
+                        prefix=prefix,
+                        color=legacy_color,
+                        color_label=color_label,
                     )
                     day_events.append(text)
                 day_events.sort(key=agenda_event_sort_key)
@@ -446,14 +453,35 @@ class PersonService:
         self.db.add(
             TaskManager(owner_person_id=person.id, manager_person_id=person.id)
         )
+        self._ensure_self_agenda_manager(person.id)
         self.db.commit()
         self.db.refresh(person)
         return person
+
+    def _ensure_self_agenda_manager(self, person_id: int) -> None:
+        exists = (
+            self.db.query(AgendaManager)
+            .filter(
+                AgendaManager.owner_person_id == person_id,
+                AgendaManager.manager_person_id == person_id,
+            )
+            .first()
+        )
+        if not exists:
+            self.db.add(
+                AgendaManager(
+                    owner_person_id=person_id,
+                    manager_person_id=person_id,
+                )
+            )
 
     def create(self, name: str) -> Person:
         max_order = self.db.query(func.max(Person.sort_order)).scalar() or 0
         person = Person(name=name, sort_order=max_order + 1)
         self.db.add(person)
+        self.db.commit()
+        self.db.refresh(person)
+        self._ensure_self_agenda_manager(person.id)
         self.db.commit()
         self.db.refresh(person)
         return person
@@ -559,6 +587,9 @@ class PersonService:
         if password:
             person.password_hash = _hash_password(password)
 
+        if can_login:
+            self._ensure_self_agenda_manager(person_id)
+
         person.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(person)
@@ -599,7 +630,7 @@ class PersonService:
             label=label.strip(),
             sync_interval_minutes=sync_interval_minutes,
             prefix=prefix.strip() or None,
-            color=color.strip() or None,
+            color=normalize_stored_color(color.strip() or None),
             show_times=show_times,
             hide_title=hide_title,
         )
@@ -637,7 +668,7 @@ class PersonService:
         if prefix is not None:
             feed.prefix = prefix.strip() or None
         if color is not None:
-            feed.color = color.strip() or None
+            feed.color = normalize_stored_color(color.strip() or None)
         if show_times is not None:
             feed.show_times = show_times
         if hide_title is not None:

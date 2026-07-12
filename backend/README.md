@@ -24,3 +24,15 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 Database migrations run automatically on startup (Alembic).
+
+## Web CSS (Tailwind)
+
+The web UI uses a compiled Tailwind bundle (`app/static/css/tailwind.css`). After changing `input.css`, `tailwind.config.js`, or Tailwind classes in templates/JS, rebuild and commit the output:
+
+```bash
+cd backend
+npm install
+npm run build:css
+```
+
+Docker images copy only `app/` (no Node), so `tailwind.css` must be committed.
