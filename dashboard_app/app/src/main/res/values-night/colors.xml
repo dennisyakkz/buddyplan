@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#0F1117</color>
+    <color name="panel_todo">#1A1D26</color>
+    <color name="panel_calendar">#1A1D26</color>
+    <color name="tile_background">#1E2A3A</color>
+    <color name="tile_background_completed">#252525</color>
+    <color name="tile_border">#2A4060</color>
+    <color name="tile_border_completed">#383838</color>
+    <color name="text_primary">#DCE8FA</color>
+    <color name="text_secondary">#90A4AE</color>
+    <color name="text_completed">#5A5A5A</color>
+    <color name="text_on_button">#FFFFFF</color>
+    <color name="button_done">#2E7D32</color>
+    <color name="button_done_pressed">#1B5E20</color>
+    <color name="header_todo">#0D3473</color>
+    <color name="header_calendar">#0D3473</color>
+    <color name="calendar_header_bg">#172240</color>
+    <color name="calendar_today_header_bg">#1565C0</color>
+    <color name="calendar_today_cell_bg">#0D1E35</color>
+    <color name="calendar_today_header_text">#FFFFFF</color>
+    <color name="calendar_name_bg">#0F1628</color>
+    <color name="calendar_cell_bg">#13161F</color>
+    <color name="calendar_border">#1E2E4A</color>
+    <color name="overlay_background">#E6000000</color>
+    <color name="popup_background">#1E2130</color>
+    <color name="thumb_green">#2E7D32</color>
+    <color name="divider">#2C3542</color>
+    <color name="connection_status_tint">#FFFFFF</color>
+</resources>

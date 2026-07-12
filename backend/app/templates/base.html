@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - Beheer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=2">
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-brand">{{ app_name }}</div>
+        <div class="nav-right">
+            {% if page != 'login' %}
+                <div class="nav-links">
+                    <a href="/dashboard" class="{% if page == 'dashboard' %}active{% endif %}">Dashboard</a>
+                    <a href="/tasks" class="{% if page == 'tasks' %}active{% endif %}">Taken</a>
+                    <a href="/agenda" class="{% if page == 'agenda' %}active{% endif %}">Agenda</a>
+                </div>
+
+                <div class="nav-dropdown" id="personal-menu">
+                    <button class="nav-dropdown-trigger" id="personal-trigger">
+                        Persoonlijk <i class="fa-solid fa-caret-down"></i>
+                    </button>
+                    <div class="nav-dropdown-menu hidden" id="personal-dropdown">
+                        <a href="/profile">Profiel</a>
+                        <a href="/admin" class="hidden" id="admin-link">Admin</a>
+                        <a href="/admin/afvalwijzer" class="hidden" id="afvalwijzer-link">Afvalwijzer</a>
+                        <a href="/admin/google-calendar-api" class="hidden" id="google-calendar-link">Google Calendar API</a>
+                        <a href="/admin/upgrades" class="hidden" id="upgrades-link">Upgrades</a>
+                        <div class="dropdown-sep"></div>
+                        <a href="/logout">Uitloggen</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal" id="modal-content"></div>
+    </div>
+
+    <script src="/static/js/icons.js"></script>
+    <script src="/static/js/personal_menu.js"></script>
+    <script src="/static/js/toast.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Production compose: pull a pre-built image from GHCR (no local build).
+#
+# 1. Replace YOUR_GITHUB_USER with the GitHub username or org that owns the repo.
+# 2. Pin BUDDYPLAN_VERSION to a release tag (e.g. 1.0.0), not "latest", for stable NAS installs.
+# 3. Create .env next to this file (see .env.example).
+#
+# Example image: ghcr.io/your-github-user/buddyplan-backend:1.0.0
+
+services:
+  backend:
+    image: ghcr.io/${GHCR_OWNER:-YOUR_GITHUB_USER}/buddyplan-backend:${BUDDYPLAN_VERSION:-1.0.0}
+    ports:
+      - "8000:8000"
+    volumes:
+      - buddyplan-data:/data
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  buddyplan-data:

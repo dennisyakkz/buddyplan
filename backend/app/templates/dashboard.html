@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Dashboard</h1>
+</div>
+
+<div class="dashboard-grid single" id="dashboard-grid">
+    <section class="panel dashboard-left hidden" id="dashboard-left">
+        <div class="panel-header header-todo">Taken vandaag</div>
+        <div class="dashboard-todo-list" id="dashboard-todo-list"></div>
+        <div class="dashboard-empty hidden" id="dashboard-todo-empty">Geen taken voor vandaag</div>
+    </section>
+
+    <section class="panel dashboard-right">
+        <div class="panel-header header-calendar cal-header">
+            <span>Kalender</span>
+            <div class="cal-nav">
+                <button class="cal-nav-btn" id="cal-prev" title="Vorige week">&#8249;</button>
+                <button class="cal-nav-btn cal-nav-today" id="cal-today">Vandaag</button>
+                <button class="cal-nav-btn" id="cal-next" title="Volgende week">&#8250;</button>
+            </div>
+        </div>
+        <div class="dashboard-week" id="dashboard-week"></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}
+

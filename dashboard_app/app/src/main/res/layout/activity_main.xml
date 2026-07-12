@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/panel_background"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/header_todo">
+
+                <TextView
+                    style="@style/PanelHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/todo_header" />
+
+                <TextView
+                    android:id="@+id/btnSettings"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="4dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="⚙"
+                    android:textColor="@color/text_on_button"
+                    android:textSize="24sp"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
+            </FrameLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/todoRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:padding="6dp"
+                android:scrollbars="vertical" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/calendarPanel"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="6dp"
+            android:layout_weight="3"
+            android:background="@drawable/panel_background"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/calWeekHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/header_calendar"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp">
+
+                <TextView
+                    style="@style/PanelHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start|center_vertical"
+                    android:padding="0dp"
+                    android:text="@string/calendar_header" />
+
+                <Button
+                    android:id="@+id/btnCalPrev"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/cal_nav_button_background"
+                    android:minWidth="44dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="@string/cal_prev_week"
+                    android:textColor="@color/text_on_button"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnCalToday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/cal_nav_button_background"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="@string/cal_today"
+                    android:textColor="@color/text_on_button"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnCalNext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/cal_nav_button_background"
+                    android:minWidth="44dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="@string/cal_next_week"
+                    android:textColor="@color/text_on_button"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <nl.buddyplan.display.ui.SwipeNavLayout
+                    android:id="@+id/calendarSwipeArea"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:id="@+id/calendarContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="4dp" />
+                </nl.buddyplan.display.ui.SwipeNavLayout>
+
+                <LinearLayout
+                    android:id="@+id/dayViewPanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/panel_calendar"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/header_calendar"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="16dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp">
+
+                        <Button
+                            android:id="@+id/btnDayViewBack"
+                            android:layout_width="wrap_content"
+                            android:layout_height="44dp"
+                            android:background="@drawable/cal_nav_button_background"
+                            android:minWidth="120dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:text="@string/day_view_back"
+                            android:textColor="@color/text_on_button"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/dayViewDateTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:textColor="@color/text_on_button"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/dayViewListContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+                </LinearLayout>
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ProgressBar
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/header_todo" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/loading_message"
+                android:textColor="@color/text_secondary"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/connectionStatus"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="16dp"
+        android:background="@android:color/transparent"
+        android:clickable="true"
+        android:contentDescription="@string/not_connected"
+        android:elevation="0dp"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/connectionStatusIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/not_connected"
+            android:src="@drawable/ic_cloud_off"
+            android:tint="@color/connection_status_tint" />
+
+        <ProgressBar
+            android:id="@+id/connectionStatusSpinner"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/connection_status_tint"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/taskOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/overlay_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/popup_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:padding="32dp">
+
+                    <TextView
+                        android:id="@+id/popupIcon"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:layout_marginBottom="24dp"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:contentDescription="@null" />
+
+                    <TextView
+                        android:id="@+id/popupTitle"
+                        style="@style/PopupTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/popupDescription"
+                        style="@style/PopupDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="32dp" />
+
+                    <Button
+                        android:id="@+id/buttonDone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/button_done_background"
+                        android:minWidth="280dp"
+                        android:minHeight="72dp"
+                        android:paddingStart="32dp"
+                        android:paddingEnd="32dp"
+                        android:text="@string/button_done"
+                        android:textColor="@color/text_on_button"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/buttonClose"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/close"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_close" />
+            </FrameLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/installOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/overlay_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/popup_background"
+            android:gravity="center_horizontal"
+            android:minWidth="360dp"
+            android:orientation="vertical"
+            android:padding="40dp">
+
+            <TextView
+                android:id="@+id/installOverlayMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/installOverlayProgress"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="16dp"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/header_todo"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/installOverlayHintDuration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="@string/update_install_hint_duration"
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/installOverlayHintRestart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="@string/update_install_hint_restart"
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp"
+                android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <include layout="@layout/install_failure_overlay" />
+    <include layout="@layout/session_expired_overlay" />
+
+</FrameLayout>

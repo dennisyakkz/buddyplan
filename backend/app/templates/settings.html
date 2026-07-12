@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Instellingen</h1>
+</div>
+
+<section class="settings-section">
+    <h2>Personen (agenda)</h2>
+    <p class="hint">Voeg personen toe die in de agenda op het dashboard verschijnen.</p>
+
+    <div class="person-add-form">
+        <input type="text" id="person-name" placeholder="Naam" maxlength="100">
+        <button class="btn btn-primary" id="btn-add-person">Toevoegen</button>
+    </div>
+
+    <ul id="person-list" class="person-list"></ul>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/settings.js"></script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Gebruikersbeheer</h1>
+    <a class="btn btn-primary" href="/admin/user/new">Nieuwe gebruiker</a>
+</div>
+
+<section class="settings-section">
+    <p class="hint">Beheer gebruikers die in de agenda verschijnen. Username is voor inloggen; weergavenaam is wat de app toont.</p>
+    <ul id="admin-user-list" class="person-list"></ul>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin_users.js"></script>
+{% endblock %}
+

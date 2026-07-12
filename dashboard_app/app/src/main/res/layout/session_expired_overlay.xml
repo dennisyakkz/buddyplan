@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sessionExpiredOverlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/overlay_background"
+    android:clickable="true"
+    android:focusable="true"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/popup_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_horizontal"
+        android:minWidth="420dp"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <TextView
+            android:id="@+id/sessionExpiredTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/session_expired_title"
+            android:textColor="@color/text_primary"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/sessionExpiredMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/session_expired_message"
+            android:textColor="@color/text_secondary"
+            android:textSize="17sp" />
+
+        <Button
+            android:id="@+id/btnSessionExpiredClose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/button_done_background"
+            android:minHeight="56dp"
+            android:text="@string/close"
+            android:textColor="@color/text_on_button"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>

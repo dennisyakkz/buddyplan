@@ -1,0 +1,125 @@
+{
+  "todo": [
+    {
+      "id": "1",
+      "title": "Tanden poetsen",
+      "description": "Ochtend en avond, 2 minuten",
+      "icon": "toothbrush",
+      "completed": false
+    },
+    {
+      "id": "2",
+      "title": "Douchen",
+      "description": "Shampoo en zeep gebruiken",
+      "icon": "shower",
+      "completed": false
+    },
+    {
+      "id": "3",
+      "title": "Ontbijt maken",
+      "description": "Brood met kaas of jam",
+      "icon": "food",
+      "completed": false
+    },
+    {
+      "id": "4",
+      "title": "Kamer opruimen",
+      "description": "Speelgoed in de kist",
+      "icon": "home",
+      "completed": false
+    },
+    {
+      "id": "5",
+      "title": "Huiswerk",
+      "description": "Wiskunde en Nederlands",
+      "icon": "book",
+      "completed": false
+    },
+    {
+      "id": "6",
+      "title": "Viool oefenen",
+      "description": "20 minuten oefenen",
+      "icon": "music",
+      "completed": false
+    },
+    {
+      "id": "7",
+      "title": "Wandelen",
+      "description": "Met de hond in het park",
+      "icon": "walk",
+      "completed": false
+    },
+    {
+      "id": "8",
+      "title": "Kleren klaarleggen",
+      "description": "Kies kleren voor morgen",
+      "icon": "clothes",
+      "completed": false
+    },
+    {
+      "id": "9",
+      "title": "Water drinken",
+      "description": "Minstens 6 glazen per dag",
+      "icon": "water",
+      "completed": false
+    },
+    {
+      "id": "10",
+      "title": "Bed opmaken",
+      "description": "Dekbed en kussens netjes",
+      "icon": "bed",
+      "completed": true
+    }
+  ],
+  "weekDays": [
+    { "day": "Maandag", "date": "6 Juli" },
+    { "day": "Dinsdag", "date": "7 Juli" },
+    { "day": "Woensdag", "date": "8 Juli" },
+    { "day": "Donderdag", "date": "9 Juli" },
+    { "day": "Vrijdag", "date": "10 Juli" },
+    { "day": "Zaterdag", "date": "11 Juli" },
+    { "day": "Zondag", "date": "12 Juli" }
+  ],
+  "calendar": [
+    {
+      "name": "Alex",
+      "monday": [{"text": "Zwemmen"}, {"text": "Huiswerk"}],
+      "tuesday": [{"text": "School"}, {"text": "Viool"}],
+      "wednesday": [{"text": "School"}, {"text": "Gym"}],
+      "thursday": [{"text": "School"}, {"text": "Vriendin"}],
+      "friday": [{"text": "School"}, {"text": "Filmavond"}],
+      "saturday": [{"text": "Boodschappen"}, {"text": "Zwemmen"}],
+      "sunday": [{"text": "Rustig aan"}, {"text": "Familie"}]
+    },
+    {
+      "name": "Sam",
+      "monday": [{"text": "Werken"}],
+      "tuesday": [{"text": "Werken"}, {"text": "Yoga"}],
+      "wednesday": [{"text": "Werken"}],
+      "thursday": [{"text": "Werken"}, {"text": "Tennis"}],
+      "friday": [{"text": "Werken"}],
+      "saturday": [{"text": "Kapper"}],
+      "sunday": [{"text": "Brunch"}]
+    },
+    {
+      "name": "Robin",
+      "monday": [{"text": "Boodschappen"}],
+      "tuesday": [{"text": "Tandarts"}],
+      "wednesday": [{"text": "Koffie met buurvrouw"}],
+      "thursday": [{"text": "Werken"}],
+      "friday": [{"text": "Koken"}],
+      "saturday": [{"text": "Markt"}],
+      "sunday": [{"text": "Familie-uitje"}]
+    },
+    {
+      "name": "Jordan",
+      "monday": [{"text": "Werken"}, {"text": "Voetbal"}],
+      "tuesday": [{"text": "Werken"}],
+      "wednesday": [{"text": "Werken"}, {"text": "Vergadering"}],
+      "thursday": [{"text": "Werken"}],
+      "friday": [{"text": "Werken"}, {"text": "Borrel"}],
+      "saturday": [{"text": "Klussen"}],
+      "sunday": [{"text": "Fietsen"}]
+    }
+  ]
+}

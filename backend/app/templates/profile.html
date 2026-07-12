@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Profiel</h1>
+</div>
+
+<div class="tabs">
+    <button class="tab-btn active" data-tab="general">Algemeen</button>
+    <button class="tab-btn" data-tab="calendars">Agenda's</button>
+    <button class="tab-btn" data-tab="devices">Apparaten</button>
+</div>
+
+<section class="tab-panel active" id="tab-general">
+    <div class="settings-section">
+        <form id="profile-form">
+            <div class="form-group">
+                <label for="profile-name">Naam</label>
+                <input type="text" id="profile-name" maxlength="100" required>
+            </div>
+
+            <div class="form-group">
+                <label for="profile-email">Email adres</label>
+                <input type="email" id="profile-email" maxlength="255" placeholder="naam@voorbeeld.nl">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Opslaan</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="settings-section">
+        <h2>Wachtwoord wijzigen</h2>
+        <form id="password-form">
+            <div class="form-group">
+                <label for="new-password">Nieuw wachtwoord</label>
+                <input type="password" id="new-password" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label for="new-password-confirm">Bevestig wachtwoord</label>
+                <input type="password" id="new-password-confirm" autocomplete="new-password">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Wachtwoord opslaan</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="tab-panel" id="tab-calendars">
+    <div class="settings-section">
+        <h2>iCal agenda's</h2>
+        <p class="hint">Bij toevoegen/bewerken/verwijderen wordt getest of de URL bestaat en een geldige iCal feed teruggeeft.</p>
+
+        <div class="feed-add-form">
+            <input type="text" id="user-feed-label" placeholder="Label (optioneel)" maxlength="100">
+            <input type="url" id="user-feed-url" placeholder="https://... of webcal://..." required>
+            <button class="btn btn-primary" id="btn-user-add-feed">Toevoegen</button>
+        </div>
+
+        <ul id="user-feed-list" class="feed-list"></ul>
+    </div>
+
+    <div class="settings-section">
+        <h2>Google agenda's</h2>
+
+        <div id="google-auth-section">
+            <div id="google-linked-info" class="hidden">
+                <p class="hint">Gekoppeld als: <strong id="google-linked-email"></strong></p>
+                <button class="btn btn-danger btn-small" id="btn-google-unlink">Koppeling verwijderen</button>
+            </div>
+            <div id="google-not-linked-info">
+                <p class="hint">Koppel je Google account om agenda's te synchroniseren.</p>
+                <button class="btn btn-primary" id="btn-google-link">
+                    <i class="fa-brands fa-google"></i> Google agenda koppelen
+                </button>
+            </div>
+        </div>
+
+        <div id="google-calendars-section" class="hidden" style="margin-top:16px">
+            <h3>Gekoppelde agenda's</h3>
+            <ul id="google-feed-list" class="feed-list"></ul>
+
+            <h3 style="margin-top:16px">Agenda toevoegen</h3>
+            <div id="google-available-list" class="gcal-available-list">
+                <button class="btn btn-small" id="btn-load-gcals">
+                    <i class="fa-solid fa-rotate"></i> Beschikbare agenda's ophalen
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="tab-panel" id="tab-devices">
+    <div class="settings-section">
+        <h2>Ingelogde apparaten</h2>
+        <p class="hint">Elke mobiele app of dashboard heeft een eigen sessie. U kunt apparaten hier uitloggen.</p>
+        <ul id="device-list" class="feed-list"></ul>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/profile.js"></script>
+<script src="/static/js/google_calendar.js?v=2"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    initGoogleCalendarSection({
+        baseUrl: "/api/me/google",
+        authUrlBase: "/api/me/google/auth-url",
+        returnTo: "/profile",
+    });
+});
+</script>
+{% endblock %}
+

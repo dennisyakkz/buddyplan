@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Google Calendar API</h1>
+</div>
+
+<div class="settings-section">
+    <h2>API instellingen</h2>
+    <p class="hint">
+        Maak een OAuth 2.0 Client ID aan in de
+        <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a>.
+        Voeg de redirect URI toe als toegestane redirect-URI. De Google Calendar API moet ook ingeschakeld zijn.
+    </p>
+
+    <div class="form-group">
+        <label>Redirect URI (voeg dit toe in Google Cloud Console)</label>
+        <div class="redirect-uri-display" id="redirect-uri-display">
+            <code id="computed-redirect-uri">laden…</code>
+            <button class="btn btn-small" id="btn-copy-uri" title="Kopiëren"><i class="fa-solid fa-copy"></i></button>
+        </div>
+    </div>
+
+    <form id="google-config-form">
+        <div class="form-group">
+            <label for="client-id">Client ID</label>
+            <input type="text" id="client-id" placeholder="…apps.googleusercontent.com" maxlength="255">
+        </div>
+        <div class="form-group">
+            <label for="client-secret">Client Secret</label>
+            <input type="password" id="client-secret" placeholder="GOCSPX-…" maxlength="255">
+            <button type="button" class="btn btn-small" id="btn-toggle-secret" style="margin-top:4px">
+                <i class="fa-solid fa-eye"></i> Tonen
+            </button>
+        </div>
+        <div class="form-group">
+            <label for="redirect-uri-override">Redirect URI overschrijven <span class="hint">(leeg = automatisch)</span></label>
+            <input type="url" id="redirect-uri-override" placeholder="https://jouwserver/google/callback" maxlength="512">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Opslaan</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin_google_calendar.js"></script>
+{% endblock %}

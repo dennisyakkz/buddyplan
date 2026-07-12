@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/admin" class="back-link">&larr; Terug naar gebruikers</a>
+    <h1 id="user-title">Gebruiker</h1>
+</div>
+
+<section class="settings-section person-detail">
+    <form id="user-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="user-username">Username</label>
+                <input type="text" id="user-username" maxlength="50" required>
+            </div>
+            <div class="form-group">
+                <label for="user-name">Weergavenaam</label>
+                <input type="text" id="user-name" maxlength="100" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="user-email">E-mail</label>
+            <input type="email" id="user-email" maxlength="255" placeholder="naam@voorbeeld.nl">
+        </div>
+
+        <div class="toggle-row">
+            <div class="toggle">
+                <span>Kan inloggen</span>
+                <label class="switch">
+                    <input type="checkbox" id="user-can-login">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle">
+                <span>Is admin</span>
+                <label class="switch">
+                    <input type="checkbox" id="user-is-admin">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div id="user-password-fields" class="password-fields hidden">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="user-password">Wachtwoord</label>
+                    <input type="password" id="user-password" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="user-password-confirm">Bevestig wachtwoord</label>
+                    <input type="password" id="user-password-confirm" autocomplete="new-password">
+                </div>
+            </div>
+            <p class="hint" id="user-password-hint"></p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Opslaan</button>
+        </div>
+    </form>
+</section>
+
+<div class="tabs">
+    <button class="tab-btn active" data-tab="calendars">Kalenders</button>
+    <button class="tab-btn" data-tab="tasks">Agenda &amp; Taken</button>
+    <button class="tab-btn" data-tab="devices">Apparaten</button>
+</div>
+
+<section class="tab-panel active" id="tab-calendars">
+    <div class="settings-section">
+        <h2>Externe kalenders</h2>
+        <p class="hint">Bij toevoegen/bewerken/verwijderen wordt getest of de URL bestaat en een geldige iCal feed teruggeeft.</p>
+
+        <div class="feed-add-form">
+            <input type="text" id="feed-label" placeholder="Label (optioneel)" maxlength="100">
+            <input type="url" id="feed-url" placeholder="https://... of webcal://..." required>
+            <button class="btn btn-primary" id="btn-add-feed">Toevoegen</button>
+        </div>
+
+        <ul id="feed-list" class="feed-list"></ul>
+    </div>
+
+    <div class="settings-section">
+        <h2>Google agenda's</h2>
+
+        <div id="google-auth-section">
+            <div id="google-linked-info" class="hidden">
+                <p class="hint">Gekoppeld als: <strong id="google-linked-email"></strong></p>
+                <button class="btn btn-danger btn-small" id="btn-google-unlink">Koppeling verwijderen</button>
+            </div>
+            <div id="google-not-linked-info">
+                <p class="hint">Nog geen Google account gekoppeld.</p>
+                <button class="btn btn-primary" id="btn-google-link">
+                    <i class="fa-brands fa-google"></i> Google agenda koppelen
+                </button>
+            </div>
+        </div>
+
+        <div id="google-calendars-section" class="hidden" style="margin-top:16px">
+            <h3>Gekoppelde agenda's</h3>
+            <ul id="google-feed-list" class="feed-list"></ul>
+
+            <h3 style="margin-top:16px">Agenda toevoegen</h3>
+            <div id="google-available-list" class="gcal-available-list">
+                <button class="btn btn-small" id="btn-load-gcals">
+                    <i class="fa-solid fa-rotate"></i> Beschikbare agenda's ophalen
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="tab-panel" id="tab-tasks">
+    <div class="settings-section">
+        <h2>Agenda beheren</h2>
+        <p class="hint">Welke gebruikers mogen de agenda van deze persoon beheren? Let op: de gebruiker zelf moet ook aangevinkt zijn als hij zijn eigen agenda mag beheren.</p>
+        <div id="agenda-managers-list" class="manager-checks"></div>
+        <div class="form-actions">
+            <button class="btn btn-primary" type="button" id="btn-save-agenda-managers">Opslaan</button>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <h2>Taken</h2>
+        <div class="toggle-row">
+            <div class="toggle">
+                <span>Takensysteem gebruiken</span>
+                <label class="switch">
+                    <input type="checkbox" id="tasks-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div id="task-managers-block" class="hidden">
+            <p class="hint">Taken beheerd door (selecteer beheerders voor deze gebruiker). Let op: de gebruiker zelf moet ook aangevinkt zijn als hij zijn eigen taken mag beheren.</p>
+            <div id="task-managers-list" class="manager-checks"></div>
+            <div class="form-actions">
+                <button class="btn btn-primary" type="button" id="btn-save-task-managers">Opslaan</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="tab-panel" id="tab-devices">
+    <div class="settings-section">
+        <h2>Ingelogde apparaten</h2>
+        <p class="hint">Apparaten waar deze gebruiker mee is ingelogd op de mobiele app of het dashboard.</p>
+        <ul id="device-list" class="feed-list"></ul>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const USER_ID = {{ "null" if user_id is none else user_id }};
+</script>
+<script src="/static/js/admin_user_detail.js"></script>
+<script src="/static/js/google_calendar.js?v=2"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (USER_ID) {
+        initGoogleCalendarSection({
+            baseUrl: `/api/admin/users/${USER_ID}/google`,
+            authUrlBase: `/api/admin/users/${USER_ID}/google/auth-url`,
+            returnTo: `/admin/user/${USER_ID}`,
+        });
+    }
+});
+</script>
+{% endblock %}
+

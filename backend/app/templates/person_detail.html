@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/settings" class="back-link">&larr; Terug naar instellingen</a>
+    <h1 id="person-title">Persoon</h1>
+</div>
+
+<section class="settings-section person-detail">
+    <form id="person-form">
+        <div class="form-group">
+            <label for="person-name">Naam</label>
+            <input type="text" id="person-name" maxlength="100" required>
+        </div>
+
+        <div class="form-group checkbox-group">
+            <label>
+                <input type="checkbox" id="can-login">
+                Kan inloggen
+            </label>
+        </div>
+
+        <div id="password-fields" class="password-fields hidden">
+            <div class="form-group">
+                <label for="password">Wachtwoord</label>
+                <input type="password" id="password" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label for="password-confirm">Bevestig wachtwoord</label>
+                <input type="password" id="password-confirm" autocomplete="new-password">
+            </div>
+            <p class="hint" id="password-hint"></p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Opslaan</button>
+        </div>
+    </form>
+</section>
+
+<section class="settings-section">
+    <h2>Externe kalenders</h2>
+    <p class="hint">iCal-URL's worden elk uur uitgelezen. Items verschijnen in de agenda van deze persoon.</p>
+
+    <div class="feed-add-form">
+        <input type="text" id="feed-label" placeholder="Label (optioneel)" maxlength="100">
+        <input type="url" id="feed-url" placeholder="https://... of webcal://..." required>
+        <button class="btn btn-primary" id="btn-add-feed">Toevoegen</button>
+    </div>
+
+    <ul id="feed-list" class="feed-list"></ul>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const PERSON_ID = {{ person_id }};
+</script>
+<script src="/static/js/person_detail.js"></script>
+{% endblock %}

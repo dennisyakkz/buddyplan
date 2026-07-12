@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Buddyplan Display</string>
+    <string name="todo_header">Taken</string>
+    <string name="calendar_header">Agenda</string>
+    <string name="button_done">Ik heb het gedaan</string>
+    <string name="close">Sluiten</string>
+    <string name="thumb_done">Klaar</string>
+    <string name="cal_prev_week">&#9664;</string>
+    <string name="cal_today">Vandaag</string>
+    <string name="cal_next_week">&#9654;</string>
+    <string name="loading_message">Verbinding maken…</string>
+    <string name="not_connected">Niet verbonden</string>
+    <string name="retry_connection">Opnieuw verbinden</string>
+    <string name="settings">Instellingen</string>
+    <string name="update_available_title">Update beschikbaar</string>
+    <string name="update_later">Later</string>
+    <string name="update_install_now">Nu installeren</string>
+    <string name="update_open_settings">Open instellingen</string>
+    <string name="update_permission_required">Sta installatie van apps toe voor Buddyplan Display. Zet \"Apps installeren\" of \"Onbekende bronnen\" aan en kom daarna terug.</string>
+    <string name="update_permission_settings_failed">Kon het instellingenscherm niet openen. Zoek handmatig naar toestemming om apps te installeren.</string>
+    <string name="update_downloading">Update downloaden…</string>
+    <string name="update_download_failed">Download mislukt.</string>
+    <string name="update_install_awaiting_confirm">Wacht op installatie-bevestiging…</string>
+    <string name="update_install_in_progress">Installatie wordt uitgevoerd…</string>
+    <string name="update_install_in_progress_version">Update naar versie %1$d wordt geïnstalleerd…</string>
+    <string name="update_install_hint_duration">Dit kan enkele minuten duren.</string>
+    <string name="update_install_hint_restart">De applicatie herstart automatisch zodra de installatie afgerond is.</string>
+    <string name="update_install_timeout">Installatie duurde te lang. Controleer of de update gelukt is of probeer opnieuw.</string>
+    <string name="update_install_failed">Installatie mislukt.</string>
+    <string name="update_install_failed_title">Installatie mislukt</string>
+    <string name="update_install_start_failed">Installatie kon niet worden gestart.</string>
+    <string name="update_install_confirm_missing">Installatie-bevestiging ontbreekt.</string>
+    <string name="day_view_back">← Terug</string>
+    <string name="session_expired_title">Sessie verlopen</string>
+    <string name="session_expired_message">Sessie verlopen, u moet opnieuw inloggen.</string>
+</resources>

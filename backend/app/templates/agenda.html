@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Agenda beheer</h1>
+    <div class="person-select">
+        <label for="person-dropdown">Persoon:</label>
+        <select id="person-dropdown"></select>
+    </div>
+</div>
+
+<div class="calendar-toolbar">
+    <div class="view-switcher">
+        <button class="view-btn active" data-view="day">Dag</button>
+        <button class="view-btn" data-view="week">Week</button>
+        <button class="view-btn" data-view="month">Maand</button>
+    </div>
+    <div class="date-nav">
+        <button id="btn-prev" class="btn btn-icon">&lsaquo;</button>
+        <button id="btn-today" class="btn">Vandaag</button>
+        <span id="current-period" class="period-label"></span>
+        <button id="btn-next" class="btn btn-icon">&rsaquo;</button>
+    </div>
+</div>
+
+<div id="calendar-container" class="calendar-container"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/calendar.js"></script>
+<script src="/static/js/agenda.js"></script>
+{% endblock %}

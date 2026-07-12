@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="320dp"
+    android:layout_height="wrap_content"
+    android:background="@color/popup_background"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/pinTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="Voer pincode in"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- 4 dot indicators -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/pinDot1"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/pin_dot_empty" />
+
+        <View
+            android:id="@+id/pinDot2"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/pin_dot_empty" />
+
+        <View
+            android:id="@+id/pinDot3"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/pin_dot_empty" />
+
+        <View
+            android:id="@+id/pinDot4"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/pin_dot_empty" />
+    </LinearLayout>
+
+    <!-- Error message -->
+    <TextView
+        android:id="@+id/pinError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text=""
+        android:textColor="#E53935"
+        android:textSize="14sp"
+        android:visibility="invisible" />
+
+    <!-- Numpad rows -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button android:id="@+id/pin1" style="@style/PinButton" android:text="1" />
+        <Button android:id="@+id/pin2" style="@style/PinButton" android:text="2" />
+        <Button android:id="@+id/pin3" style="@style/PinButton" android:text="3" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button android:id="@+id/pin4" style="@style/PinButton" android:text="4" />
+        <Button android:id="@+id/pin5" style="@style/PinButton" android:text="5" />
+        <Button android:id="@+id/pin6" style="@style/PinButton" android:text="6" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button android:id="@+id/pin7" style="@style/PinButton" android:text="7" />
+        <Button android:id="@+id/pin8" style="@style/PinButton" android:text="8" />
+        <Button android:id="@+id/pin9" style="@style/PinButton" android:text="9" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/pinBackspace"
+            style="@style/PinButton"
+            android:text="⌫" />
+
+        <Button android:id="@+id/pin0" style="@style/PinButton" android:text="0" />
+
+        <Button
+            android:id="@+id/pinCancel"
+            style="@style/PinButton"
+            android:text="✕" />
+    </LinearLayout>
+</LinearLayout>

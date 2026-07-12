@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Dashboard upgrades</h1>
+</div>
+
+<section class="settings-section">
+    <h2 class="section-title">Huidige versie</h2>
+    <div id="upgrade-status" style="color:var(--text-muted);font-size:14px">Laden…</div>
+</section>
+
+<section class="settings-section">
+    <h2 class="section-title">Nieuwe APK uploaden</h2>
+    <p style="color:var(--text-muted);font-size:13px;margin:0 0 16px">
+        Upload een nieuw dashboard APK-bestand. Bij elke upload wordt het interne versienummer verhoogd.
+    </p>
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <input type="file" id="apk-file" accept=".apk,application/vnd.android.package-archive">
+        <button id="btn-upload" class="btn btn-primary">Uploaden</button>
+        <span id="upload-status" style="color:var(--text-muted);font-size:13px"></span>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin_upgrades.js"></script>
+{% endblock %}

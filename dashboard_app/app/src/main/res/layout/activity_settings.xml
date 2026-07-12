@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@color/header_todo"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnSettingsClose"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:text="✕"
+                android:textColor="@color/text_on_button"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Instellingen"
+                android:textColor="@color/text_on_button"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="56dp"
+                android:layout_height="56dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/tabApps"
+                style="@style/SettingsTabButton"
+                android:text="Apps" />
+
+            <Button
+                android:id="@+id/tabConnectie"
+                style="@style/SettingsTabButton"
+                android:text="Connectie" />
+
+            <Button
+                android:id="@+id/tabTaken"
+                style="@style/SettingsTabButton"
+                android:text="Taken" />
+
+            <Button
+                android:id="@+id/tabBeveiliging"
+                style="@style/SettingsTabButton"
+                android:text="Beveiliging" />
+
+            <Button
+                android:id="@+id/tabSysteem"
+                style="@style/SettingsTabButton"
+                android:text="Systeem" />
+
+            <Button
+                android:id="@+id/tabUpdates"
+                style="@style/SettingsTabButton"
+                android:text="Updates" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/settingsContent"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/updateOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/overlay_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/updateOverlayDialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/popup_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:minWidth="420dp"
+            android:orientation="vertical"
+            android:padding="32dp">
+
+            <TextView
+                android:id="@+id/updateOverlayTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/update_available_title"
+                android:textColor="@color/text_primary"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/updateOverlayMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:textColor="@color/text_secondary"
+                android:textSize="17sp" />
+
+            <TextView
+                android:id="@+id/updateOverlayStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:textColor="@color/text_secondary"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/updateOverlayProgress"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/header_todo"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/updateOverlayHintDuration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="@string/update_install_hint_duration"
+                android:textColor="@color/text_secondary"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/updateOverlayHintRestart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="@string/update_install_hint_restart"
+                android:textColor="@color/text_secondary"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/updateOverlayButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnUpdateLater"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/cal_nav_button_background"
+                    android:minHeight="56dp"
+                    android:text="@string/update_later"
+                    android:textColor="@color/text_on_button"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnUpdateInstall"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/button_done_background"
+                    android:minHeight="56dp"
+                    android:text="@string/update_install_now"
+                    android:textColor="@color/text_on_button"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+    <include layout="@layout/install_failure_overlay" />
+</FrameLayout>
