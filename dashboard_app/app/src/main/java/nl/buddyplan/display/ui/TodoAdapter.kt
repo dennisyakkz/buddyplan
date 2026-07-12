@@ -1,7 +1,5 @@
 package nl.buddyplan.display.ui
 
-import android.content.res.Configuration
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
@@ -86,22 +84,23 @@ class TodoAdapter(
                 itemView.isEnabled = false
                 icon.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_completed))
             } else {
-                val personColor = item.person_id?.let { userColors[it] }
-                if (personColor != null) {
-                    try {
-                        val rawColor = Color.parseColor(personColor)
-                        val bgColor = adaptColorForNightMode(rawColor, itemView.context)
-                        val drawable = GradientDrawable().apply {
-                            shape = GradientDrawable.RECTANGLE
-                            cornerRadius = (8 * itemView.context.resources.displayMetrics.density)
-                            setColor(bgColor)
-                        }
+                val personLabel = item.person_id?.let { userColors[it] }?.let {
+                    ColorPalette.migrateStoredColor(it)
+                }
+                if (personLabel != null) {
+                    val colors = ColorPalette.chipColors(itemView.context, personLabel)
+                    val drawable = ColorPalette.chipDrawable(itemView.context, personLabel, 12f)
+                    if (colors != null && drawable != null) {
+                        val borderColor = ContextCompat.getColor(itemView.context, R.color.tile_border)
+                        drawable.setStroke(
+                            (2 * itemView.context.resources.displayMetrics.density).toInt(),
+                            borderColor,
+                        )
                         container.background = drawable
-                        val textColor = contrastColor(bgColor)
-                        title.setTextColor(textColor)
-                        description.setTextColor(textColor)
-                        icon.setTextColor(textColor)
-                    } catch (_: IllegalArgumentException) {
+                        title.setTextColor(colors.second)
+                        description.setTextColor(colors.second)
+                        icon.setTextColor(colors.second)
+                    } else {
                         applyDefaultStyle()
                     }
                 } else {
@@ -120,30 +119,6 @@ class TodoAdapter(
             title.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
             description.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_secondary))
             icon.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
-        }
-
-        private fun contrastColor(bgColor: Int): Int {
-            val r = Color.red(bgColor) / 255.0
-            val g = Color.green(bgColor) / 255.0
-            val b = Color.blue(bgColor) / 255.0
-            val luminance = 0.299 * r + 0.587 * g + 0.114 * b
-            return if (luminance > 0.5) Color.BLACK else Color.WHITE
-        }
-
-        /**
-         * In dark mode: reduce brightness and slightly desaturate so the user's chosen
-         * accent colours remain recognisable but don't overpower a dark background.
-         */
-        private fun adaptColorForNightMode(color: Int, context: android.content.Context): Int {
-            val nightMode = context.resources.configuration.uiMode and
-                    Configuration.UI_MODE_NIGHT_MASK
-            if (nightMode != Configuration.UI_MODE_NIGHT_YES) return color
-
-            val hsv = FloatArray(3)
-            Color.colorToHSV(color, hsv)
-            hsv[1] = (hsv[1] * 0.85f).coerceIn(0f, 1f) // slightly desaturate
-            hsv[2] = (hsv[2] * 0.45f).coerceIn(0f, 1f) // significantly darker
-            return Color.HSVToColor(hsv)
         }
     }
 }

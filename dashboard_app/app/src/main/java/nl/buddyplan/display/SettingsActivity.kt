@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import nl.buddyplan.display.data.DataRepository
+import nl.buddyplan.display.ui.ColorPalette
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -439,6 +440,7 @@ class SettingsActivity : AppCompatActivity() {
         val nameText = TextView(this).apply {
             text = user.name
             textSize = 18f
+            setTypeface(nl.buddyplan.display.ui.FontHelper.headingSemiBold(this@SettingsActivity), android.graphics.Typeface.BOLD)
             setTextColor(ContextCompat.getColor(this@SettingsActivity, R.color.text_primary))
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
@@ -463,37 +465,35 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         var selectedSwatch: View? = null
-        val currentColor = userColors[user.id]
+        val currentLabel = userColors[user.id]?.let { ColorPalette.migrateStoredColor(it) }
 
-        AppPreferences.DEFAULT_COLORS.forEach { hex ->
+        ColorPalette.LABELS.forEach { label ->
             val swatch = View(this).apply {
                 val size = dp(36)
                 layoutParams = LinearLayout.LayoutParams(size, size).also { it.setMargins(0, 0, dp(8), 0) }
                 background = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(Color.parseColor(hex))
-                    if (hex == currentColor) {
+                    setColor(ColorPalette.swatchPreviewColor(label))
+                    if (label == currentLabel) {
                         setStroke(dp(3), Color.BLACK)
                     }
                 }
             }
-            if (hex == currentColor) selectedSwatch = swatch
+            if (label == currentLabel) selectedSwatch = swatch
 
             swatch.setOnClickListener {
-                // Remove selection from previous
                 selectedSwatch?.background = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    val prevHex = (selectedSwatch?.tag as? String) ?: hex
-                    setColor(Color.parseColor(prevHex))
+                    val prevLabel = (selectedSwatch?.tag as? String) ?: label
+                    setColor(ColorPalette.swatchPreviewColor(prevLabel))
                 }
-                // Highlight new selection
                 (swatch.background as? GradientDrawable)?.setStroke(dp(3), Color.BLACK)
                 selectedSwatch = swatch
 
-                userColors[user.id] = hex
+                userColors[user.id] = label
                 AppPreferences.setUserColors(this, userColors.toMap())
             }
-            swatch.tag = hex
+            swatch.tag = label
             colorRow.addView(swatch)
         }
 

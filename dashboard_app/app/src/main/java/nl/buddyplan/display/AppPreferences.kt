@@ -3,6 +3,7 @@ package nl.buddyplan.display
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import nl.buddyplan.display.ui.ColorPalette
 
 object AppPreferences {
 
@@ -18,17 +19,7 @@ object AppPreferences {
 
     private val gson = Gson()
 
-    // Default colors with good contrast for both text colors
-    val DEFAULT_COLORS = listOf(
-        "#1E88E5",  // Blauw
-        "#43A047",  // Groen
-        "#E53935",  // Rood
-        "#FB8C00",  // Oranje
-        "#8E24AA",  // Paars
-        "#00ACC1",  // Cyaan
-        "#E91E63",  // Roze
-        "#795548",  // Bruin
-    )
+    val DEFAULT_LABELS = ColorPalette.LABELS
 
     fun getServerUrl(context: Context): String =
         prefs(context).getString(KEY_SERVER_URL, "")?.trimEnd('/') ?: ""
@@ -104,6 +95,7 @@ object AppPreferences {
             val type = object : TypeToken<Map<String, String>>() {}.type
             val strMap: Map<String, String> = gson.fromJson(json, type)
             strMap.mapKeys { it.key.toInt() }
+                .mapValues { (_, value) -> ColorPalette.migrateStoredColor(value) }
         } catch (_: Exception) { emptyMap() }
     }
 
@@ -125,7 +117,7 @@ object AppPreferences {
         var changed = false
         userIds.forEachIndexed { index, id ->
             if (!existing.containsKey(id)) {
-                existing[id] = DEFAULT_COLORS[index % DEFAULT_COLORS.size]
+                existing[id] = DEFAULT_LABELS[index % DEFAULT_LABELS.size]
                 changed = true
             }
         }

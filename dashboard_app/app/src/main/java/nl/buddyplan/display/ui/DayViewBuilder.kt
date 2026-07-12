@@ -1,7 +1,6 @@
 package nl.buddyplan.display.ui
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.view.Gravity
 import android.widget.LinearLayout
@@ -47,6 +46,7 @@ object DayViewBuilder {
                 gravity = Gravity.CENTER
                 setPadding(dp(context, 24), dp(context, 48), dp(context, 24), dp(context, 24))
                 setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                FontHelper.applyBody(this)
             })
             return
         }
@@ -93,9 +93,9 @@ object DayViewBuilder {
 
         val personName = TextView(context).apply {
             text = event.personName
-            textSize = 16f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+            textSize = 18f
+            setTypeface(FontHelper.headingSemiBold(context), Typeface.BOLD)
+            setTextColor(ContextCompat.getColor(context, R.color.text_primary))
             gravity = Gravity.CENTER_VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 dp(context, 120),
@@ -113,7 +113,7 @@ object DayViewBuilder {
         val titleView = TextView(context).apply {
             text = event.item.displayTitle()
             textSize = 22f
-            setTypeface(typeface, Typeface.BOLD)
+            setTypeface(FontHelper.headingBold(context), Typeface.BOLD)
             setTextColor(ContextCompat.getColor(context, R.color.text_primary))
         }
         textColumn.addView(titleView)
@@ -123,13 +123,19 @@ object DayViewBuilder {
                 text = " $suffix"
                 textSize = 14f
                 setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                FontHelper.applyBody(this)
             })
         }
 
         row.addView(textColumn)
 
-        parseColor(event.item.color)?.let { color ->
-            row.setBackgroundColor(Color.argb(24, Color.red(color), Color.green(color), Color.blue(color)))
+        ColorPalette.resolveLabel(event.item.color, event.item.color_label)?.let { label ->
+            val colors = ColorPalette.chipColors(context, label)
+            if (colors != null) {
+                row.background = ColorPalette.chipDrawable(context, label, 12f)
+                personName.setTextColor(colors.second)
+                titleView.setTextColor(colors.second)
+            }
         }
 
         return row
@@ -141,15 +147,6 @@ object DayViewBuilder {
             dp(context, 1),
         )
         setBackgroundColor(ContextCompat.getColor(context, R.color.divider))
-    }
-
-    private fun parseColor(hex: String?): Int? {
-        if (hex.isNullOrBlank() || !hex.startsWith("#")) return null
-        return try {
-            Color.parseColor(hex)
-        } catch (_: IllegalArgumentException) {
-            null
-        }
     }
 
     private fun dp(context: Context, value: Int): Int =

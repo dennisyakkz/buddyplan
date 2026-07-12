@@ -1,12 +1,12 @@
 package nl.buddyplan.display.ui
 
 import android.content.Context
-import android.content.res.Configuration
-import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import nl.buddyplan.display.R
 import nl.buddyplan.display.data.CalendarItem
 import nl.buddyplan.display.data.PersonCalendar
@@ -58,9 +58,9 @@ object CalendarViewBuilder {
             dayDateView.text = weekDay.date
 
             if (isToday) {
-                val white = context.resources.getColor(R.color.calendar_today_header_text)
-                dayNameView.setTextColor(white)
-                dayDateView.setTextColor(white)
+                val todayText = ContextCompat.getColor(context, R.color.calendar_today_header_text)
+                dayNameView.setTextColor(todayText)
+                dayDateView.setTextColor(todayText)
             }
 
             if (onDayHeaderClick != null) {
@@ -89,7 +89,6 @@ object CalendarViewBuilder {
             val isToday = todayIso.isNotEmpty() && weekDay.iso == todayIso
             val events = person.eventsForDay(dayIndex)
 
-            // Vertical container for the day cell
             val cell = LinearLayout(context).apply {
                 layoutParams = createCellParams(DAY_COLUMN_WEIGHT)
                 orientation = LinearLayout.VERTICAL
@@ -117,46 +116,30 @@ object CalendarViewBuilder {
     }
 
     private fun createChip(context: Context, item: CalendarItem): TextView {
-        val bgColor = parseColor(item.color)
+        val label = ColorPalette.resolveLabel(item.color, item.color_label)
         return TextView(context).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).also { it.setMargins(0, 0, 0, dp(context, 2)) }
-            text = "• ${item.text}"
+            text = item.text
             textSize = 14f
-            setPadding(dp(context, 4), dp(context, 2), dp(context, 4), dp(context, 2))
+            setPadding(dp(context, 6), dp(context, 4), dp(context, 6), dp(context, 4))
+            FontHelper.applyBody(this)
 
-            if (bgColor != null) {
-                setBackgroundColor(bgColor)
-                setTextColor(contrastColor(bgColor))
+            if (label != null) {
+                val colors = ColorPalette.chipColors(context, label)
+                if (colors != null) {
+                    background = ColorPalette.chipDrawable(context, label, 12f)
+                    setTextColor(colors.second)
+                } else {
+                    setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                }
             } else {
-                val nightMode = context.resources.configuration.uiMode and
-                        Configuration.UI_MODE_NIGHT_MASK
-                val textColor = if (nightMode == Configuration.UI_MODE_NIGHT_YES)
-                    Color.WHITE
-                else
-                    context.resources.getColor(R.color.text_secondary)
-                setTextColor(textColor)
+                text = "• ${item.text}"
+                setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
             }
         }
-    }
-
-    private fun parseColor(hex: String?): Int? {
-        if (hex.isNullOrBlank() || !hex.startsWith("#")) return null
-        return try {
-            Color.parseColor(hex)
-        } catch (_: IllegalArgumentException) {
-            null
-        }
-    }
-
-    private fun contrastColor(bgColor: Int): Int {
-        val r = Color.red(bgColor) / 255.0
-        val g = Color.green(bgColor) / 255.0
-        val b = Color.blue(bgColor) / 255.0
-        val luminance = 0.299 * r + 0.587 * g + 0.114 * b
-        return if (luminance > 0.5) Color.BLACK else Color.WHITE
     }
 
     private fun createRow(context: Context): LinearLayout {
@@ -179,6 +162,8 @@ object CalendarViewBuilder {
             if (isHeader) {
                 setBackgroundResource(R.drawable.calendar_header_background)
                 textSize = 16f
+                FontHelper.applyHeading(this, semiBold = true)
+                setTextColor(ContextCompat.getColor(context, R.color.text_primary))
             } else {
                 setBackgroundResource(R.drawable.calendar_name_background)
                 setTextAppearance(context, R.style.CalendarPersonName)
@@ -197,7 +182,7 @@ object CalendarViewBuilder {
     private fun selectableForeground(context: Context): android.graphics.drawable.Drawable? {
         val typedValue = android.util.TypedValue()
         return if (context.theme.resolveAttribute(android.R.attr.selectableItemBackground, typedValue, true)) {
-            androidx.core.content.ContextCompat.getDrawable(context, typedValue.resourceId)
+            ContextCompat.getDrawable(context, typedValue.resourceId)
         } else {
             null
         }

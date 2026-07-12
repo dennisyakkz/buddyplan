@@ -24,6 +24,7 @@ data class WeekDay(
 data class CalendarItem(
     val text: String = "",
     val color: String? = null,
+    val color_label: String? = null,
     val title: String? = null,
     val start_time: String? = null,
     val end_time: String? = null,
