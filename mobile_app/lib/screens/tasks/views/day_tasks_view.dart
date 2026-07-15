@@ -66,7 +66,7 @@ class DayTasksView extends StatelessWidget {
                     itemCount: tasks.length,
                     itemBuilder: (context, i) => TaskTile(
                       task: tasks[i],
-                      personColor: personMap[tasks[i].personId]?.color,
+                      profileColor: personMap[tasks[i].personId]?.profileColor,
                       canComplete: manageableIds.contains(tasks[i].personId),
                       onComplete: () => onComplete(tasks[i]),
                       onOpen: () => onOpen(tasks[i]),

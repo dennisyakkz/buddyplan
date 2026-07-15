@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/person.dart';
 import '../providers/persons_provider.dart';
-import 'hex_color_picker.dart';
+import '../ui/color_palette.dart';
 
 class PersonSettingsRow extends ConsumerWidget {
   final Person person;
@@ -14,22 +14,12 @@ class PersonSettingsRow extends ConsumerWidget {
     this.showDivider = true,
   });
 
-  Future<void> _pickColor(BuildContext context, WidgetRef ref) async {
-    final hex = await showHexColorPickerDialog(
-      context,
-      initialColor: person.color,
-      title: 'Kleur voor ${person.isMe ? 'Mijn kalender' : person.name}',
-    );
-    if (hex != null) {
-      await ref.read(personsProvider.notifier).setColor(person.id, hex);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(personsProvider.notifier);
     final enabled = notifier.isEnabled(person.id);
     final label = person.isMe ? 'Mijn kalender' : person.name;
+    final dotColor = ColorPalette.dotColor(context, person.profileColor);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -38,11 +28,15 @@ class PersonSettingsRow extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
           child: Row(
             children: [
-              ColorDotButton(
-                color: person.color,
-                onTap: () => _pickColor(context, ref),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   label,

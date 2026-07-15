@@ -290,6 +290,15 @@ body {
     word-break: break-word;
 }
 
+.cal-chip.agenda-badge-rood { background: #FED7D7; color: #9B2C2C; }
+.cal-chip.agenda-badge-oranje { background: #FEEBC8; color: #9C4221; }
+.cal-chip.agenda-badge-geel { background: #FEFCBF; color: #744210; }
+.cal-chip.agenda-badge-groen { background: #C6F6D5; color: #22543D; }
+.cal-chip.agenda-badge-blauw { background: #EBF8FF; color: #2B6CB0; }
+.cal-chip.agenda-badge-teal { background: #E6FFFA; color: #234E52; }
+.cal-chip.agenda-badge-paars { background: #EBF4FF; color: #4C51BF; }
+.cal-chip.agenda-badge-bruin { background: #EDF2F7; color: #4A5568; }
+
 .todo-tile {
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -465,6 +474,15 @@ body {
     text-overflow: ellipsis;
 }
 
+.month-cell .mini-item.agenda-badge-rood { background: #FED7D7; color: #9B2C2C; }
+.month-cell .mini-item.agenda-badge-oranje { background: #FEEBC8; color: #9C4221; }
+.month-cell .mini-item.agenda-badge-geel { background: #FEFCBF; color: #744210; }
+.month-cell .mini-item.agenda-badge-groen { background: #C6F6D5; color: #22543D; }
+.month-cell .mini-item.agenda-badge-blauw { background: #EBF8FF; color: #2B6CB0; }
+.month-cell .mini-item.agenda-badge-teal { background: #E6FFFA; color: #234E52; }
+.month-cell .mini-item.agenda-badge-paars { background: #EBF4FF; color: #4C51BF; }
+.month-cell .mini-item.agenda-badge-bruin { background: #EDF2F7; color: #4A5568; }
+
 /* Task cards */
 .task-card {
     display: flex;
@@ -556,6 +574,15 @@ body {
     justify-content: space-between;
     align-items: center;
 }
+
+.agenda-card.agenda-badge-rood { background: #FED7D7; color: #9B2C2C; border-color: #FEB2B2; }
+.agenda-card.agenda-badge-oranje { background: #FEEBC8; color: #9C4221; border-color: #FBD38D; }
+.agenda-card.agenda-badge-geel { background: #FEFCBF; color: #744210; border-color: #FAF089; }
+.agenda-card.agenda-badge-groen { background: #C6F6D5; color: #22543D; border-color: #9AE6B4; }
+.agenda-card.agenda-badge-blauw { background: #EBF8FF; color: #2B6CB0; border-color: #BEE3F8; }
+.agenda-card.agenda-badge-teal { background: #E6FFFA; color: #234E52; border-color: #B2F5EA; }
+.agenda-card.agenda-badge-paars { background: #EBF4FF; color: #4C51BF; border-color: #C3DAFE; }
+.agenda-card.agenda-badge-bruin { background: #EDF2F7; color: #4A5568; border-color: #CBD5E0; }
 
 .agenda-card .btn-small {
     padding: 2px 6px;

@@ -8,6 +8,7 @@ import 'data/sync_worker.dart';
 import 'providers/auth_provider.dart';
 import 'screens/main_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'ui/buddyplan_theme.dart';
 import 'widgets/session_expired_listener.dart';
 
 void main() async {
@@ -36,10 +37,9 @@ class BuddyplanApp extends ConsumerWidget {
       supportedLocales: const [
         Locale('nl', 'NL'),
       ],
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF1565C0),
-        useMaterial3: true,
-      ),
+      theme: BuddyplanTheme.light(),
+      darkTheme: BuddyplanTheme.dark(),
+      themeMode: ThemeMode.system,
       home: const SessionExpiredListener(child: _AppRouter()),
     );
   }

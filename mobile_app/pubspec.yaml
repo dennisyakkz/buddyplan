@@ -17,7 +17,8 @@ dependencies:
   shared_preferences: ^2.2.3
   table_calendar: ^3.1.2
   intl: ^0.20.2
-  flutter_colorpicker: ^1.1.0
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.10+1
   drift: ^2.18.0
   drift_flutter: ^0.1.0
   sqlite3_flutter_libs: ^0.5.24
@@ -41,6 +42,9 @@ flutter_launcher_icons:
   ios: true
   image_path: ../app_icon.png
   min_sdk_android: 23
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/branding/

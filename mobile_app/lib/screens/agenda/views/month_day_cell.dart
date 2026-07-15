@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../models/calendar_event.dart';
 import '../../../models/person.dart';
-import '../../../ui/task_color_utils.dart';
+import '../../../ui/buddyplan_colors.dart';
+import '../../../ui/color_palette.dart';
 
 const _maxVisibleEvents = 3;
 
@@ -66,7 +67,9 @@ class MonthDayCell extends StatelessWidget {
                   for (final event in visible)
                     _MonthEventChip(
                       event: event,
-                      color: _eventColor(context, event, isOutside),
+                      profileColor:
+                          personMap[event.personId]?.profileColor,
+                      isOutside: isOutside,
                       onTap: () => onEventTap(event),
                     ),
                   if (overflow > 0)
@@ -104,8 +107,8 @@ class MonthDayCell extends StatelessWidget {
         width: 24,
         height: 24,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
+        decoration: const BoxDecoration(
+          color: BuddyplanColors.teal,
           shape: BoxShape.circle,
         ),
         child: Text(
@@ -126,54 +129,52 @@ class MonthDayCell extends StatelessWidget {
         fontSize: 12,
         height: 1,
         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-        color: isOutside ? muted : Theme.of(context).colorScheme.onSurface,
+        color: isOutside ? muted : BuddyplanColors.slateDark,
       ),
     );
-  }
-
-  Color _eventColor(BuildContext context, CalendarEvent event, bool isOutside) {
-    final base = personMap[event.personId]?.color ??
-        Theme.of(context).colorScheme.primary;
-    final adapted = adaptTaskColorForTheme(base, context);
-    return isOutside ? adapted.withValues(alpha: 0.55) : adapted;
   }
 }
 
 class _MonthEventChip extends StatelessWidget {
   final CalendarEvent event;
-  final Color color;
+  final String? profileColor;
+  final bool isOutside;
   final VoidCallback onTap;
 
   const _MonthEventChip({
     required this.event,
-    required this.color,
+    required this.profileColor,
+    required this.isOutside,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final textColor = contrastColorForBackground(color);
+    final chip = ColorPalette.chipStyle(context, profileColor);
+    final bg = isOutside
+        ? chip.background.withValues(alpha: 0.55)
+        : chip.background;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-      margin: const EdgeInsets.only(bottom: 1),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(3),
-      ),
-      child: Text(
-        event.displayText,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 10,
-          height: 1.2,
-          fontWeight: FontWeight.w500,
+        margin: const EdgeInsets.only(bottom: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(6),
         ),
-      ),
+        child: Text(
+          event.displayText,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: chip.text,
+            fontSize: 10,
+            height: 1.2,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     );
   }

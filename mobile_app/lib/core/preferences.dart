@@ -6,15 +6,8 @@ const _keyServerUrl = 'server_url';
 const _keyAuthToken = 'auth_token';
 const _keyLoggedInName = 'logged_in_name';
 const _keyDeviceId = 'device_id';
-const _keyPersonColors = 'person_colors';
 const _keyPersonEnabled = 'person_enabled';
-const _keyTaskPersonColors = 'task_person_colors';
 const _keyTaskPersonEnabled = 'task_person_enabled';
-
-const List<String> defaultColors = [
-  '#1E88E5', '#43A047', '#E53935', '#FB8C00',
-  '#8E24AA', '#00ACC1', '#E91E63', '#795548',
-];
 
 class AppPreferences {
   static SharedPreferences? _prefs;
@@ -76,17 +69,6 @@ class AppPreferences {
         '${bytes.sublist(10, 16).map(hex).join()}';
   }
 
-  static Map<int, String> get personColors {
-    final raw = _p.getString(_keyPersonColors);
-    if (raw == null) return {};
-    final map = jsonDecode(raw) as Map<String, dynamic>;
-    return map.map((k, v) => MapEntry(int.parse(k), v as String));
-  }
-
-  static Future<void> setPersonColors(Map<int, String> colors) =>
-      _p.setString(_keyPersonColors,
-          jsonEncode(colors.map((k, v) => MapEntry(k.toString(), v))));
-
   static Map<int, bool> get personEnabled {
     final raw = _p.getString(_keyPersonEnabled);
     if (raw == null) return {};
@@ -100,32 +82,6 @@ class AppPreferences {
 
   static bool isPersonEnabled(int id) => personEnabled[id] ?? true;
 
-  static String colorForPerson(int id, int index) =>
-      personColors[id] ?? defaultColors[index % defaultColors.length];
-
-  static Future<void> ensureDefaultColors(List<MapEntry<int, int>> indexed) async {
-    final existing = personColors;
-    var changed = false;
-    for (final e in indexed) {
-      if (!existing.containsKey(e.key)) {
-        existing[e.key] = defaultColors[e.value % defaultColors.length];
-        changed = true;
-      }
-    }
-    if (changed) await setPersonColors(existing);
-  }
-
-  static Map<int, String> get taskPersonColors {
-    final raw = _p.getString(_keyTaskPersonColors);
-    if (raw == null) return {};
-    final map = jsonDecode(raw) as Map<String, dynamic>;
-    return map.map((k, v) => MapEntry(int.parse(k), v as String));
-  }
-
-  static Future<void> setTaskPersonColors(Map<int, String> colors) =>
-      _p.setString(_keyTaskPersonColors,
-          jsonEncode(colors.map((k, v) => MapEntry(k.toString(), v))));
-
   static Map<int, bool> get taskPersonEnabled {
     final raw = _p.getString(_keyTaskPersonEnabled);
     if (raw == null) return {};
@@ -138,9 +94,6 @@ class AppPreferences {
           jsonEncode(enabled.map((k, v) => MapEntry(k.toString(), v))));
 
   static bool isTaskPersonEnabled(int id) => taskPersonEnabled[id] ?? true;
-
-  static String colorForTaskPerson(int id, int index) =>
-      taskPersonColors[id] ?? defaultColors[index % defaultColors.length];
 
   static const _keyCalendarCache = 'calendar_cache_json';
   static const _keyTasksCache = 'tasks_cache_json';
@@ -158,18 +111,5 @@ class AppPreferences {
   static Future<void> clearDataCache() async {
     await _p.remove(_keyCalendarCache);
     await _p.remove(_keyTasksCache);
-  }
-
-  static Future<void> ensureDefaultTaskColors(
-      List<MapEntry<int, int>> indexed) async {
-    final existing = taskPersonColors;
-    var changed = false;
-    for (final e in indexed) {
-      if (!existing.containsKey(e.key)) {
-        existing[e.key] = defaultColors[e.value % defaultColors.length];
-        changed = true;
-      }
-    }
-    if (changed) await setTaskPersonColors(existing);
   }
 }

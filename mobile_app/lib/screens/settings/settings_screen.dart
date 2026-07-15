@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../widgets/buddyplan_logo.dart';
 import '../../core/preferences.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/persons_provider.dart';
 import '../../providers/task_users_provider.dart';
+import '../../ui/buddyplan_colors.dart';
 import '../../widgets/person_settings_row.dart';
 import '../../widgets/task_user_settings_row.dart';
 
@@ -46,47 +48,65 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final auth = ref.watch(authProvider);
     final taskUsersState = ref.watch(taskUsersProvider);
     final personsState = ref.watch(personsProvider);
+    final isLoginOnly = !auth.isLoggedIn;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Instellingen')),
+      appBar: isLoginOnly
+          ? null
+          : AppBar(title: const Text('Instellingen')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
+          if (isLoginOnly) ...[
+            const SizedBox(height: 24),
+            Center(
+              child: const BuddyplanLogo(
+                size: 120,
+                variant: BuddyplanLogoVariant.color,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Inloggen',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 32),
+          ],
           Text('Server',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold)),
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
             controller: _urlCtrl,
             decoration: const InputDecoration(
               labelText: 'Server URL',
               hintText: 'https://mijnapp.nl',
-              border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.url,
             autocorrect: false,
           ),
           const SizedBox(height: 24),
-          Text('Account',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          if (auth.isLoggedIn) ...[
+          if (!isLoginOnly) ...[
+            Text('Account',
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.account_circle, color: Colors.green),
+              leading: Icon(Icons.account_circle,
+                  color: BuddyplanColors.teal),
               title: Text('Ingelogd als: ${auth.name ?? ''}'),
               trailing: TextButton(
                 onPressed: () => ref.read(authProvider.notifier).logout(),
                 child: const Text('Uitloggen'),
               ),
             ),
-          ] else ...[
+            const SizedBox(height: 24),
+          ],
+          if (!auth.isLoggedIn) ...[
             TextField(
               controller: _userCtrl,
               decoration: const InputDecoration(
                 labelText: 'Gebruikersnaam',
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
@@ -94,7 +114,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               controller: _passCtrl,
               decoration: const InputDecoration(
                 labelText: 'Wachtwoord',
-                border: OutlineInputBorder(),
               ),
               obscureText: true,
             ),
@@ -120,13 +139,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ],
           if (auth.isLoggedIn) ...[
-            const SizedBox(height: 24),
             Text('Agenda',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold)),
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
-              'Kies welke kalenders zichtbaar zijn en hun kleur.',
+              'Kies welke kalenders zichtbaar zijn.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
@@ -152,11 +169,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             const SizedBox(height: 24),
             Text('Taken',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold)),
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
-              'Kies welke gebruikers zichtbaar zijn en hun kleur.',
+              'Kies welke gebruikers zichtbaar zijn.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),

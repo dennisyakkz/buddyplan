@@ -1,21 +1,28 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/api_client.dart';
 import '../core/preferences.dart';
-import '../models/person.dart';
 
 class TaskUser {
   final int id;
   final String name;
-  final Color color;
+  final String profileColor;
   final bool canManageTasks;
 
   const TaskUser({
     required this.id,
     required this.name,
-    required this.color,
+    required this.profileColor,
     this.canManageTasks = false,
   });
+
+  factory TaskUser.fromJson(Map<String, dynamic> json) {
+    return TaskUser(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      profileColor: (json['profile_color'] as String?) ?? 'teal',
+      canManageTasks: (json['can_manage_tasks'] as bool?) ?? false,
+    );
+  }
 }
 
 class TaskUsersState {
@@ -38,26 +45,9 @@ class TaskUsersNotifier extends Notifier<TaskUsersState> {
     state = const TaskUsersState(isLoading: true);
     try {
       final raw = await ApiClient.instance.fetchAppUsers();
-      final indexed = raw
-          .asMap()
-          .entries
-          .map((e) => MapEntry(
-              (e.value as Map<String, dynamic>)['id'] as int, e.key))
+      final users = raw
+          .map((e) => TaskUser.fromJson(e as Map<String, dynamic>))
           .toList();
-      await AppPreferences.ensureDefaultTaskColors(indexed);
-      final colors = AppPreferences.taskPersonColors;
-      final users = raw.asMap().entries.map((e) {
-        final json = e.value as Map<String, dynamic>;
-        final id = json['id'] as int;
-        final hex = colors[id] ?? AppPreferences.colorForTaskPerson(id, e.key);
-        return TaskUser(
-          id: id,
-          name: json['name'] as String,
-          color: Person.fromJson({'id': id, 'name': json['name'], 'color': hex})
-              .color,
-          canManageTasks: (json['can_manage_tasks'] as bool?) ?? false,
-        );
-      }).toList();
       state = TaskUsersState(users: users);
     } catch (e) {
       state = TaskUsersState(error: e.toString());
@@ -71,25 +61,6 @@ class TaskUsersNotifier extends Notifier<TaskUsersState> {
     map[personId] = value;
     await AppPreferences.setTaskPersonEnabled(map);
     state = TaskUsersState(users: state.users);
-  }
-
-  Future<void> setColor(int personId, String hex) async {
-    final map = Map<int, String>.from(AppPreferences.taskPersonColors);
-    map[personId] = hex;
-    await AppPreferences.setTaskPersonColors(map);
-    final h = hex.replaceFirst('#', '');
-    final c = Color(int.parse('FF$h', radix: 16));
-    final updated = state.users
-        .map((u) => u.id == personId
-            ? TaskUser(
-                id: u.id,
-                name: u.name,
-                color: c,
-                canManageTasks: u.canManageTasks,
-              )
-            : u)
-        .toList();
-    state = TaskUsersState(users: updated);
   }
 }
 

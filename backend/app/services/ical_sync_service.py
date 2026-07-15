@@ -39,11 +39,12 @@ def sync_all_feeds(db: Session) -> None:
                 logger.exception("Feed sync failed for feed %s: %s", feed.id, exc)
 
 
-def sync_feed(db: Session, feed_id: int) -> int:
+def sync_feed(db: Session, feed_id: int, *, force_full: bool = False) -> int:
     """Fetch and import one iCal feed. Returns the number of imported events.
 
-    Uses ETag / Last-Modified for conditional requests; returns 0 immediately
-    when the server signals the content is unchanged (HTTP 304).
+    Uses ETag / Last-Modified for conditional requests when items already exist.
+    A 304 or empty body on a conditional fetch keeps existing items.
+    Pass force_full=True for manual sync to always fetch the full calendar.
     Acquires a global lock so only one feed syncs at a time.
     """
     feed = db.query(PersonCalendarFeed).filter(PersonCalendarFeed.id == feed_id).first()
@@ -52,12 +53,19 @@ def sync_feed(db: Session, feed_id: int) -> int:
 
     _sync_lock.acquire()
     try:
-        return _do_sync(db, feed)
+        return _do_sync(db, feed, force_full=force_full)
     finally:
         _sync_lock.release()
 
 
-def _do_sync(db: Session, feed: PersonCalendarFeed) -> int:
+def _touch_feed_sync(db: Session, feed: PersonCalendarFeed) -> None:
+    feed.last_synced_at = utcnow()
+    feed.last_error = None
+    feed.updated_at = utcnow()
+    db.commit()
+
+
+def _do_sync(db: Session, feed: PersonCalendarFeed, *, force_full: bool = False) -> int:
     from app.services.ical_validation import fetch_ical_response
 
     existing_count = (
@@ -68,24 +76,31 @@ def _do_sync(db: Session, feed: PersonCalendarFeed) -> int:
         )
         .count()
     )
+    use_conditional = existing_count > 0 and not force_full
 
     try:
         response = fetch_ical_response(
             feed.url,
-            etag=feed.etag if existing_count else None,
-            last_modified=feed.last_modified if existing_count else None,
-            force_full=existing_count == 0,
+            etag=feed.etag if use_conditional else None,
+            last_modified=feed.last_modified if use_conditional else None,
+            force_full=not use_conditional,
         )
 
-        if response.status_code == 304 and not response.content:
-            if existing_count > 0:
-                feed.last_synced_at = utcnow()
-                feed.last_error = None
-                feed.updated_at = utcnow()
-                db.commit()
-                logger.debug("Feed %s: 304 Not Modified, kept %s items", feed.id, existing_count)
-                return 0
-            response = fetch_ical_response(feed.url, force_full=True)
+        if use_conditional and response.status_code == 304:
+            _touch_feed_sync(db, feed)
+            logger.debug(
+                "Feed %s: 304 Not Modified, kept %s items", feed.id, existing_count
+            )
+            return 0
+
+        if use_conditional and not response.content:
+            _touch_feed_sync(db, feed)
+            logger.debug(
+                "Feed %s: empty conditional response, kept %s items",
+                feed.id,
+                existing_count,
+            )
+            return 0
 
         if response.status_code == 304 and not response.content:
             raise ValueError(
@@ -94,6 +109,27 @@ def _do_sync(db: Session, feed: PersonCalendarFeed) -> int:
 
         response.raise_for_status()
 
+        if not response.content:
+            if existing_count > 0:
+                _touch_feed_sync(db, feed)
+                logger.warning(
+                    "Feed %s: empty full response, kept %s items", feed.id, existing_count
+                )
+                return 0
+            raise ValueError("Agenda-server gaf geen data terug. Probeer later opnieuw.")
+
+        calendar = Calendar.from_ical(response.content)
+        new_items = _items_from_calendar(feed, calendar)
+
+        if use_conditional and len(new_items) == 0:
+            _touch_feed_sync(db, feed)
+            logger.warning(
+                "Feed %s: conditional sync parsed 0 events, kept %s items",
+                feed.id,
+                existing_count,
+            )
+            return 0
+
         new_etag = response.headers.get("ETag")
         new_last_modified = response.headers.get("Last-Modified")
         if new_etag is not None:
@@ -101,8 +137,7 @@ def _do_sync(db: Session, feed: PersonCalendarFeed) -> int:
         if new_last_modified is not None:
             feed.last_modified = new_last_modified
 
-        calendar = Calendar.from_ical(response.content)
-        imported = _import_calendar(db, feed, calendar)
+        imported = _replace_feed_items(db, feed, new_items)
 
         feed.last_synced_at = utcnow()
         feed.last_error = None
@@ -126,7 +161,8 @@ def sync_feed_from_content(db: Session, feed_id: int, content: bytes) -> int:
     _sync_lock.acquire()
     try:
         calendar = Calendar.from_ical(content)
-        imported = _import_calendar(db, feed, calendar)
+        new_items = _items_from_calendar(feed, calendar)
+        imported = _replace_feed_items(db, feed, new_items)
         feed.last_synced_at = utcnow()
         feed.last_error = None
         feed.updated_at = utcnow()
@@ -141,22 +177,33 @@ def sync_feed_from_content(db: Session, feed_id: int, content: bytes) -> int:
         _sync_lock.release()
 
 
-def _import_calendar(db: Session, feed: PersonCalendarFeed, calendar: Calendar) -> int:
-    db.query(AgendaItem).filter(
-        AgendaItem.feed_id == feed.id,
-        AgendaItem.source == "ical",
-    ).delete(synchronize_session=False)
-
-    count = 0
+def _items_from_calendar(feed: PersonCalendarFeed, calendar: Calendar) -> list[AgendaItem]:
+    items: list[AgendaItem] = []
     for component in calendar.walk():
         if component.name != "VEVENT":
             continue
         item = _event_to_agenda_item(feed, component)
         if item:
-            db.add(item)
-            count += 1
+            items.append(item)
+    return items
+
+
+def _replace_feed_items(
+    db: Session, feed: PersonCalendarFeed, items: list[AgendaItem]
+) -> int:
+    db.query(AgendaItem).filter(
+        AgendaItem.feed_id == feed.id,
+        AgendaItem.source == "ical",
+    ).delete(synchronize_session=False)
+
+    for item in items:
+        db.add(item)
     db.flush()
-    return count
+    return len(items)
+
+
+def _import_calendar(db: Session, feed: PersonCalendarFeed, calendar: Calendar) -> int:
+    return _replace_feed_items(db, feed, _items_from_calendar(feed, calendar))
 
 
 def _extract_time(dt_value) -> str | None:

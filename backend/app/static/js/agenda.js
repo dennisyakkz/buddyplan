@@ -11,11 +11,44 @@ async function loadAgendaForDate(date) {
     return api(`/api/agenda?person_id=${currentPersonId}&date=${toISODate(date)}`);
 }
 
+function formatAgendaTimeRange(item) {
+    if (!item.start_time && !item.end_time) return "";
+    if (item.start_time && item.end_time) return `${item.start_time}–${item.end_time} `;
+    return `${item.start_time || item.end_time} `;
+}
+
+function readAgendaTimeFields(form) {
+    const start = formFieldValue(form, "start_time");
+    const end = formFieldValue(form, "end_time");
+    return {
+        start_time: start || null,
+        end_time: end || null,
+    };
+}
+
+function agendaItemColorClass(item) {
+    if (item.color_label && typeof badgeClasses === "function") {
+        const match = badgeClasses(item.color_label).match(/agenda-badge-\w+/);
+        if (match) return `agenda-card ${match[0]}`;
+    }
+    return "agenda-card";
+}
+
+function miniItemColorClass(item) {
+    if (item.color_label && typeof badgeClasses === "function") {
+        const match = badgeClasses(item.color_label).match(/agenda-badge-\w+/);
+        if (match) return `mini-item ${match[0]}`;
+    }
+    return "mini-item";
+}
+
 function renderAgendaCard(item) {
     const disabled = canManage ? "" : "disabled-actions";
+    const timePrefix = formatAgendaTimeRange(item);
+    const cardClass = agendaItemColorClass(item);
     return `
-        <div class="agenda-card ${disabled}" data-id="${item.id}">
-            <span>${escapeHtml(item.title)}</span>
+        <div class="${cardClass} ${disabled}" data-id="${item.id}">
+            <span>${escapeHtml(timePrefix)}${escapeHtml(item.title)}</span>
             <div>
                 <button class="btn-small edit-agenda" data-id="${item.id}" ${canManage ? "" : "disabled"}>✎</button>
                 <button class="btn-small delete-agenda" data-id="${item.id}" ${canManage ? "" : "disabled"}>✕</button>
@@ -37,7 +70,7 @@ async function renderDayContent(date) {
             ? `<div class="add-zone" data-date="${toISODate(date)}">+ Item toevoegen</div>`
             : "")
         : items.slice(0, 3).map(i =>
-            `<div class="mini-item">${escapeHtml(i.title)}</div>`
+            `<div class="${miniItemColorClass(i)}">${escapeHtml(formatAgendaTimeRange(i))}${escapeHtml(i.title)}</div>`
         ).join("");
     return cards + addBtn;
 }
@@ -46,6 +79,8 @@ function showAgendaForm(item = null, defaultDate = null) {
     const isEdit = !!item;
     const anchorDate = item?.anchor_date || defaultDate || toISODate(new Date());
     const safeTitle = item ? escapeHtml(item.title) : "";
+    const safeStartTime = item?.start_time ? escapeHtml(item.start_time) : "";
+    const safeEndTime = item?.end_time ? escapeHtml(item.end_time) : "";
     showModal(`
         <h2>${isEdit ? "Agenda-item bewerken" : "Nieuw agenda-item"}</h2>
         <form id="agenda-form">
@@ -57,6 +92,16 @@ function showAgendaForm(item = null, defaultDate = null) {
                 <label for="agenda-title">Titel</label>
                 <input type="text" id="agenda-title" name="title" required maxlength="200"
                     value="${safeTitle}">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="agenda-start-time">Starttijd</label>
+                    <input type="time" id="agenda-start-time" name="start_time" value="${safeStartTime}">
+                </div>
+                <div class="form-group">
+                    <label for="agenda-end-time">Eindtijd</label>
+                    <input type="time" id="agenda-end-time" name="end_time" value="${safeEndTime}">
+                </div>
             </div>
             ${repeatFieldsHtml(item || { repeat_type: "once" })}
             <div class="modal-actions">
@@ -74,6 +119,7 @@ function showAgendaForm(item = null, defaultDate = null) {
         const payload = {
             title: formFieldValue(form, "title"),
             anchor_date: formFieldValue(form, "anchor_date"),
+            ...readAgendaTimeFields(form),
             ...readRepeatFields(form),
         };
 

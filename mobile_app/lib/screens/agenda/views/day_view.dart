@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../models/calendar_event.dart';
 import '../../../models/person.dart';
+import '../../../ui/buddyplan_colors.dart';
+import '../../../ui/color_palette.dart';
 import '../../../widgets/outlook_refresh_indicator.dart';
 import '../../../widgets/swipe_nav_detector.dart';
 
@@ -41,74 +43,86 @@ class DayView extends StatelessWidget {
       onSwipeToPrevious: onPrev,
       onSwipeToNext: onNext,
       child: Column(
-      children: [
-        Row(
-          children: [
-            IconButton(
-                onPressed: onPrev, icon: const Icon(Icons.chevron_left)),
-            Expanded(
-              child: Text(dayFmt.format(day),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            IconButton(
-                onPressed: onNext, icon: const Icon(Icons.chevron_right)),
-          ],
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: OutlookRefreshIndicator(
-            onRefresh: onRefresh,
-            child: dayEvents.isEmpty
-                ? ListView(
-                    physics: alwaysScrollable,
-                    children: const [
-                      SizedBox(height: 120),
-                      Center(child: Text('Geen items')),
-                    ],
-                  )
-                : ListView.separated(
-                    physics: alwaysScrollable,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: dayEvents.length,
-                    separatorBuilder: (_, __) =>
-                        const Divider(height: 1, indent: 72),
-                    itemBuilder: (context, i) {
-                      final e = dayEvents[i];
-                      final person = personMap[e.personId];
-                      return ListTile(
-                        onTap: () => onEventTap(e),
-                        leading: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 48,
-                              color: person?.color ??
-                                  Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 40,
-                              child: Text(
-                                e.startTime ?? '',
-                                style: const TextStyle(fontSize: 12),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                        title: Text(e.title),
-                        subtitle: e.endTime != null
-                            ? Text('tot ${e.endTime}',
-                                style: const TextStyle(fontSize: 12))
-                            : null,
-                      );
-                    },
-                  ),
+        children: [
+          Row(
+            children: [
+              IconButton(
+                  onPressed: onPrev, icon: const Icon(Icons.chevron_left)),
+              Expanded(
+                child: Text(dayFmt.format(day),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              IconButton(
+                  onPressed: onNext, icon: const Icon(Icons.chevron_right)),
+            ],
           ),
-        ),
-      ],
+          const Divider(height: 1),
+          Expanded(
+            child: OutlookRefreshIndicator(
+              onRefresh: onRefresh,
+              child: dayEvents.isEmpty
+                  ? ListView(
+                      physics: alwaysScrollable,
+                      children: const [
+                        SizedBox(height: 120),
+                        Center(child: Text('Geen items')),
+                      ],
+                    )
+                  : ListView.separated(
+                      physics: alwaysScrollable,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: dayEvents.length,
+                      separatorBuilder: (_, __) =>
+                          const Divider(height: 1, indent: 72),
+                      itemBuilder: (context, i) {
+                        final e = dayEvents[i];
+                        final person = personMap[e.personId];
+                        final chip =
+                            ColorPalette.chipStyle(context, person?.profileColor);
+                        return ListTile(
+                          onTap: () => onEventTap(e),
+                          leading: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: chip.text,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 40,
+                                child: Text(
+                                  e.startTime ?? '',
+                                  style: const TextStyle(fontSize: 12),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                          title: Text(
+                            e.title,
+                            style: TextStyle(color: chip.text),
+                          ),
+                          subtitle: e.endTime != null
+                              ? Text('tot ${e.endTime}',
+                                  style: const TextStyle(fontSize: 12))
+                              : null,
+                          tileColor: chip.background,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                BuddyplanColors.borderRadius),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

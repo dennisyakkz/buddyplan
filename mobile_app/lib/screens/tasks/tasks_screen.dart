@@ -80,7 +80,12 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     final taskUsersNotifier = ref.read(taskUsersProvider.notifier);
     final visiblePersons = taskUsersState.users
         .where((u) => taskUsersNotifier.isEnabled(u.id))
-        .map((u) => Person(id: u.id, name: u.name, isMe: false, color: u.color))
+        .map((u) => Person(
+              id: u.id,
+              name: u.name,
+              isMe: false,
+              profileColor: u.profileColor,
+            ))
         .toList();
     final enabledIds = visiblePersons.map((p) => p.id).toSet();
 

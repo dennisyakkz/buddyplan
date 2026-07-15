@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../models/task_item.dart';
 import '../../../models/person.dart';
+import '../../../ui/buddyplan_colors.dart';
 import '../../../widgets/outlook_refresh_indicator.dart';
 import '../../../widgets/swipe_nav_detector.dart';
 import '../../../widgets/task_tile.dart';
@@ -75,7 +76,7 @@ class WeekTasksView extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: isToday
-                              ? Theme.of(context).colorScheme.primary
+                              ? BuddyplanColors.teal
                               : null,
                         ),
                       ),
@@ -89,10 +90,11 @@ class WeekTasksView extends StatelessWidget {
                       )
                     else
                       ...dayTasks.map((task) {
-                        final c = personMap[task.personId]?.color;
+                        final profileColor =
+                            personMap[task.personId]?.profileColor;
                         return TaskTile(
                           task: task,
-                          personColor: c,
+                          profileColor: profileColor,
                           dense: true,
                           canComplete: manageableIds.contains(task.personId),
                           onComplete: () => onComplete(task),

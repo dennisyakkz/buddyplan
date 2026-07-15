@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/task_users_provider.dart';
-import 'hex_color_picker.dart';
+import '../ui/color_palette.dart';
 
 class TaskUserSettingsRow extends ConsumerWidget {
   final TaskUser user;
@@ -13,21 +13,11 @@ class TaskUserSettingsRow extends ConsumerWidget {
     this.showDivider = true,
   });
 
-  Future<void> _pickColor(BuildContext context, WidgetRef ref) async {
-    final hex = await showHexColorPickerDialog(
-      context,
-      initialColor: user.color,
-      title: 'Kleur voor ${user.name}',
-    );
-    if (hex != null) {
-      await ref.read(taskUsersProvider.notifier).setColor(user.id, hex);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(taskUsersProvider.notifier);
     final enabled = notifier.isEnabled(user.id);
+    final dotColor = ColorPalette.dotColor(context, user.profileColor);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -36,11 +26,15 @@ class TaskUserSettingsRow extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
           child: Row(
             children: [
-              ColorDotButton(
-                color: user.color,
-                onTap: () => _pickColor(context, ref),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   user.name,

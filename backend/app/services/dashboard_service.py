@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.models import AgendaItem, AgendaManager, Person, PersonCalendarFeed, PersonGoogleCalendarFeed, Task, TaskCompletion, TaskDayOrder, TaskManager
 from app.services.agenda_display import agenda_event_sort_key, build_agenda_event_dict, feed_for_item
-from app.services.color_palette import normalize_stored_color, resolve_color_label
+from app.services.color_palette import normalize_stored_color, resolve_color_label, label_to_badge_classes
 from app.services.recurrence import (
     DAY_KEYS,
     format_dutch_date,
@@ -385,8 +385,29 @@ class AgendaService:
             )
         ]
 
-    def item_to_dict(self, item: AgendaItem) -> dict:
-        return {
+    def feed_maps_for_person(self, person_id: int) -> tuple[dict[int, PersonCalendarFeed], dict[int, PersonGoogleCalendarFeed]]:
+        feeds = {
+            f.id: f
+            for f in self.db.query(PersonCalendarFeed)
+            .filter(PersonCalendarFeed.person_id == person_id)
+            .all()
+        }
+        google_feeds = {
+            f.id: f
+            for f in self.db.query(PersonGoogleCalendarFeed)
+            .filter(PersonGoogleCalendarFeed.person_id == person_id)
+            .all()
+        }
+        return feeds, google_feeds
+
+    def item_to_dict(
+        self,
+        item: AgendaItem,
+        *,
+        feeds: dict[int, PersonCalendarFeed] | None = None,
+        google_feeds: dict[int, PersonGoogleCalendarFeed] | None = None,
+    ) -> dict:
+        result = {
             "id": item.id,
             "person_id": item.person_id,
             "title": item.title,
@@ -394,8 +415,25 @@ class AgendaService:
             "repeat_weekdays": item.get_weekdays(),
             "anchor_date": item.anchor_date.isoformat() if item.anchor_date else None,
             "end_date": item.end_date.isoformat() if item.end_date else None,
+            "start_time": item.start_time,
+            "end_time": item.end_time,
             "sort_order": item.sort_order,
+            "source": item.source,
         }
+        if feeds is not None:
+            feed = feed_for_item(item, feeds)
+            gfeed = google_feeds.get(item.google_feed_id) if item.google_feed_id and google_feeds else None
+            feed_color = (feed.color or "").strip() if feed else ""
+            google_calendar_color = (gfeed.calendar_color or "").strip() if gfeed else ""
+            event_color = (item.event_color or "").strip() or None
+            color_label = resolve_color_label(
+                feed_color=feed_color or None,
+                event_color=event_color,
+                google_calendar_color=google_calendar_color or None,
+            )
+            result["color_label"] = color_label
+            result["badge_classes"] = label_to_badge_classes(color_label)
+        return result
 
 
 class PersonService:

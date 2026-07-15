@@ -6,6 +6,7 @@ import '../../models/repeat_settings.dart';
 import '../../models/task_item.dart';
 import '../../providers/task_users_provider.dart';
 import '../../providers/tasks_provider.dart';
+import '../../ui/color_palette.dart';
 import '../../widgets/repeat_settings_field.dart';
 
 class AddTaskSheet extends ConsumerStatefulWidget {
@@ -122,7 +123,9 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
                               value: u.id,
                               child: Row(children: [
                                 CircleAvatar(
-                                    backgroundColor: u.color, radius: 6),
+                                    backgroundColor: ColorPalette.dotColor(
+                                        context, u.profileColor),
+                                    radius: 6),
                                 const SizedBox(width: 8),
                                 Text(u.name),
                               ]),

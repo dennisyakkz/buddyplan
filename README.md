@@ -57,6 +57,40 @@ Open `http://localhost:8000`. On first run you are redirected to `/setup` to cre
 
 Alternatively, set `BUDDYPLAN_ADMIN_USERNAME`, `BUDDYPLAN_ADMIN_PASSWORD`, and optionally `BUDDYPLAN_ADMIN_NAME` in `.env` to skip the setup page.
 
+### Install from GHCR (recommended for servers)
+
+Pre-built backend images are published to [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) (GHCR) when a [GitHub Release](https://github.com/dennisyakkz/buddyplan/releases) is published. Use this on a NAS, VPS, or any host where you do not want to build the image locally.
+
+**Image:** `ghcr.io/dennisyakkz/buddyplan-backend:<version>` (e.g. `0.7.0`)
+
+On the server:
+
+```bash
+mkdir -p ~/buddyplan && cd ~/buddyplan
+
+curl -fsSLO https://raw.githubusercontent.com/dennisyakkz/buddyplan/main/backend/docker-compose.prod.yml
+curl -fsSLO https://raw.githubusercontent.com/dennisyakkz/buddyplan/main/backend/.env.example
+cp .env.example .env
+```
+
+Generate secrets and add them to `.env` (see step 1 above). Then pin the release version and start:
+
+```bash
+export GHCR_OWNER=dennisyakkz
+export BUDDYPLAN_VERSION=0.7.0
+
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Open `http://<server-ip>:8000`. Data is stored in the `buddyplan-data` Docker volume (`/data/buddyplan.db` inside the container).
+
+You can also set `GHCR_OWNER` and `BUDDYPLAN_VERSION` in a `.env` file next to `docker-compose.prod.yml` (Compose reads them for image substitution). Pin a specific version for production; avoid `latest` on long-running installs.
+
+After the first publish, make the package **public** under GitHub → **Packages** → **buddyplan-backend** → **Package settings** → **Change visibility**, so pulls work without `docker login`.
+
+More detail: [docs/releases.md](docs/releases.md) (upgrades, OMV, troubleshooting).
+
 ### 3. Install apps
 
 Build the Android apps (see below), install them on your devices, and configure the server URL in each app's settings.

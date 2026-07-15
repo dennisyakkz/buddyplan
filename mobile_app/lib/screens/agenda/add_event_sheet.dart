@@ -6,6 +6,7 @@ import '../../models/repeat_settings.dart';
 import '../../models/calendar_event.dart';
 import '../../providers/calendar_provider.dart';
 import '../../providers/persons_provider.dart';
+import '../../ui/color_palette.dart';
 import '../../widgets/repeat_settings_field.dart';
 
 class AddEventSheet extends ConsumerStatefulWidget {
@@ -159,7 +160,9 @@ class _AddEventSheetState extends ConsumerState<AddEventSheet> {
                               value: p.id,
                               child: Row(children: [
                                 CircleAvatar(
-                                    backgroundColor: p.color, radius: 6),
+                                    backgroundColor: ColorPalette.dotColor(
+                                        context, p.profileColor),
+                                    radius: 6),
                                 const SizedBox(width: 8),
                                 Text(p.isMe ? 'Mijn kalender' : p.name),
                               ]),

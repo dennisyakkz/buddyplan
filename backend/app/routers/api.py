@@ -56,6 +56,11 @@ def app_login(data: AppLoginRequest, db: Session = Depends(get_db)):
     return {"token": plain_token, "person_id": person.id, "name": person.name}
 
 
+def _profile_color_label(index: int) -> str:
+    from app.services.color_palette import BRAND_LABELS
+    return BRAND_LABELS[index % len(BRAND_LABELS)]
+
+
 @router.get("/app/users")
 def app_get_users(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     from app.models import Person
@@ -70,9 +75,10 @@ def app_get_users(current_user=Depends(get_current_user), db: Session = Depends(
         {
             "id": u.id,
             "name": u.name,
+            "profile_color": _profile_color_label(i),
             "can_manage_tasks": svc.can_manage_tasks(u.id, current_user.id),
         }
-        for u in users
+        for i, u in enumerate(users)
     ]
 
 
@@ -80,15 +86,10 @@ def app_get_users(current_user=Depends(get_current_user), db: Session = Depends(
 # Mobile app calendar + tasks API
 # ---------------------------------------------------------------------------
 
-_MOBILE_COLORS = [
-    "#1E88E5", "#43A047", "#E53935", "#FB8C00",
-    "#8E24AA", "#00ACC1", "#E91E63", "#795548",
-]
-
 
 @router.get("/mobile/persons")
 def mobile_persons(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    """All persons with an auto-assigned calendar colour."""
+    """All persons with brandbook profile_color label."""
     from app.models import Person
     persons = (
         db.query(Person)
@@ -101,7 +102,7 @@ def mobile_persons(current_user=Depends(get_current_user), db: Session = Depends
             "id": p.id,
             "name": p.name,
             "is_me": p.id == current_user.id,
-            "color": _MOBILE_COLORS[i % len(_MOBILE_COLORS)],
+            "profile_color": _profile_color_label(i),
             "can_manage_agenda": svc.can_manage_agenda(p.id, current_user.id),
         }
         for i, p in enumerate(persons)
@@ -541,7 +542,8 @@ def list_agenda(
     service = AgendaService(db)
     target = _parse_date(date_str) or date.today()
     items = service.get_for_date(person_id, target)
-    return [service.item_to_dict(i) for i in items]
+    feeds, google_feeds = service.feed_maps_for_person(person_id)
+    return [service.item_to_dict(i, feeds=feeds, google_feeds=google_feeds) for i in items]
 
 
 @router.post("/agenda")
@@ -561,7 +563,14 @@ def update_agenda_item(item_id: int, data: AgendaUpdate, user=Depends(get_curren
         raise HTTPException(403, "Geen rechten om agenda te beheren voor deze gebruiker")
     if existing.source in ("ical", "gcal"):
         raise HTTPException(403, "Agenda-items uit een feed kunnen niet worden bewerkt")
-    payload = {k: v for k, v in data.model_dump().items() if v is not None}
+    dumped = data.model_dump(exclude_unset=True)
+    payload = {
+        k: v for k, v in dumped.items()
+        if v is not None and k not in ("start_time", "end_time")
+    }
+    for time_key in ("start_time", "end_time"):
+        if time_key in dumped:
+            payload[time_key] = dumped[time_key] or None
     if "repeat_weekdays" in payload:
         payload["repeat_weekdays"] = json.dumps(payload["repeat_weekdays"])
     if "anchor_date" in payload:
@@ -678,7 +687,7 @@ def sync_person_feed(person_id: int, feed_id: int, _admin=Depends(require_admin)
     if not any(f.id == feed_id for f in feeds):
         raise HTTPException(404, "Kalender niet gevonden")
     try:
-        count = sync_feed(db, feed_id)
+        count = sync_feed(db, feed_id, force_full=True)
         feed = next(f for f in service.list_feeds(person_id) if f.id == feed_id)
         return {"ok": True, "imported": count, "feed": service.feed_to_dict(feed)}
     except Exception as exc:
@@ -811,7 +820,7 @@ def sync_my_feed(feed_id: int, user=Depends(get_current_user), db: Session = Dep
     if not any(f.id == feed_id for f in feeds):
         raise HTTPException(404, "Kalender niet gevonden")
     try:
-        count = sync_feed(db, feed_id)
+        count = sync_feed(db, feed_id, force_full=True)
         feed = next(f for f in service.list_feeds(user.id) if f.id == feed_id)
         return {"ok": True, "imported": count, "feed": service.feed_to_dict(feed)}
     except Exception as exc:
@@ -1009,7 +1018,7 @@ def admin_sync_user_feed(
     if not any(f.id == feed_id for f in feeds):
         raise HTTPException(404, "Kalender niet gevonden")
     try:
-        count = sync_feed(db, feed_id)
+        count = sync_feed(db, feed_id, force_full=True)
         feed = next(f for f in service.list_feeds(user_id) if f.id == feed_id)
         return {"ok": True, "imported": count, "feed": service.feed_to_dict(feed)}
     except Exception as exc:
