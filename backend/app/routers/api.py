@@ -357,7 +357,12 @@ def _agenda_payload(data: AgendaCreate) -> dict:
 
 @router.get("/icons")
 def list_icons():
-    return load_icons()
+    try:
+        return load_icons()
+    except FileNotFoundError as exc:
+        raise HTTPException(500, str(exc)) from exc
+    except json.JSONDecodeError as exc:
+        raise HTTPException(500, f"Icon catalog is invalid JSON: {exc}") from exc
 
 
 @router.get("/dashboard")

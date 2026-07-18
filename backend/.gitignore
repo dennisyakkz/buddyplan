@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
-data/
+# Runtime SQLite volume only — not app/static/data (icon metadata)
+/data/
 *.db
 .env
 .venv/
