@@ -24,6 +24,13 @@
                 <input type="email" id="profile-email" maxlength="255" placeholder="naam@voorbeeld.nl">
             </div>
 
+            <div class="form-group">
+                <label>Kleur</label>
+                <input type="hidden" id="profile-color" value="blauw">
+                <div class="color-swatches" id="profile-color-swatches"></div>
+                <p class="hint">Deze kleur wordt gebruikt voor jouw taken op het dashboard.</p>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Opslaan</button>
             </div>
@@ -85,7 +92,7 @@
             <h3 style="margin-top:16px">Agenda toevoegen</h3>
             <div id="google-available-list" class="gcal-available-list">
                 <button class="btn btn-small" id="btn-load-gcals">
-                    <i class="fa-solid fa-rotate"></i> Beschikbare agenda's ophalen
+                    <span class="material-symbols-rounded bp-icon-inline">sync</span> Beschikbare agenda's ophalen
                 </button>
             </div>
         </div>

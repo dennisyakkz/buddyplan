@@ -48,7 +48,7 @@ interface BuddyplanApi {
 
     data class EtagResponse(val etag: String)
 
-    data class AppUserDto(val id: Int, val name: String)
+    data class AppUserDto(val id: Int, val name: String, val profile_color: String? = null)
 
     data class LoginResponse(val token: String, val person_id: Int, val name: String)
 
@@ -58,6 +58,7 @@ interface BuddyplanApi {
         val description: String?,
         val icon: String?,
         val person_id: Int?,
+        val profile_color: String? = null,
         val date: String,
         val completed: Boolean,
     )

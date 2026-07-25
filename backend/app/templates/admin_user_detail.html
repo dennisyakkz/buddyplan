@@ -24,6 +24,13 @@
             <input type="email" id="user-email" maxlength="255" placeholder="naam@voorbeeld.nl">
         </div>
 
+        <div class="form-group">
+            <label>Kleur</label>
+            <input type="hidden" id="user-profile-color" value="blauw">
+            <div class="color-swatches" id="user-profile-color-swatches"></div>
+            <p class="hint">Wordt gebruikt voor taken van deze gebruiker op het dashboard.</p>
+        </div>
+
         <div class="toggle-row">
             <div class="toggle">
                 <span>Kan inloggen</span>
@@ -104,7 +111,7 @@
             <h3 style="margin-top:16px">Agenda toevoegen</h3>
             <div id="google-available-list" class="gcal-available-list">
                 <button class="btn btn-small" id="btn-load-gcals">
-                    <i class="fa-solid fa-rotate"></i> Beschikbare agenda's ophalen
+                    <span class="material-symbols-rounded bp-icon-inline">sync</span> Beschikbare agenda's ophalen
                 </button>
             </div>
         </div>

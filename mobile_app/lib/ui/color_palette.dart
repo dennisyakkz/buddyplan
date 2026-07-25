@@ -90,10 +90,18 @@ class ColorPalette {
 
   /// Accent for task indicator lines and checkbox rings.
   static Color accentColor(BuildContext context, String? label) {
-    return chipStyle(context, label).text;
+    final key = normalizeLabel(label);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    // Use saturated brand colors so accents stay visible in both themes.
+    if (dark) {
+      return _darkBg[key] ?? _darkBg['teal']!;
+    }
+    return _lightText[key] ?? _lightText['teal']!;
   }
 
+  /// Person filter dots: always use saturated agenda colors (not pale chip text).
   static Color dotColor(BuildContext context, String? label) {
-    return chipStyle(context, label).text;
+    final key = normalizeLabel(label);
+    return _lightText[key] ?? _lightText['teal']!;
   }
 }

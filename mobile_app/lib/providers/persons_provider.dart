@@ -20,7 +20,7 @@ class PersonsNotifier extends Notifier<PersonsState> {
   PersonsState build() => const PersonsState(isLoading: true);
 
   Future<void> load() async {
-    state = const PersonsState(isLoading: true);
+    state = PersonsState(persons: state.persons, isLoading: true);
     try {
       final raw = await ApiClient.instance.fetchPersons();
       final persons = raw
@@ -28,6 +28,10 @@ class PersonsNotifier extends Notifier<PersonsState> {
           .toList();
       state = PersonsState(persons: persons);
     } catch (e) {
+      if (state.persons.isNotEmpty) {
+        state = PersonsState(persons: state.persons);
+        return;
+      }
       state = PersonsState(error: e.toString());
     }
   }

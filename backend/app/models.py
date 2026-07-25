@@ -19,6 +19,7 @@ class Person(Base):
     username: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    profile_color: Mapped[str | None] = mapped_column(String(20), nullable=True)
     can_login: Mapped[bool] = mapped_column(Boolean, default=False)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -237,12 +238,12 @@ class AfvalwijzerType(Base):
     buiten_person_id: Mapped[int | None] = mapped_column(
         ForeignKey("persons.id", ondelete="SET NULL"), nullable=True
     )
-    buiten_icon: Mapped[str] = mapped_column(String(50), default="fas:trash")
+    buiten_icon: Mapped[str] = mapped_column(String(50), default="custom:kliko-restafval")
     binnen_dag: Mapped[str] = mapped_column(String(20), default="same_day")
     binnen_person_id: Mapped[int | None] = mapped_column(
         ForeignKey("persons.id", ondelete="SET NULL"), nullable=True
     )
-    binnen_icon: Mapped[str] = mapped_column(String(50), default="fas:trash")
+    binnen_icon: Mapped[str] = mapped_column(String(50), default="custom:kliko-restafval")
 
     config: Mapped["AfvalwijzerConfig"] = relationship(back_populates="types")
 

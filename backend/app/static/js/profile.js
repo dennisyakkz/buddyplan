@@ -187,10 +187,26 @@ function renderFeeds(feeds) {
     `).join("");
 }
 
+function renderProfileColorSwatches(selected) {
+    const wrap = document.getElementById("profile-color-swatches");
+    const input = document.getElementById("profile-color");
+    const label = normalizeColorLabel(selected) || "blauw";
+    input.value = label;
+    wrap.innerHTML = buildColorSwatches(label, { allowNone: false });
+    wrap.querySelectorAll(".color-swatch").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            wrap.querySelectorAll(".color-swatch").forEach((s) => s.classList.remove("selected"));
+            btn.classList.add("selected");
+            input.value = btn.dataset.color || "blauw";
+        });
+    });
+}
+
 async function loadMe() {
     me = await api("/api/me");
     document.getElementById("profile-name").value = me.name || "";
     document.getElementById("profile-email").value = me.email || "";
+    renderProfileColorSwatches(me.profile_color);
     renderFeeds(me.feeds || []);
 }
 
@@ -205,9 +221,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         e.preventDefault();
         const name = document.getElementById("profile-name").value.trim();
         const email = document.getElementById("profile-email").value.trim();
+        const profileColor = document.getElementById("profile-color").value;
         if (!name) return;
         try {
-            me = await api("/api/me", { method: "PUT", body: JSON.stringify({ name, email: email || null }) });
+            me = await api("/api/me", {
+                method: "PUT",
+                body: JSON.stringify({
+                    name,
+                    email: email || null,
+                    profile_color: profileColor || "blauw",
+                }),
+            });
+            renderProfileColorSwatches(me.profile_color);
             showToast("Opgeslagen", "success", 5000);
         } catch (err) {
             showToast(escapeHtml(err.message || "Opslaan mislukt"), "error", 5000);

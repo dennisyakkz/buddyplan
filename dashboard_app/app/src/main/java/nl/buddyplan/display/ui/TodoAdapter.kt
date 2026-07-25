@@ -10,7 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import nl.buddyplan.display.FaIconHelper
+import nl.buddyplan.display.MaterialIconHelper
 import nl.buddyplan.display.R
 import nl.buddyplan.display.data.TodoItem
 
@@ -70,7 +70,7 @@ class TodoAdapter(
         private val thumb: ImageView = itemView.findViewById(R.id.tileThumb)
 
         fun bind(item: TodoItem) {
-            FaIconHelper.applyIcon(icon, item.icon)
+            MaterialIconHelper.applyIcon(icon, item.icon)
             title.text = item.title
             description.text = item.description
 
@@ -84,9 +84,7 @@ class TodoAdapter(
                 itemView.isEnabled = false
                 icon.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_completed))
             } else {
-                val personLabel = item.person_id?.let { userColors[it] }?.let {
-                    ColorPalette.migrateStoredColor(it)
-                }
+                val personLabel = resolvePersonColor(item)
                 if (personLabel != null) {
                     val colors = ColorPalette.chipColors(itemView.context, personLabel)
                     val drawable = ColorPalette.chipDrawable(itemView.context, personLabel, 12f)
@@ -112,6 +110,14 @@ class TodoAdapter(
                 itemView.isEnabled = true
                 itemView.setOnClickListener { onItemClick(item) }
             }
+        }
+
+        private fun resolvePersonColor(item: TodoItem): String? {
+            item.profile_color?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                return ColorPalette.migrateStoredColor(it)
+            }
+            val pid = item.person_id ?: return null
+            return userColors[pid]?.let { ColorPalette.migrateStoredColor(it) }
         }
 
         private fun applyDefaultStyle() {

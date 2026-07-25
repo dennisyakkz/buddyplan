@@ -117,6 +117,15 @@ object ColorPalette {
         return Color.parseColor(bgHex) to Color.parseColor(textHex)
     }
 
+    /** Default chip colors matching web `.cal-chip` (no feed color). */
+    fun defaultChipColors(context: Context): Pair<Int, Int> {
+        return if (isDarkMode(context)) {
+            Color.parseColor("#4A5568") to Color.parseColor("#EDF2F7")
+        } else {
+            Color.parseColor("#EEF2F7") to Color.parseColor("#2D3748")
+        }
+    }
+
     fun swatchPreviewColor(label: String): Int {
         val normalized = label.trim().lowercase()
         val hex = LIGHT_BG[normalized] ?: "#EDF2F7"
@@ -129,11 +138,27 @@ object ColorPalette {
         cornerRadiusDp: Float = 12f,
     ): GradientDrawable? {
         val colors = chipColors(context, label) ?: return null
+        return chipDrawableFromColors(context, colors.first, cornerRadiusDp)
+    }
+
+    fun defaultChipDrawable(
+        context: Context,
+        cornerRadiusDp: Float = 12f,
+    ): GradientDrawable {
+        val colors = defaultChipColors(context)
+        return chipDrawableFromColors(context, colors.first, cornerRadiusDp)
+    }
+
+    private fun chipDrawableFromColors(
+        context: Context,
+        backgroundColor: Int,
+        cornerRadiusDp: Float,
+    ): GradientDrawable {
         val radius = cornerRadiusDp * context.resources.displayMetrics.density
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = radius
-            setColor(colors.first)
+            setColor(backgroundColor)
         }
     }
 

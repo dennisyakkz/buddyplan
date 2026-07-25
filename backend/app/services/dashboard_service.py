@@ -8,7 +8,12 @@ from sqlalchemy.orm import Session
 
 from app.models import AgendaItem, AgendaManager, Person, PersonCalendarFeed, PersonGoogleCalendarFeed, Task, TaskCompletion, TaskDayOrder, TaskManager
 from app.services.agenda_display import agenda_event_sort_key, build_agenda_event_dict, feed_for_item
-from app.services.color_palette import normalize_stored_color, resolve_color_label, label_to_badge_classes
+from app.services.color_palette import (
+    label_to_badge_classes,
+    normalize_profile_color,
+    normalize_stored_color,
+    resolve_color_label,
+)
 from app.services.recurrence import (
     DAY_KEYS,
     format_dutch_date,
@@ -64,7 +69,8 @@ class DashboardService:
         ref = reference or date.today()
         week = week_dates(ref)
 
-        todos = self._build_todos(ref)
+        # Task panel always shows today's tasks (calendar week may differ)
+        todos = self._build_todos(date.today())
         week_days = [
             {"day": format_dutch_day(d), "date": format_dutch_date(d), "iso": d.isoformat()}
             for d in week
@@ -141,17 +147,33 @@ class DashboardService:
 
         applicable.sort(key=lambda t: (day_orders.get(t.id, t.sort_order), t.id))
 
-        return [
-            {
+        person_ids = {t.person_id for t in applicable if t.person_id}
+        persons = {}
+        if person_ids:
+            persons = {
+                p.id: p
+                for p in self.db.query(Person).filter(Person.id.in_(person_ids)).all()
+            }
+
+        result = []
+        for t in applicable:
+            person = persons.get(t.person_id) if t.person_id else None
+            profile_color = None
+            if person is not None:
+                profile_color = normalize_profile_color(
+                    person.profile_color,
+                    person.sort_order or 0,
+                )
+            result.append({
                 "id": str(t.id),
                 "title": t.title,
                 "description": t.description,
                 "icon": t.icon,
                 "completed": t.id in completions,
                 "person_id": t.person_id,
-            }
-            for t in applicable
-        ]
+                "profile_color": profile_color,
+            })
+        return result
 
     def _build_calendar(
         self,
@@ -313,9 +335,15 @@ class TaskService:
         return True
 
     def task_to_dict(self, task: Task, target: date | None = None) -> dict:
+        person = self.db.query(Person).filter(Person.id == task.person_id).first() if task.person_id else None
         result = {
             "id": task.id,
             "person_id": task.person_id,
+            "profile_color": (
+                normalize_profile_color(person.profile_color, person.sort_order or 0)
+                if person
+                else None
+            ),
             "title": task.title,
             "description": task.description,
             "icon": task.icon,
@@ -513,13 +541,50 @@ class PersonService:
                 )
             )
 
-    def create(self, name: str) -> Person:
+    def create(self, name: str, profile_color: str | None = None) -> Person:
         max_order = self.db.query(func.max(Person.sort_order)).scalar() or 0
-        person = Person(name=name, sort_order=max_order + 1)
+        sort_order = max_order + 1
+        person = Person(
+            name=name,
+            sort_order=sort_order,
+            profile_color=normalize_profile_color(profile_color, sort_order),
+        )
         self.db.add(person)
         self.db.commit()
         self.db.refresh(person)
         self._ensure_self_agenda_manager(person.id)
+        self.db.commit()
+        self.db.refresh(person)
+        return person
+
+    def reorder(self, ids: list[int]) -> None:
+        persons = {p.id: p for p in self.db.query(Person).all()}
+        seen = set()
+        for index, person_id in enumerate(ids):
+            person = persons.get(int(person_id))
+            if not person or person.id in seen:
+                continue
+            person.sort_order = index
+            person.updated_at = datetime.utcnow()
+            seen.add(person.id)
+        # Append any persons missing from the payload at the end
+        next_index = len(seen)
+        for person in sorted(persons.values(), key=lambda p: (p.sort_order, p.id)):
+            if person.id in seen:
+                continue
+            person.sort_order = next_index
+            person.updated_at = datetime.utcnow()
+            next_index += 1
+        self.db.commit()
+
+    def set_profile_color(self, person_id: int, profile_color: str | None) -> Person | None:
+        person = self.get(person_id)
+        if not person:
+            return None
+        person.profile_color = normalize_profile_color(
+            profile_color, person.sort_order or 0
+        )
+        person.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(person)
         return person
@@ -530,6 +595,8 @@ class PersonService:
         username: str | None,
         email: str | None,
         is_admin: bool,
+        profile_color: str | None = None,
+        update_profile_color: bool = False,
     ) -> Person | None:
         person = self.get(person_id)
         if not person:
@@ -538,6 +605,10 @@ class PersonService:
         person.username = username.strip() if username else None
         person.email = email.strip() if email else None
         person.is_admin = bool(is_admin)
+        if update_profile_color:
+            person.profile_color = normalize_profile_color(
+                profile_color, person.sort_order or 0
+            )
         person.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(person)
@@ -736,6 +807,10 @@ class PersonService:
             "email": getattr(person, "email", None),
             "is_admin": getattr(person, "is_admin", False),
             "sort_order": person.sort_order,
+            "profile_color": normalize_profile_color(
+                getattr(person, "profile_color", None),
+                person.sort_order or 0,
+            ),
             "can_login": person.can_login,
             "tasks_enabled": getattr(person, "tasks_enabled", False),
         }

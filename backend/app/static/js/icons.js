@@ -1,18 +1,23 @@
 let ICONS = [];
 let iconsLoaded = false;
 
+const DEFAULT_ICON = "md:check_circle";
+
 const LEGACY_ICON_MAP = {
-    toothbrush: "fas:tooth",
-    shower: "fas:shower",
-    food: "fas:utensils",
-    home: "fas:house",
-    book: "fas:book",
-    music: "fas:music",
-    walk: "fas:person-walking",
-    clothes: "fas:shirt",
-    water: "fas:glass-water",
-    bed: "fas:bed",
-    default: "fas:circle-check",
+    toothbrush: "md:dentistry",
+    shower: "md:shower",
+    food: "md:restaurant",
+    home: "md:home",
+    book: "md:menu_book",
+    music: "md:music_note",
+    walk: "md:directions_walk",
+    clothes: "md:checkroom",
+    water: "md:water_drop",
+    bed: "md:bed",
+    check: "md:check_circle",
+    default: DEFAULT_ICON,
+    "fas:trash": "custom:kliko-restafval",
+    "fas:circle-check": DEFAULT_ICON,
 };
 
 async function loadIcons() {
@@ -23,18 +28,30 @@ async function loadIcons() {
 }
 
 function normalizeIconId(iconId) {
-    if (!iconId) return LEGACY_ICON_MAP.default;
-    if (iconId.startsWith("fas:")) return iconId;
-    return LEGACY_ICON_MAP[iconId] || `fas:${iconId}`;
+    if (!iconId) return DEFAULT_ICON;
+    const raw = String(iconId).trim();
+    if (!raw) return DEFAULT_ICON;
+    if (raw.startsWith("md:") || raw.startsWith("custom:")) return raw;
+    if (LEGACY_ICON_MAP[raw]) return LEGACY_ICON_MAP[raw];
+    return DEFAULT_ICON;
 }
 
 function iconNameFromId(iconId) {
-    return normalizeIconId(iconId).replace("fas:", "");
+    const normalized = normalizeIconId(iconId);
+    if (normalized.startsWith("md:")) return normalized.slice(3);
+    if (normalized.startsWith("custom:")) return normalized.slice(7);
+    return normalized;
 }
 
 function iconHtml(iconId, extraClass = "") {
-    const name = iconNameFromId(iconId);
-    return `<i class="fa-solid fa-${name} fa-icon ${extraClass}"></i>`;
+    const normalized = normalizeIconId(iconId);
+    const cls = extraClass ? ` ${extraClass}` : "";
+    if (normalized.startsWith("custom:")) {
+        const name = normalized.slice(7);
+        return `<img class="bp-icon bp-icon-custom${cls}" src="/static/icons/custom/${name}.svg" alt="" width="24" height="24">`;
+    }
+    const name = iconNameFromId(normalized);
+    return `<span class="material-symbols-rounded bp-icon${cls}" aria-hidden="true">${name}</span>`;
 }
 
 function iconLabel(iconId) {
@@ -103,7 +120,13 @@ async function api(path, options = {}) {
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || `Fout: ${res.status}`);
+        let detail = err.detail;
+        if (Array.isArray(detail)) {
+            detail = detail.map((d) => d.msg || JSON.stringify(d)).join("; ");
+        } else if (detail && typeof detail === "object") {
+            detail = detail.msg || JSON.stringify(detail);
+        }
+        throw new Error(detail || `Fout: ${res.status}`);
     }
     if (res.status === 204) return null;
     return res.json();

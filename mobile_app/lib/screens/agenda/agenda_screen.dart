@@ -26,7 +26,8 @@ class AgendaScreen extends ConsumerStatefulWidget {
   ConsumerState<AgendaScreen> createState() => _AgendaScreenState();
 }
 
-class _AgendaScreenState extends ConsumerState<AgendaScreen> {
+class _AgendaScreenState extends ConsumerState<AgendaScreen>
+    with WidgetsBindingObserver {
   AgendaView _view = AgendaView.planning;
   AgendaView? _returnView;
   DateTime _focusedDay = DateTime.now();
@@ -35,6 +36,7 @@ class _AgendaScreenState extends ConsumerState<AgendaScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) _refreshCurrentRange();
     });
@@ -43,8 +45,19 @@ class _AgendaScreenState extends ConsumerState<AgendaScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _refreshTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      // DNS/Wi-Fi often need a moment after screen wake.
+      Future<void>.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) _refreshCurrentRange();
+      });
+    }
   }
 
   void _loadCurrentRange() {
@@ -53,12 +66,15 @@ class _AgendaScreenState extends ConsumerState<AgendaScreen> {
     ref.read(calendarProvider.notifier).loadRange(start, end);
   }
 
-  Future<void> _refreshCurrentRange() {
+  Future<void> _refreshCurrentRange() async {
     final start = _rangeStart(_focusedDay);
     final end = _rangeEnd(_focusedDay);
-    return ref
-        .read(calendarProvider.notifier)
-        .loadRange(start, end, showLoading: false);
+    await Future.wait([
+      ref
+          .read(calendarProvider.notifier)
+          .loadRange(start, end, showLoading: false),
+      ref.read(personsProvider.notifier).load(),
+    ]);
   }
 
   DateTime _rangeStart(DateTime d) {
@@ -379,8 +395,8 @@ class _AgendaScreenState extends ConsumerState<AgendaScreen> {
       useSafeArea: true,
       builder: (_) => AddEventSheet(
         initialDate: _focusedDay,
-        onSaved: (event) {
-          ref.read(calendarProvider.notifier).addEvent(event);
+        onSaved: (_) {
+          // Already added optimistically in addEventWithPayload.
         },
       ),
     );

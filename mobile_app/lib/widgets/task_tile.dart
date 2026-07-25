@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/task_item.dart';
 import '../ui/buddyplan_colors.dart';
 import '../ui/color_palette.dart';
+import '../ui/material_task_icon.dart';
 
 class TaskTile extends StatelessWidget {
   final TaskItem task;
@@ -58,6 +59,11 @@ class TaskTile extends StatelessWidget {
               contentPadding: EdgeInsets.symmetric(
                 horizontal: dense ? 12 : 16,
                 vertical: dense ? 0 : 4,
+              ),
+              leading: MaterialTaskIcon(
+                iconId: task.icon,
+                size: dense ? 22 : 26,
+                color: textColor.withValues(alpha: 0.85),
               ),
               title: Text(
                 task.title,

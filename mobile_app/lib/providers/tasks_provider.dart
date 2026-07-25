@@ -77,7 +77,7 @@ class TasksNotifier extends Notifier<TasksState> {
       }
       if (showLoading || state.tasks.isEmpty) {
         state = TasksState(
-          error: err.toString(),
+          error: friendlyErrorMessage(err),
           isOffline: isNetworkError(err),
         );
       } else {
@@ -149,6 +149,9 @@ class TasksNotifier extends Notifier<TasksState> {
   }
 
   void addTask(TaskItem task) {
+    if (state.tasks.any((t) => t.id == task.id && _sameDay(t.date, task.date))) {
+      return;
+    }
     state = TasksState(
       tasks: [...state.tasks, task],
       isOffline: state.isOffline,

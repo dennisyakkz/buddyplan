@@ -1,4 +1,4 @@
-function createIconPicker(selectedId = "fas:circle-check", inputName = "icon") {
+function createIconPicker(selectedId = "md:check_circle", inputName = "icon") {
     const normalized = normalizeIconId(selectedId);
     const hidden = `<input type="hidden" name="${inputName}" id="icon-input" value="${normalized}">`;
     const trigger = `
@@ -7,7 +7,7 @@ function createIconPicker(selectedId = "fas:circle-check", inputName = "icon") {
             <span id="icon-label">Icoon kiezen</span>
         </div>
         <div class="icon-picker-panel hidden" id="icon-panel">
-            <input type="text" class="icon-picker-search" id="icon-search" placeholder="Zoek icoon (bijv. tanden, huis, sport)...">
+            <input type="text" class="icon-picker-search" id="icon-search" placeholder="Zoek icoon (bijv. wasmachine, kliko, voetbal)...">
             <div class="icon-picker-grid" id="icon-grid"></div>
         </div>
     `;

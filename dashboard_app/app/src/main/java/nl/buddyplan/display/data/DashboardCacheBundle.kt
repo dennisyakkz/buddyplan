@@ -17,5 +17,6 @@ data class CachedTaskItem(
     val icon: String = "default",
     val completed: Boolean = false,
     val person_id: Int? = null,
+    val profile_color: String? = null,
     val date: String = "",
 )

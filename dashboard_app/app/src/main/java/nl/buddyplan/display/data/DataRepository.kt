@@ -196,11 +196,11 @@ object DataRepository {
             }
         }
 
-    suspend fun fetchAppUsers(context: Context): List<Pair<Int, String>>? =
+    suspend fun fetchAppUsers(context: Context): List<Triple<Int, String, String?>>? =
         withContext(Dispatchers.IO) {
             try {
                 val api = ApiClient.getApi(context)
-                api.getAppUsers().map { Pair(it.id, it.name) }
+                api.getAppUsers().map { Triple(it.id, it.name, it.profile_color) }
             } catch (e: Exception) {
                 Log.w(TAG, "fetchAppUsers failed", e)
                 null
@@ -270,6 +270,7 @@ object DataRepository {
                             icon = todo.icon,
                             completed = todo.completed,
                             person_id = todo.person_id,
+                            profile_color = todo.profile_color,
                             date = WeekDates.todayIso(),
                         )
                     },
@@ -320,6 +321,7 @@ object DataRepository {
         icon = icon,
         completed = completed,
         person_id = person_id,
+        profile_color = profile_color,
     )
 
     private suspend fun maybePrefetch(context: Context, currentWeekStart: String) {
@@ -463,6 +465,7 @@ object DataRepository {
                         icon = dto.icon ?: "default",
                         completed = dto.completed,
                         person_id = dto.person_id,
+                        profile_color = dto.profile_color,
                         date = dto.date,
                     )
                 },
@@ -533,6 +536,7 @@ object DataRepository {
         icon = icon,
         completed = completed,
         personId = person_id,
+        profileColor = profile_color,
         date = date,
     )
 
@@ -543,6 +547,7 @@ object DataRepository {
         icon = icon,
         completed = completed,
         person_id = personId,
+        profile_color = profileColor,
         date = date,
     )
 

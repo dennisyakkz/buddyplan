@@ -86,10 +86,10 @@ class AfvalwijzerService:
             "naam": t.naam or "",
             "buiten_dag": t.buiten_dag or "day_before",
             "buiten_person_id": t.buiten_person_id,
-            "buiten_icon": t.buiten_icon or "fas:trash",
+            "buiten_icon": t.buiten_icon or "custom:kliko-restafval",
             "binnen_dag": t.binnen_dag or "same_day",
             "binnen_person_id": t.binnen_person_id,
-            "binnen_icon": t.binnen_icon or "fas:trash",
+            "binnen_icon": t.binnen_icon or "custom:kliko-restafval",
         }
 
     def create_tasks_for_weeks(self, week_starts: list[date]) -> int:
@@ -154,7 +154,7 @@ class AfvalwijzerService:
                                 "person_id": afval_type.buiten_person_id,
                                 "title": title[:200],
                                 "description": f"Zet de {naam} buiten",
-                                "icon": afval_type.buiten_icon or "fas:trash",
+                                "icon": afval_type.buiten_icon or "custom:kliko-restafval",
                                 "repeat_type": "once",
                                 "repeat_weekdays": "[]",
                                 "anchor_date": buiten_date,
@@ -178,7 +178,7 @@ class AfvalwijzerService:
                                 "person_id": afval_type.binnen_person_id,
                                 "title": title[:200],
                                 "description": f"Breng {naam} naar binnen",
-                                "icon": afval_type.binnen_icon or "fas:trash",
+                                "icon": afval_type.binnen_icon or "custom:kliko-restafval",
                                 "repeat_type": "once",
                                 "repeat_weekdays": "[]",
                                 "anchor_date": binnen_date,

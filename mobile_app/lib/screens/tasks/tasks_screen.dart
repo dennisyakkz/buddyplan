@@ -23,7 +23,8 @@ class TasksScreen extends ConsumerStatefulWidget {
   ConsumerState<TasksScreen> createState() => _TasksScreenState();
 }
 
-class _TasksScreenState extends ConsumerState<TasksScreen> {
+class _TasksScreenState extends ConsumerState<TasksScreen>
+    with WidgetsBindingObserver {
   TasksView _view = TasksView.day;
   DateTime _focusedDay = DateTime.now();
   Timer? _refreshTimer;
@@ -31,6 +32,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) _refreshCurrentRange();
     });
@@ -42,8 +44,18 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _refreshTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      Future<void>.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) _refreshCurrentRange();
+      });
+    }
   }
 
   void _loadCurrentRange() {
@@ -56,16 +68,19 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     ref.read(tasksProvider.notifier).loadRange(start, end);
   }
 
-  Future<void> _refreshCurrentRange() {
+  Future<void> _refreshCurrentRange() async {
     final start = _view == TasksView.week
         ? _monday(_focusedDay)
         : _focusedDay;
     final end = _view == TasksView.week
         ? _monday(_focusedDay).add(const Duration(days: 6))
         : _focusedDay;
-    return ref
-        .read(tasksProvider.notifier)
-        .loadRange(start, end, showLoading: false);
+    await Future.wait([
+      ref
+          .read(tasksProvider.notifier)
+          .loadRange(start, end, showLoading: false),
+      ref.read(taskUsersProvider.notifier).load(),
+    ]);
   }
 
   DateTime _monday(DateTime d) =>
@@ -327,8 +342,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       useSafeArea: true,
       builder: (_) => AddTaskSheet(
         initialDate: _focusedDay,
-        onSaved: (task) {
-          ref.read(tasksProvider.notifier).addTask(task);
+        onSaved: (_) {
+          // Already added optimistically in addTaskWithPayload.
         },
       ),
     );

@@ -22,7 +22,7 @@ class TaskItem {
       id: json['id'] as String,
       title: json['title'] as String,
       description: (json['description'] as String?) ?? '',
-      icon: (json['icon'] as String?) ?? 'check',
+      icon: (json['icon'] as String?) ?? 'md:check_circle',
       personId: json['person_id'] as int?,
       date: DateTime.parse(json['date'] as String),
       completed: (json['completed'] as bool?) ?? false,

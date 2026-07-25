@@ -200,6 +200,21 @@ function renderFeeds(feeds) {
     `).join("");
 }
 
+function renderUserProfileColorSwatches(selected) {
+    const wrap = document.getElementById("user-profile-color-swatches");
+    const input = document.getElementById("user-profile-color");
+    const label = normalizeColorLabel(selected) || "blauw";
+    input.value = label;
+    wrap.innerHTML = buildColorSwatches(label, { allowNone: false });
+    wrap.querySelectorAll(".color-swatch").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            wrap.querySelectorAll(".color-swatch").forEach((s) => s.classList.remove("selected"));
+            btn.classList.add("selected");
+            input.value = btn.dataset.color || "blauw";
+        });
+    });
+}
+
 async function loadUser() {
     userData = await api(`/api/admin/users/${USER_ID}`);
     document.getElementById("user-title").textContent = userData.name;
@@ -208,6 +223,7 @@ async function loadUser() {
     document.getElementById("user-email").value = userData.email || "";
     document.getElementById("user-can-login").checked = !!userData.can_login;
     document.getElementById("user-is-admin").checked = !!userData.is_admin;
+    renderUserProfileColorSwatches(userData.profile_color);
     togglePasswordFields();
     renderFeeds(userData.feeds || []);
 
@@ -255,6 +271,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
         userData = { has_password: false, feeds: [], tasks_enabled: false, task_manager_ids: [], agenda_manager_ids: [] };
         document.getElementById("user-title").textContent = "Nieuwe gebruiker";
+        renderUserProfileColorSwatches("blauw");
         togglePasswordFields();
         renderFeeds([]);
     }
@@ -268,6 +285,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const isAdmin = document.getElementById("user-is-admin").checked;
         const password = document.getElementById("user-password").value;
         const passwordConfirm = document.getElementById("user-password-confirm").value;
+        const profileColor = document.getElementById("user-profile-color").value;
 
         if (!username || !name) return;
 
@@ -279,6 +297,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             is_admin: isAdmin,
             password: password || null,
             password_confirm: passwordConfirm || null,
+            profile_color: profileColor || "blauw",
         };
 
         try {

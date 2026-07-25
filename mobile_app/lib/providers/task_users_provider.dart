@@ -42,7 +42,7 @@ class TaskUsersNotifier extends Notifier<TaskUsersState> {
   TaskUsersState build() => const TaskUsersState();
 
   Future<void> load() async {
-    state = const TaskUsersState(isLoading: true);
+    state = TaskUsersState(users: state.users, isLoading: true);
     try {
       final raw = await ApiClient.instance.fetchAppUsers();
       final users = raw
@@ -50,6 +50,10 @@ class TaskUsersNotifier extends Notifier<TaskUsersState> {
           .toList();
       state = TaskUsersState(users: users);
     } catch (e) {
+      if (state.users.isNotEmpty) {
+        state = TaskUsersState(users: state.users);
+        return;
+      }
       state = TaskUsersState(error: e.toString());
     }
   }

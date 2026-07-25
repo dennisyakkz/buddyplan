@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         const me = await api("/api/me");
         if (me?.name) {
-            trigger.innerHTML = `${me.name} <i class="fa-solid fa-caret-down"></i>`;
+            trigger.innerHTML = `${me.name} <span class="material-symbols-rounded bp-icon-inline">expand_more</span>`;
         }
         if (me?.is_admin) {
             adminLink.classList.remove("hidden");

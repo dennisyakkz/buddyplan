@@ -1,0 +1,1956 @@
+[
+  {
+    "id": "md:check_circle",
+    "name": "check_circle",
+    "label": "Klaar",
+    "terms": [
+      "klaar",
+      "check",
+      "gedaan",
+      "ok"
+    ]
+  },
+  {
+    "id": "md:radio_button_unchecked",
+    "name": "radio_button_unchecked",
+    "label": "Open",
+    "terms": [
+      "open",
+      "todo",
+      "nog doen"
+    ]
+  },
+  {
+    "id": "md:star",
+    "name": "star",
+    "label": "Ster",
+    "terms": [
+      "ster",
+      "favoriet",
+      "belangrijk"
+    ]
+  },
+  {
+    "id": "md:favorite",
+    "name": "favorite",
+    "label": "Hart",
+    "terms": [
+      "hart",
+      "liefde",
+      "favoriet"
+    ]
+  },
+  {
+    "id": "md:priority_high",
+    "name": "priority_high",
+    "label": "Prioriteit",
+    "terms": [
+      "prioriteit",
+      "urgent",
+      "belangrijk"
+    ]
+  },
+  {
+    "id": "md:info",
+    "name": "info",
+    "label": "Info",
+    "terms": [
+      "info",
+      "informatie"
+    ]
+  },
+  {
+    "id": "md:warning",
+    "name": "warning",
+    "label": "Waarschuwing",
+    "terms": [
+      "waarschuwing",
+      "let op"
+    ]
+  },
+  {
+    "id": "md:notifications",
+    "name": "notifications",
+    "label": "Melding",
+    "terms": [
+      "melding",
+      "notificatie",
+      "bel"
+    ]
+  },
+  {
+    "id": "md:schedule",
+    "name": "schedule",
+    "label": "Planning",
+    "terms": [
+      "planning",
+      "schema",
+      "tijd"
+    ]
+  },
+  {
+    "id": "md:alarm",
+    "name": "alarm",
+    "label": "Wekker",
+    "terms": [
+      "wekker",
+      "alarm",
+      "opstaan"
+    ]
+  },
+  {
+    "id": "md:timer",
+    "name": "timer",
+    "label": "Timer",
+    "terms": [
+      "timer",
+      "kookwekker"
+    ]
+  },
+  {
+    "id": "md:event",
+    "name": "event",
+    "label": "Afspraak",
+    "terms": [
+      "afspraak",
+      "agenda",
+      "event"
+    ]
+  },
+  {
+    "id": "md:today",
+    "name": "today",
+    "label": "Vandaag",
+    "terms": [
+      "vandaag",
+      "datum"
+    ]
+  },
+  {
+    "id": "md:home",
+    "name": "home",
+    "label": "Huis",
+    "terms": [
+      "huis",
+      "thuis",
+      "woning"
+    ]
+  },
+  {
+    "id": "md:apartment",
+    "name": "apartment",
+    "label": "Appartement",
+    "terms": [
+      "appartement",
+      "flat"
+    ]
+  },
+  {
+    "id": "md:cottage",
+    "name": "cottage",
+    "label": "Huisje",
+    "terms": [
+      "huisje"
+    ]
+  },
+  {
+    "id": "md:door_front",
+    "name": "door_front",
+    "label": "Deur",
+    "terms": [
+      "deur",
+      "voordeur"
+    ]
+  },
+  {
+    "id": "md:key",
+    "name": "key",
+    "label": "Sleutel",
+    "terms": [
+      "sleutel"
+    ]
+  },
+  {
+    "id": "md:lock",
+    "name": "lock",
+    "label": "Slot",
+    "terms": [
+      "slot",
+      "op slot"
+    ]
+  },
+  {
+    "id": "md:lightbulb",
+    "name": "lightbulb",
+    "label": "Lamp",
+    "terms": [
+      "lamp",
+      "licht"
+    ]
+  },
+  {
+    "id": "md:power",
+    "name": "power",
+    "label": "Stroom",
+    "terms": [
+      "stroom",
+      "elektra"
+    ]
+  },
+  {
+    "id": "md:thermostat",
+    "name": "thermostat",
+    "label": "Thermostaat",
+    "terms": [
+      "thermostaat",
+      "verwarming",
+      "temperatuur"
+    ]
+  },
+  {
+    "id": "md:ac_unit",
+    "name": "ac_unit",
+    "label": "Koud / airco",
+    "terms": [
+      "airco",
+      "koud",
+      "koeling"
+    ]
+  },
+  {
+    "id": "md:wifi",
+    "name": "wifi",
+    "label": "Wifi",
+    "terms": [
+      "wifi",
+      "internet"
+    ]
+  },
+  {
+    "id": "md:tv",
+    "name": "tv",
+    "label": "TV",
+    "terms": [
+      "tv",
+      "televisie"
+    ]
+  },
+  {
+    "id": "md:computer",
+    "name": "computer",
+    "label": "Computer",
+    "terms": [
+      "computer",
+      "pc"
+    ]
+  },
+  {
+    "id": "md:phone_android",
+    "name": "phone_android",
+    "label": "Telefoon",
+    "terms": [
+      "telefoon",
+      "mobiel"
+    ]
+  },
+  {
+    "id": "md:headphones",
+    "name": "headphones",
+    "label": "Koptelefoon",
+    "terms": [
+      "koptelefoon"
+    ]
+  },
+  {
+    "id": "md:bed",
+    "name": "bed",
+    "label": "Bed",
+    "terms": [
+      "bed",
+      "slapen",
+      "opmaken"
+    ]
+  },
+  {
+    "id": "md:hotel",
+    "name": "hotel",
+    "label": "Slaapkamer",
+    "terms": [
+      "slaapkamer"
+    ]
+  },
+  {
+    "id": "md:bedroom_baby",
+    "name": "bedroom_baby",
+    "label": "Babykamer",
+    "terms": [
+      "babykamer",
+      "wieg",
+      "baby"
+    ]
+  },
+  {
+    "id": "md:nights_stay",
+    "name": "nights_stay",
+    "label": "Nacht",
+    "terms": [
+      "nacht",
+      "slapen"
+    ]
+  },
+  {
+    "id": "md:shower",
+    "name": "shower",
+    "label": "Douche",
+    "terms": [
+      "douche",
+      "douchen"
+    ]
+  },
+  {
+    "id": "md:bathtub",
+    "name": "bathtub",
+    "label": "Bad",
+    "terms": [
+      "bad",
+      "baden"
+    ]
+  },
+  {
+    "id": "md:soap",
+    "name": "soap",
+    "label": "Zeep",
+    "terms": [
+      "zeep",
+      "wassen"
+    ]
+  },
+  {
+    "id": "md:wash",
+    "name": "wash",
+    "label": "Handen wassen",
+    "terms": [
+      "handen",
+      "wassen"
+    ]
+  },
+  {
+    "id": "md:dry",
+    "name": "dry",
+    "label": "Afdrogen",
+    "terms": [
+      "afdrogen",
+      "handdoek"
+    ]
+  },
+  {
+    "id": "md:health_and_beauty",
+    "name": "health_and_beauty",
+    "label": "Verzorging",
+    "terms": [
+      "verzorging",
+      "haar",
+      "beauty"
+    ]
+  },
+  {
+    "id": "md:content_cut",
+    "name": "content_cut",
+    "label": "Knippen",
+    "terms": [
+      "knippen",
+      "schaar",
+      "haar"
+    ]
+  },
+  {
+    "id": "md:dentistry",
+    "name": "dentistry",
+    "label": "Tanden",
+    "terms": [
+      "tanden",
+      "tandarts",
+      "poetsen",
+      "tandenborstel"
+    ]
+  },
+  {
+    "id": "md:local_laundry_service",
+    "name": "local_laundry_service",
+    "label": "Wasmachine",
+    "terms": [
+      "wasmachine",
+      "was",
+      "wasgoed",
+      "laundry"
+    ]
+  },
+  {
+    "id": "md:dry_cleaning",
+    "name": "dry_cleaning",
+    "label": "Stomerij",
+    "terms": [
+      "stomerij",
+      "reinigen"
+    ]
+  },
+  {
+    "id": "md:iron",
+    "name": "iron",
+    "label": "Strijken",
+    "terms": [
+      "strijken",
+      "strijkijzer"
+    ]
+  },
+  {
+    "id": "md:checkroom",
+    "name": "checkroom",
+    "label": "Garderobe",
+    "terms": [
+      "garderobe",
+      "jas",
+      "ophangen",
+      "kleding"
+    ]
+  },
+  {
+    "id": "md:restaurant",
+    "name": "restaurant",
+    "label": "Eten",
+    "terms": [
+      "eten",
+      "maaltijd",
+      "restaurant"
+    ]
+  },
+  {
+    "id": "md:breakfast_dining",
+    "name": "breakfast_dining",
+    "label": "Ontbijt",
+    "terms": [
+      "ontbijt"
+    ]
+  },
+  {
+    "id": "md:lunch_dining",
+    "name": "lunch_dining",
+    "label": "Lunch",
+    "terms": [
+      "lunch",
+      "middageten"
+    ]
+  },
+  {
+    "id": "md:dinner_dining",
+    "name": "dinner_dining",
+    "label": "Diner",
+    "terms": [
+      "diner",
+      "avondeten"
+    ]
+  },
+  {
+    "id": "md:bakery_dining",
+    "name": "bakery_dining",
+    "label": "Bakken",
+    "terms": [
+      "bakken",
+      "brood",
+      "gebak"
+    ]
+  },
+  {
+    "id": "md:local_cafe",
+    "name": "local_cafe",
+    "label": "Koffie / thee",
+    "terms": [
+      "koffie",
+      "thee",
+      "cafe"
+    ]
+  },
+  {
+    "id": "md:local_pizza",
+    "name": "local_pizza",
+    "label": "Pizza",
+    "terms": [
+      "pizza"
+    ]
+  },
+  {
+    "id": "md:icecream",
+    "name": "icecream",
+    "label": "IJs",
+    "terms": [
+      "ijs",
+      "ijsje"
+    ]
+  },
+  {
+    "id": "md:cake",
+    "name": "cake",
+    "label": "Taart",
+    "terms": [
+      "taart",
+      "cake",
+      "verjaardag"
+    ]
+  },
+  {
+    "id": "md:egg",
+    "name": "egg",
+    "label": "Ei",
+    "terms": [
+      "ei",
+      "eieren"
+    ]
+  },
+  {
+    "id": "md:set_meal",
+    "name": "set_meal",
+    "label": "Bord",
+    "terms": [
+      "bord",
+      "maaltijd"
+    ]
+  },
+  {
+    "id": "md:ramen_dining",
+    "name": "ramen_dining",
+    "label": "Soep / noedels",
+    "terms": [
+      "soep",
+      "noedels"
+    ]
+  },
+  {
+    "id": "md:kitchen",
+    "name": "kitchen",
+    "label": "Keuken",
+    "terms": [
+      "keuken"
+    ]
+  },
+  {
+    "id": "md:microwave",
+    "name": "microwave",
+    "label": "Magnetron",
+    "terms": [
+      "magnetron"
+    ]
+  },
+  {
+    "id": "md:oven_gen",
+    "name": "oven_gen",
+    "label": "Oven",
+    "terms": [
+      "oven"
+    ]
+  },
+  {
+    "id": "md:blender",
+    "name": "blender",
+    "label": "Blender",
+    "terms": [
+      "blender",
+      "smoothie"
+    ]
+  },
+  {
+    "id": "md:coffee",
+    "name": "coffee",
+    "label": "Koffie",
+    "terms": [
+      "koffie"
+    ]
+  },
+  {
+    "id": "md:kettle",
+    "name": "kettle",
+    "label": "Waterkoker",
+    "terms": [
+      "waterkoker"
+    ]
+  },
+  {
+    "id": "md:countertops",
+    "name": "countertops",
+    "label": "Aanrecht",
+    "terms": [
+      "aanrecht"
+    ]
+  },
+  {
+    "id": "md:flatware",
+    "name": "flatware",
+    "label": "Bestek",
+    "terms": [
+      "bestek",
+      "mes",
+      "vork",
+      "lepel"
+    ]
+  },
+  {
+    "id": "md:skillet",
+    "name": "skillet",
+    "label": "Pan",
+    "terms": [
+      "pan",
+      "bakken",
+      "koken"
+    ]
+  },
+  {
+    "id": "md:water_drop",
+    "name": "water_drop",
+    "label": "Water / kraan",
+    "terms": [
+      "kraan",
+      "water",
+      "druppel",
+      "kraantje"
+    ]
+  },
+  {
+    "id": "md:faucet",
+    "name": "faucet",
+    "label": "Kraan",
+    "terms": [
+      "kraan",
+      "waterkraan"
+    ]
+  },
+  {
+    "id": "md:dishwasher_gen",
+    "name": "dishwasher_gen",
+    "label": "Vaatwasser",
+    "terms": [
+      "vaatwasser",
+      "afwas",
+      "vaat",
+      "afwassen"
+    ]
+  },
+  {
+    "id": "md:cleaning_services",
+    "name": "cleaning_services",
+    "label": "Schoonmaken",
+    "terms": [
+      "schoonmaken",
+      "poetsen"
+    ]
+  },
+  {
+    "id": "md:mop",
+    "name": "mop",
+    "label": "Dweilen",
+    "terms": [
+      "dweilen",
+      "mop",
+      "vloer"
+    ]
+  },
+  {
+    "id": "md:vacuum",
+    "name": "vacuum",
+    "label": "Stofzuigen",
+    "terms": [
+      "stofzuigen",
+      "stofzuiger"
+    ]
+  },
+  {
+    "id": "md:delete",
+    "name": "delete",
+    "label": "Prullenbak",
+    "terms": [
+      "prullenbak",
+      "weggooien",
+      "afval"
+    ]
+  },
+  {
+    "id": "md:recycling",
+    "name": "recycling",
+    "label": "Recyclen",
+    "terms": [
+      "recyclen",
+      "recycle",
+      "milieu"
+    ]
+  },
+  {
+    "id": "md:compost",
+    "name": "compost",
+    "label": "Compost / GFT",
+    "terms": [
+      "compost",
+      "gft",
+      "tuinafval"
+    ]
+  },
+  {
+    "id": "md:inventory_2",
+    "name": "inventory_2",
+    "label": "Doos",
+    "terms": [
+      "doos",
+      "opbergen"
+    ]
+  },
+  {
+    "id": "md:broom",
+    "name": "broom",
+    "label": "Bezem",
+    "terms": [
+      "bezem",
+      "vegen"
+    ]
+  },
+  {
+    "id": "md:family_restroom",
+    "name": "family_restroom",
+    "label": "Gezin",
+    "terms": [
+      "gezin",
+      "familie"
+    ]
+  },
+  {
+    "id": "md:child_care",
+    "name": "child_care",
+    "label": "Kind",
+    "terms": [
+      "kind",
+      "kinderen",
+      "opvang"
+    ]
+  },
+  {
+    "id": "md:baby_changing_station",
+    "name": "baby_changing_station",
+    "label": "Verschonen",
+    "terms": [
+      "baby",
+      "verschonen"
+    ]
+  },
+  {
+    "id": "md:elderly",
+    "name": "elderly",
+    "label": "Ouderen",
+    "terms": [
+      "ouderen",
+      "zorg"
+    ]
+  },
+  {
+    "id": "md:groups",
+    "name": "groups",
+    "label": "Groep",
+    "terms": [
+      "groep",
+      "mensen",
+      "samen"
+    ]
+  },
+  {
+    "id": "md:person",
+    "name": "person",
+    "label": "Persoon",
+    "terms": [
+      "persoon"
+    ]
+  },
+  {
+    "id": "md:pets",
+    "name": "pets",
+    "label": "Huisdier",
+    "terms": [
+      "huisdier",
+      "hond",
+      "kat",
+      "dier"
+    ]
+  },
+  {
+    "id": "md:medical_services",
+    "name": "medical_services",
+    "label": "Medisch",
+    "terms": [
+      "medisch",
+      "dokter",
+      "zorg"
+    ]
+  },
+  {
+    "id": "md:medication",
+    "name": "medication",
+    "label": "Medicijn",
+    "terms": [
+      "medicijn",
+      "pil",
+      "geneesmiddel"
+    ]
+  },
+  {
+    "id": "md:vaccines",
+    "name": "vaccines",
+    "label": "Vaccin",
+    "terms": [
+      "vaccin",
+      "prik"
+    ]
+  },
+  {
+    "id": "md:healing",
+    "name": "healing",
+    "label": "Pleister",
+    "terms": [
+      "pleister",
+      "genezen"
+    ]
+  },
+  {
+    "id": "md:monitor_heart",
+    "name": "monitor_heart",
+    "label": "Hartslag",
+    "terms": [
+      "hartslag",
+      "gezondheid"
+    ]
+  },
+  {
+    "id": "md:fitness_center",
+    "name": "fitness_center",
+    "label": "Fitness",
+    "terms": [
+      "fitness",
+      "sportschool",
+      "sport"
+    ]
+  },
+  {
+    "id": "md:self_care",
+    "name": "self_care",
+    "label": "Zelfzorg",
+    "terms": [
+      "zelfzorg",
+      "rust"
+    ]
+  },
+  {
+    "id": "md:visibility",
+    "name": "visibility",
+    "label": "Tonen / ogen",
+    "terms": [
+      "tonen",
+      "ogen",
+      "zicht",
+      "kijken"
+    ]
+  },
+  {
+    "id": "md:visibility_off",
+    "name": "visibility_off",
+    "label": "Verbergen",
+    "terms": [
+      "verbergen"
+    ]
+  },
+  {
+    "id": "md:sports_soccer",
+    "name": "sports_soccer",
+    "label": "Voetbal",
+    "terms": [
+      "voetbal",
+      "soccer",
+      "bal"
+    ]
+  },
+  {
+    "id": "md:sports_basketball",
+    "name": "sports_basketball",
+    "label": "Basketbal",
+    "terms": [
+      "basketbal"
+    ]
+  },
+  {
+    "id": "md:sports_tennis",
+    "name": "sports_tennis",
+    "label": "Tennis",
+    "terms": [
+      "tennis"
+    ]
+  },
+  {
+    "id": "md:sports_volleyball",
+    "name": "sports_volleyball",
+    "label": "Volleybal",
+    "terms": [
+      "volleybal"
+    ]
+  },
+  {
+    "id": "md:sports_esports",
+    "name": "sports_esports",
+    "label": "Gamen",
+    "terms": [
+      "gamen",
+      "game"
+    ]
+  },
+  {
+    "id": "md:pool",
+    "name": "pool",
+    "label": "Zwemmen",
+    "terms": [
+      "zwemmen",
+      "zwembad"
+    ]
+  },
+  {
+    "id": "md:downhill_skiing",
+    "name": "downhill_skiing",
+    "label": "Skiën",
+    "terms": [
+      "skiën",
+      "wintersport"
+    ]
+  },
+  {
+    "id": "md:ice_skating",
+    "name": "ice_skating",
+    "label": "Schaatsen",
+    "terms": [
+      "schaatsen"
+    ]
+  },
+  {
+    "id": "md:directions_run",
+    "name": "directions_run",
+    "label": "Hardlopen",
+    "terms": [
+      "hardlopen",
+      "rennen",
+      "joggen"
+    ]
+  },
+  {
+    "id": "md:directions_walk",
+    "name": "directions_walk",
+    "label": "Wandelen",
+    "terms": [
+      "wandelen",
+      "lopen",
+      "wandeling"
+    ]
+  },
+  {
+    "id": "md:directions_bike",
+    "name": "directions_bike",
+    "label": "Fietsen",
+    "terms": [
+      "fietsen",
+      "fiets"
+    ]
+  },
+  {
+    "id": "md:pedal_bike",
+    "name": "pedal_bike",
+    "label": "Fiets",
+    "terms": [
+      "fiets"
+    ]
+  },
+  {
+    "id": "md:skateboarding",
+    "name": "skateboarding",
+    "label": "Skateboard",
+    "terms": [
+      "skateboard",
+      "skaten"
+    ]
+  },
+  {
+    "id": "md:school",
+    "name": "school",
+    "label": "School",
+    "terms": [
+      "school",
+      "les"
+    ]
+  },
+  {
+    "id": "md:menu_book",
+    "name": "menu_book",
+    "label": "Boek",
+    "terms": [
+      "boek",
+      "lezen",
+      "huiswerk"
+    ]
+  },
+  {
+    "id": "md:auto_stories",
+    "name": "auto_stories",
+    "label": "Voorlezen",
+    "terms": [
+      "voorlezen",
+      "verhaal"
+    ]
+  },
+  {
+    "id": "md:edit_note",
+    "name": "edit_note",
+    "label": "Schrijven",
+    "terms": [
+      "schrijven",
+      "notitie",
+      "huiswerk"
+    ]
+  },
+  {
+    "id": "md:calculate",
+    "name": "calculate",
+    "label": "Rekenen",
+    "terms": [
+      "rekenen",
+      "wiskunde"
+    ]
+  },
+  {
+    "id": "md:science",
+    "name": "science",
+    "label": "Wetenschap",
+    "terms": [
+      "wetenschap"
+    ]
+  },
+  {
+    "id": "md:brush",
+    "name": "brush",
+    "label": "Tekenen",
+    "terms": [
+      "tekenen",
+      "kwast",
+      "kunst"
+    ]
+  },
+  {
+    "id": "md:palette",
+    "name": "palette",
+    "label": "Knutselen",
+    "terms": [
+      "knutselen",
+      "verf",
+      "kleuren"
+    ]
+  },
+  {
+    "id": "md:music_note",
+    "name": "music_note",
+    "label": "Muziek",
+    "terms": [
+      "muziek",
+      "noten",
+      "oefenen"
+    ]
+  },
+  {
+    "id": "md:piano",
+    "name": "piano",
+    "label": "Piano",
+    "terms": [
+      "piano"
+    ]
+  },
+  {
+    "id": "md:mic",
+    "name": "mic",
+    "label": "Zingen / microfoon",
+    "terms": [
+      "zingen",
+      "microfoon"
+    ]
+  },
+  {
+    "id": "md:theater_comedy",
+    "name": "theater_comedy",
+    "label": "Toneel",
+    "terms": [
+      "toneel",
+      "theater"
+    ]
+  },
+  {
+    "id": "md:work",
+    "name": "work",
+    "label": "Werk",
+    "terms": [
+      "werk",
+      "kantoor",
+      "baan"
+    ]
+  },
+  {
+    "id": "md:laptop_mac",
+    "name": "laptop_mac",
+    "label": "Laptop",
+    "terms": [
+      "laptop",
+      "computer"
+    ]
+  },
+  {
+    "id": "md:mail",
+    "name": "mail",
+    "label": "Post",
+    "terms": [
+      "post",
+      "mail",
+      "brief"
+    ]
+  },
+  {
+    "id": "md:call",
+    "name": "call",
+    "label": "Bellen",
+    "terms": [
+      "bellen",
+      "telefoon"
+    ]
+  },
+  {
+    "id": "md:directions_car",
+    "name": "directions_car",
+    "label": "Auto",
+    "terms": [
+      "auto",
+      "rijden"
+    ]
+  },
+  {
+    "id": "md:directions_bus",
+    "name": "directions_bus",
+    "label": "Bus",
+    "terms": [
+      "bus",
+      "ov"
+    ]
+  },
+  {
+    "id": "md:train",
+    "name": "train",
+    "label": "Trein",
+    "terms": [
+      "trein",
+      "ov"
+    ]
+  },
+  {
+    "id": "md:tram",
+    "name": "tram",
+    "label": "Tram",
+    "terms": [
+      "tram"
+    ]
+  },
+  {
+    "id": "md:subway",
+    "name": "subway",
+    "label": "Metro",
+    "terms": [
+      "metro"
+    ]
+  },
+  {
+    "id": "md:flight",
+    "name": "flight",
+    "label": "Vliegtuig",
+    "terms": [
+      "vliegtuig",
+      "vliegen",
+      "vakantie"
+    ]
+  },
+  {
+    "id": "md:local_shipping",
+    "name": "local_shipping",
+    "label": "Bestellen / busje",
+    "terms": [
+      "bestellen",
+      "bezorgen",
+      "bestelwagen"
+    ]
+  },
+  {
+    "id": "md:electric_scooter",
+    "name": "electric_scooter",
+    "label": "Step",
+    "terms": [
+      "step",
+      "scooter"
+    ]
+  },
+  {
+    "id": "md:shopping_cart",
+    "name": "shopping_cart",
+    "label": "Boodschappen",
+    "terms": [
+      "boodschappen",
+      "winkelwagen",
+      "shoppen"
+    ]
+  },
+  {
+    "id": "md:storefront",
+    "name": "storefront",
+    "label": "Winkel",
+    "terms": [
+      "winkel"
+    ]
+  },
+  {
+    "id": "md:local_grocery_store",
+    "name": "local_grocery_store",
+    "label": "Supermarkt",
+    "terms": [
+      "supermarkt",
+      "boodschappen"
+    ]
+  },
+  {
+    "id": "md:payments",
+    "name": "payments",
+    "label": "Betalen",
+    "terms": [
+      "betalen",
+      "geld",
+      "pin"
+    ]
+  },
+  {
+    "id": "md:savings",
+    "name": "savings",
+    "label": "Sparen",
+    "terms": [
+      "sparen",
+      "spaarpot"
+    ]
+  },
+  {
+    "id": "md:card_giftcard",
+    "name": "card_giftcard",
+    "label": "Cadeau",
+    "terms": [
+      "cadeau",
+      "kado",
+      "verjaardag"
+    ]
+  },
+  {
+    "id": "md:park",
+    "name": "park",
+    "label": "Park",
+    "terms": [
+      "park",
+      "buiten"
+    ]
+  },
+  {
+    "id": "md:nature",
+    "name": "nature",
+    "label": "Natuur",
+    "terms": [
+      "natuur",
+      "bomen"
+    ]
+  },
+  {
+    "id": "md:yard",
+    "name": "yard",
+    "label": "Tuin",
+    "terms": [
+      "tuin",
+      "gazon"
+    ]
+  },
+  {
+    "id": "md:grass",
+    "name": "grass",
+    "label": "Gras maaien",
+    "terms": [
+      "gras",
+      "maaien",
+      "gazon"
+    ]
+  },
+  {
+    "id": "md:potted_plant",
+    "name": "potted_plant",
+    "label": "Plant",
+    "terms": [
+      "plant",
+      "kamerplant",
+      "water geven"
+    ]
+  },
+  {
+    "id": "md:forest",
+    "name": "forest",
+    "label": "Bos",
+    "terms": [
+      "bos"
+    ]
+  },
+  {
+    "id": "md:wb_sunny",
+    "name": "wb_sunny",
+    "label": "Zon",
+    "terms": [
+      "zon",
+      "zonnig"
+    ]
+  },
+  {
+    "id": "md:cloud",
+    "name": "cloud",
+    "label": "Wolk",
+    "terms": [
+      "wolk",
+      "bewolkt"
+    ]
+  },
+  {
+    "id": "md:umbrella",
+    "name": "umbrella",
+    "label": "Paraplu",
+    "terms": [
+      "paraplu",
+      "regen"
+    ]
+  },
+  {
+    "id": "md:local_florist",
+    "name": "local_florist",
+    "label": "Bloemen",
+    "terms": [
+      "bloemen",
+      "bloem"
+    ]
+  },
+  {
+    "id": "md:assignment",
+    "name": "assignment",
+    "label": "Taak",
+    "terms": [
+      "taak",
+      "opdracht"
+    ]
+  },
+  {
+    "id": "md:task_alt",
+    "name": "task_alt",
+    "label": "Taak klaar",
+    "terms": [
+      "taak",
+      "klaar"
+    ]
+  },
+  {
+    "id": "md:checklist",
+    "name": "checklist",
+    "label": "Checklist",
+    "terms": [
+      "checklist",
+      "lijst"
+    ]
+  },
+  {
+    "id": "md:format_list_bulleted",
+    "name": "format_list_bulleted",
+    "label": "Lijst",
+    "terms": [
+      "lijst"
+    ]
+  },
+  {
+    "id": "md:inventory",
+    "name": "inventory",
+    "label": "Voorraad",
+    "terms": [
+      "voorraad"
+    ]
+  },
+  {
+    "id": "md:dining",
+    "name": "dining",
+    "label": "Eettafel",
+    "terms": [
+      "eettafel",
+      "dineren",
+      "tafel dekken"
+    ]
+  },
+  {
+    "id": "md:table_restaurant",
+    "name": "table_restaurant",
+    "label": "Tafel",
+    "terms": [
+      "tafel",
+      "dekken"
+    ]
+  },
+  {
+    "id": "md:weekend",
+    "name": "weekend",
+    "label": "Bank",
+    "terms": [
+      "bank",
+      "woonkamer"
+    ]
+  },
+  {
+    "id": "md:chair",
+    "name": "chair",
+    "label": "Stoel",
+    "terms": [
+      "stoel"
+    ]
+  },
+  {
+    "id": "md:desk",
+    "name": "desk",
+    "label": "Bureau",
+    "terms": [
+      "bureau"
+    ]
+  },
+  {
+    "id": "md:window",
+    "name": "window",
+    "label": "Raam",
+    "terms": [
+      "raam",
+      "luchten"
+    ]
+  },
+  {
+    "id": "md:garage_home",
+    "name": "garage_home",
+    "label": "Garage",
+    "terms": [
+      "garage"
+    ]
+  },
+  {
+    "id": "md:balcony",
+    "name": "balcony",
+    "label": "Balkon",
+    "terms": [
+      "balkon"
+    ]
+  },
+  {
+    "id": "md:celebration",
+    "name": "celebration",
+    "label": "Feest",
+    "terms": [
+      "feest",
+      "vieren"
+    ]
+  },
+  {
+    "id": "md:attractions",
+    "name": "attractions",
+    "label": "Uitje",
+    "terms": [
+      "uitje",
+      "attractie"
+    ]
+  },
+  {
+    "id": "md:museum",
+    "name": "museum",
+    "label": "Museum",
+    "terms": [
+      "museum"
+    ]
+  },
+  {
+    "id": "md:movie",
+    "name": "movie",
+    "label": "Film",
+    "terms": [
+      "film",
+      "bioscoop"
+    ]
+  },
+  {
+    "id": "md:emoji_events",
+    "name": "emoji_events",
+    "label": "Trofee",
+    "terms": [
+      "trofee",
+      "winnen",
+      "prijs"
+    ]
+  },
+  {
+    "id": "md:expand_more",
+    "name": "expand_more",
+    "label": "Meer",
+    "terms": [
+      "meer",
+      "dropdown"
+    ]
+  },
+  {
+    "id": "md:content_copy",
+    "name": "content_copy",
+    "label": "Kopiëren",
+    "terms": [
+      "kopiëren",
+      "copy"
+    ]
+  },
+  {
+    "id": "md:sync",
+    "name": "sync",
+    "label": "Synchroniseren",
+    "terms": [
+      "synchroniseren",
+      "sync",
+      "verversen"
+    ]
+  },
+  {
+    "id": "md:refresh",
+    "name": "refresh",
+    "label": "Vernieuwen",
+    "terms": [
+      "vernieuwen",
+      "refresh"
+    ]
+  },
+  {
+    "id": "md:add",
+    "name": "add",
+    "label": "Toevoegen",
+    "terms": [
+      "toevoegen",
+      "plus"
+    ]
+  },
+  {
+    "id": "md:remove",
+    "name": "remove",
+    "label": "Verwijderen",
+    "terms": [
+      "verwijderen",
+      "min"
+    ]
+  },
+  {
+    "id": "md:edit",
+    "name": "edit",
+    "label": "Bewerken",
+    "terms": [
+      "bewerken",
+      "wijzigen"
+    ]
+  },
+  {
+    "id": "md:save",
+    "name": "save",
+    "label": "Opslaan",
+    "terms": [
+      "opslaan"
+    ]
+  },
+  {
+    "id": "md:close",
+    "name": "close",
+    "label": "Sluiten",
+    "terms": [
+      "sluiten"
+    ]
+  },
+  {
+    "id": "md:arrow_back",
+    "name": "arrow_back",
+    "label": "Terug",
+    "terms": [
+      "terug"
+    ]
+  },
+  {
+    "id": "md:arrow_forward",
+    "name": "arrow_forward",
+    "label": "Verder",
+    "terms": [
+      "verder"
+    ]
+  },
+  {
+    "id": "md:menu",
+    "name": "menu",
+    "label": "Menu",
+    "terms": [
+      "menu"
+    ]
+  },
+  {
+    "id": "md:settings",
+    "name": "settings",
+    "label": "Instellingen",
+    "terms": [
+      "instellingen"
+    ]
+  },
+  {
+    "id": "md:logout",
+    "name": "logout",
+    "label": "Uitloggen",
+    "terms": [
+      "uitloggen"
+    ]
+  },
+  {
+    "id": "md:login",
+    "name": "login",
+    "label": "Inloggen",
+    "terms": [
+      "inloggen"
+    ]
+  },
+  {
+    "id": "md:backpack",
+    "name": "backpack",
+    "label": "Rugzak",
+    "terms": [
+      "rugzak",
+      "tas",
+      "schooltas"
+    ]
+  },
+  {
+    "id": "md:luggage",
+    "name": "luggage",
+    "label": "Koffer",
+    "terms": [
+      "koffer",
+      "vakantie",
+      "packen"
+    ]
+  },
+  {
+    "id": "md:volunteer_activism",
+    "name": "volunteer_activism",
+    "label": "Helpen",
+    "terms": [
+      "helpen",
+      "vrijwillig"
+    ]
+  },
+  {
+    "id": "md:handshake",
+    "name": "handshake",
+    "label": "Afspreken",
+    "terms": [
+      "afspreken",
+      "handdruk"
+    ]
+  },
+  {
+    "id": "md:cookie",
+    "name": "cookie",
+    "label": "Koekje",
+    "terms": [
+      "koekje",
+      "koek"
+    ]
+  },
+  {
+    "id": "md:stroller",
+    "name": "stroller",
+    "label": "Buggy",
+    "terms": [
+      "buggy",
+      "wandelwagen"
+    ]
+  },
+  {
+    "id": "md:toys",
+    "name": "toys",
+    "label": "Speelgoed",
+    "terms": [
+      "speelgoed"
+    ]
+  },
+  {
+    "id": "md:smart_toy",
+    "name": "smart_toy",
+    "label": "Speelgoedrobot",
+    "terms": [
+      "speelgoed",
+      "robot"
+    ]
+  },
+  {
+    "id": "md:extension",
+    "name": "extension",
+    "label": "Puzzel",
+    "terms": [
+      "puzzel",
+      "spel"
+    ]
+  },
+  {
+    "id": "md:videogame_asset",
+    "name": "videogame_asset",
+    "label": "Controller",
+    "terms": [
+      "game",
+      "controller"
+    ]
+  },
+  {
+    "id": "md:photo_camera",
+    "name": "photo_camera",
+    "label": "Foto",
+    "terms": [
+      "foto",
+      "camera"
+    ]
+  },
+  {
+    "id": "md:videocam",
+    "name": "videocam",
+    "label": "Video",
+    "terms": [
+      "video",
+      "filmen"
+    ]
+  },
+  {
+    "id": "md:print",
+    "name": "print",
+    "label": "Printen",
+    "terms": [
+      "printen",
+      "printer"
+    ]
+  },
+  {
+    "id": "md:folder",
+    "name": "folder",
+    "label": "Map",
+    "terms": [
+      "map",
+      "ordner"
+    ]
+  },
+  {
+    "id": "md:place",
+    "name": "place",
+    "label": "Locatie",
+    "terms": [
+      "locatie",
+      "adres",
+      "plek"
+    ]
+  },
+  {
+    "id": "md:map",
+    "name": "map",
+    "label": "Kaart",
+    "terms": [
+      "kaart",
+      "plattegrond"
+    ]
+  },
+  {
+    "id": "md:flag",
+    "name": "flag",
+    "label": "Vlag",
+    "terms": [
+      "vlag"
+    ]
+  },
+  {
+    "id": "md:public",
+    "name": "public",
+    "label": "Wereld",
+    "terms": [
+      "wereld",
+      "aarde"
+    ]
+  },
+  {
+    "id": "md:eco",
+    "name": "eco",
+    "label": "Eco",
+    "terms": [
+      "eco",
+      "milieu",
+      "groen"
+    ]
+  },
+  {
+    "id": "md:energy_savings_leaf",
+    "name": "energy_savings_leaf",
+    "label": "Duurzaam",
+    "terms": [
+      "duurzaam",
+      "energie"
+    ]
+  },
+  {
+    "id": "md:air",
+    "name": "air",
+    "label": "Luchten",
+    "terms": [
+      "lucht",
+      "luchten",
+      "ventileren"
+    ]
+  },
+  {
+    "id": "md:fireplace",
+    "name": "fireplace",
+    "label": "Haard",
+    "terms": [
+      "haard",
+      "vuur"
+    ]
+  },
+  {
+    "id": "md:local_hospital",
+    "name": "local_hospital",
+    "label": "Ziekenhuis",
+    "terms": [
+      "ziekenhuis",
+      "spoed"
+    ]
+  },
+  {
+    "id": "md:local_pharmacy",
+    "name": "local_pharmacy",
+    "label": "Apotheek",
+    "terms": [
+      "apotheek"
+    ]
+  },
+  {
+    "id": "md:spa",
+    "name": "spa",
+    "label": "Ontspannen",
+    "terms": [
+      "ontspannen",
+      "spa"
+    ]
+  },
+  {
+    "id": "md:beach_access",
+    "name": "beach_access",
+    "label": "Strand",
+    "terms": [
+      "strand",
+      "zee"
+    ]
+  },
+  {
+    "id": "md:directions_boat",
+    "name": "directions_boat",
+    "label": "Boot",
+    "terms": [
+      "boot",
+      "varen"
+    ]
+  },
+  {
+    "id": "md:camping",
+    "name": "camping",
+    "label": "Kamperen",
+    "terms": [
+      "kamperen",
+      "tent"
+    ]
+  },
+  {
+    "id": "md:hiking",
+    "name": "hiking",
+    "label": "Hiken",
+    "terms": [
+      "hiken",
+      "bergen",
+      "wandelen"
+    ]
+  },
+  {
+    "id": "md:phishing",
+    "name": "phishing",
+    "label": "Vissen",
+    "terms": [
+      "vissen",
+      "hengel"
+    ]
+  },
+  {
+    "id": "custom:kliko-restafval",
+    "name": "kliko-restafval",
+    "label": "Kliko restafval",
+    "terms": [
+      "kliko",
+      "restafval",
+      "grijze kliko",
+      "afval",
+      "container"
+    ]
+  },
+  {
+    "id": "custom:kliko-gft",
+    "name": "kliko-gft",
+    "label": "Kliko GFT",
+    "terms": [
+      "kliko",
+      "gft",
+      "groente",
+      "fruit",
+      "tuin",
+      "groene kliko",
+      "afval"
+    ]
+  },
+  {
+    "id": "custom:kliko-pmd",
+    "name": "kliko-pmd",
+    "label": "Kliko PMD",
+    "terms": [
+      "kliko",
+      "pmd",
+      "plastic",
+      "metaal",
+      "drankkartons",
+      "oranje",
+      "afval"
+    ]
+  },
+  {
+    "id": "custom:kliko-papier",
+    "name": "kliko-papier",
+    "label": "Kliko papier",
+    "terms": [
+      "kliko",
+      "papier",
+      "karton",
+      "blauwe kliko",
+      "afval"
+    ]
+  }
+]

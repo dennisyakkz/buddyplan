@@ -83,7 +83,7 @@ class CalendarNotifier extends Notifier<CalendarState> {
       }
       if (showLoading || state.events.isEmpty) {
         state = CalendarState(
-          error: err.toString(),
+          error: friendlyErrorMessage(err),
           isOffline: isNetworkError(err),
         );
       } else {
@@ -116,6 +116,7 @@ class CalendarNotifier extends Notifier<CalendarState> {
   }
 
   void addEvent(CalendarEvent event) {
+    if (state.events.any((e) => e.id == event.id)) return;
     state = CalendarState(
       events: [...state.events, event],
       isOffline: state.isOffline,

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [CachedTaskEntity::class, WeekCalendarEntity::class, CacheMetaEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class DashboardDatabase : RoomDatabase() {
@@ -23,7 +23,10 @@ abstract class DashboardDatabase : RoomDatabase() {
                     context.applicationContext,
                     DashboardDatabase::class.java,
                     "buddyplan_dashboard_cache",
-                ).build().also { instance = it }
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                    .also { instance = it }
             }
         }
     }

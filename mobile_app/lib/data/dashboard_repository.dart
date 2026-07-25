@@ -14,6 +14,7 @@ class DashboardRepository {
   static DashboardRepository? _instance;
   static LocalDatabase? _db;
   static bool _migrated = false;
+  Future<int>? _outboxInFlight;
 
   static Future<DashboardRepository> instance() async {
     if (_instance == null) {
@@ -220,6 +221,17 @@ class DashboardRepository {
   }
 
   Future<int> processOutbox() async {
+    // Prevent concurrent sync from creating duplicate server records.
+    if (_outboxInFlight != null) return _outboxInFlight!;
+    _outboxInFlight = _processOutboxLocked();
+    try {
+      return await _outboxInFlight!;
+    } finally {
+      _outboxInFlight = null;
+    }
+  }
+
+  Future<int> _processOutboxLocked() async {
     final pending = await _db!.pendingFifo();
     var synced = 0;
     for (final mutation in pending) {
@@ -242,12 +254,12 @@ class DashboardRepository {
             final oldKey = '$localId|$dateIso';
             final newId = result['id'].toString();
             final newKey = '$newId|$dateIso';
-            await (_db!.delete(_db!.cachedTasks)
-                  ..where((t) => t.cacheKey.equals(oldKey)))
-                .go();
             final existing = await (_db!.select(_db!.cachedTasks)
                   ..where((t) => t.cacheKey.equals(oldKey)))
                 .getSingleOrNull();
+            await (_db!.delete(_db!.cachedTasks)
+                  ..where((t) => t.cacheKey.equals(oldKey)))
+                .go();
             if (existing != null) {
               await _db!.into(_db!.cachedTasks).insert(
                     CachedTasksCompanion(
@@ -273,12 +285,12 @@ class DashboardRepository {
             final oldKey = '$localId|$dateIso';
             final newId = result['id'] as int;
             final newKey = '$newId|$dateIso';
-            await (_db!.delete(_db!.cachedCalendarEvents)
-                  ..where((e) => e.cacheKey.equals(oldKey)))
-                .go();
             final existing = await (_db!.select(_db!.cachedCalendarEvents)
                   ..where((e) => e.cacheKey.equals(oldKey)))
                 .getSingleOrNull();
+            await (_db!.delete(_db!.cachedCalendarEvents)
+                  ..where((e) => e.cacheKey.equals(oldKey)))
+                .go();
             if (existing != null) {
               await _db!.into(_db!.cachedCalendarEvents).insert(
                     CachedCalendarEventsCompanion(

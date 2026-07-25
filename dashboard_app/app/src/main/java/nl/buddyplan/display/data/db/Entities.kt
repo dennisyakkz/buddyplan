@@ -11,6 +11,7 @@ data class CachedTaskEntity(
     val icon: String,
     val completed: Boolean,
     val personId: Int?,
+    val profileColor: String? = null,
     val date: String,
 )
 

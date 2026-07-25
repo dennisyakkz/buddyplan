@@ -130,16 +130,22 @@ object CalendarViewBuilder {
             if (label != null) {
                 val colors = ColorPalette.chipColors(context, label)
                 if (colors != null) {
-                    background = ColorPalette.chipDrawable(context, label, 12f)
+                    background = ColorPalette.chipDrawable(context, label, 4f)
                     setTextColor(colors.second)
                 } else {
-                    setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                    applyDefaultChipStyle(context)
                 }
             } else {
-                text = "• ${item.text}"
-                setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                // Manual / uncolored items: same gray chip as web `.cal-chip`
+                applyDefaultChipStyle(context)
             }
         }
+    }
+
+    private fun TextView.applyDefaultChipStyle(context: Context) {
+        val colors = ColorPalette.defaultChipColors(context)
+        background = ColorPalette.defaultChipDrawable(context, 4f)
+        setTextColor(colors.second)
     }
 
     private fun createRow(context: Context): LinearLayout {

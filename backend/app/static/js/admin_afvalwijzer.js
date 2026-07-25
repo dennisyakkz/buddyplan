@@ -149,7 +149,7 @@ function typeDetailsHtml(t) {
                 </select>
             </div>
             <div id="picker-buiten-${t.id}" style="margin-top:8px">
-                ${createIconPicker(t.buiten_icon || "fas:trash", "buiten_icon")}
+                ${createIconPicker(t.buiten_icon || "custom:kliko-restafval", "buiten_icon")}
             </div>
         </div>
         <div class="form-group">
@@ -164,7 +164,7 @@ function typeDetailsHtml(t) {
                 </select>
             </div>
             <div id="picker-binnen-${t.id}" style="margin-top:8px">
-                ${createIconPicker(t.binnen_icon || "fas:trash", "binnen_icon")}
+                ${createIconPicker(t.binnen_icon || "custom:kliko-restafval", "binnen_icon")}
             </div>
         </div>
         <div style="margin-top:14px">
@@ -237,10 +237,10 @@ async function saveType(typeId) {
         naam: document.getElementById(`type-naam-${typeId}`)?.value.trim() ?? "",
         buiten_dag: document.getElementById(`type-buiten-dag-${typeId}`)?.value ?? "day_before",
         buiten_person_id: parseInt(document.getElementById(`type-buiten-person-${typeId}`)?.value) || null,
-        buiten_icon: document.getElementById(`picker-buiten-${typeId}`)?.querySelector("#icon-input")?.value || "fas:trash",
+        buiten_icon: document.getElementById(`picker-buiten-${typeId}`)?.querySelector("#icon-input")?.value || "custom:kliko-restafval",
         binnen_dag: document.getElementById(`type-binnen-dag-${typeId}`)?.value ?? "same_day",
         binnen_person_id: parseInt(document.getElementById(`type-binnen-person-${typeId}`)?.value) || null,
-        binnen_icon: document.getElementById(`picker-binnen-${typeId}`)?.querySelector("#icon-input")?.value || "fas:trash",
+        binnen_icon: document.getElementById(`picker-binnen-${typeId}`)?.querySelector("#icon-input")?.value || "custom:kliko-restafval",
     };
 
     const updated = await api(`/api/admin/afvalwijzer/types/${typeId}`, {

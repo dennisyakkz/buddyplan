@@ -20,19 +20,23 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import nl.buddyplan.display.data.ConnectionState
+import nl.buddyplan.display.data.DataRepository
 import nl.buddyplan.display.data.DayCalendarEvent
 import nl.buddyplan.display.data.TodoItem
 import nl.buddyplan.display.data.WeekDay
 import nl.buddyplan.display.data.PersonCalendar
 import nl.buddyplan.display.data.WeekDates
 import nl.buddyplan.display.ui.CalendarViewBuilder
+import nl.buddyplan.display.ui.ColorPalette
 import nl.buddyplan.display.ui.DayViewBuilder
 import nl.buddyplan.display.ui.SwipeNavLayout
 import nl.buddyplan.display.ui.TodoAdapter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -250,12 +254,57 @@ class MainActivity : AppCompatActivity() {
             todoAdapter = TodoAdapter { item -> showTaskOverlay(item) }
             recyclerView.layoutManager = LinearLayoutManager(this)
             recyclerView.adapter = todoAdapter
+        }
+
+        val colorsFromTodos = todos
+            .mapNotNull { item ->
+                val pid = item.person_id ?: return@mapNotNull null
+                val color = item.profile_color?.trim()?.takeIf { it.isNotEmpty() }
+                    ?: return@mapNotNull null
+                pid to ColorPalette.migrateStoredColor(color)
+            }
+            .toMap()
+            .toMutableMap()
+
+        fun applyTodos(colorMap: Map<Int, String>) {
+            if (colorMap.isNotEmpty()) {
+                val merged = AppPreferences.getUserColors(this).toMutableMap()
+                merged.putAll(colorMap)
+                AppPreferences.setUserColors(this, merged)
+            }
+            val prefs = AppPreferences.getUserColors(this)
+            val enriched = todos.map { item ->
+                val pid = item.person_id
+                val color = item.profile_color?.trim()?.takeIf { it.isNotEmpty() }
+                    ?: pid?.let { prefs[it] }
+                if (color != null && color != item.profile_color) {
+                    item.copy(profile_color = ColorPalette.migrateStoredColor(color))
+                } else {
+                    item
+                }
+            }
             todoAdapter.updateUserSettings(
-                AppPreferences.getUserColors(this),
+                prefs,
                 AppPreferences.getUserEnabled(this),
             )
+            todoAdapter.submitList(enriched)
         }
-        todoAdapter.submitList(todos)
+
+        applyTodos(colorsFromTodos)
+
+        lifecycleScope.launch {
+            val users = withContext(Dispatchers.IO) {
+                DataRepository.fetchAppUsers(this@MainActivity)
+            } ?: return@launch
+            val fromUsers = users.mapNotNull { (id, _, color) ->
+                color?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                    id to ColorPalette.migrateStoredColor(it)
+                }
+            }.toMap()
+            if (fromUsers.isEmpty()) return@launch
+            colorsFromTodos.putAll(fromUsers)
+            applyTodos(colorsFromTodos)
+        }
     }
 
     private fun setupSettingsButton() {
@@ -417,7 +466,7 @@ class MainActivity : AppCompatActivity() {
     private fun showTaskOverlay(item: TodoItem) {
         if (item.completed) return
         selectedTodo = item
-        FaIconHelper.applyIcon(popupIcon, item.icon, 72f)
+        MaterialIconHelper.applyIcon(popupIcon, item.icon, 72f)
         popupTitle.text = item.title
         popupDescription.text = item.description
         buttonDone.visibility = View.VISIBLE

@@ -13,6 +13,7 @@ data class TodoItem(
     val icon: String,
     var completed: Boolean = false,
     val person_id: Int? = null,
+    val profile_color: String? = null,
 )
 
 data class WeekDay(

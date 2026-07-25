@@ -5,7 +5,7 @@ class CachedTasks extends Table {
   TextColumn get id => text()();
   TextColumn get title => text()();
   TextColumn get description => text().withDefault(const Constant(''))();
-  TextColumn get icon => text().withDefault(const Constant('check'))();
+  TextColumn get icon => text().withDefault(const Constant('md:check_circle'))();
   IntColumn get personId => integer().nullable()();
   TextColumn get dateIso => text()();
   BoolColumn get completed => boolean().withDefault(const Constant(false))();

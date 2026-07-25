@@ -77,6 +77,14 @@ def normalize_stored_color(value: str | None) -> str | None:
     return hex_to_label(value)
 
 
+def normalize_profile_color(value: str | None, fallback_index: int = 0) -> str:
+    """Return a valid brandbook label for a person profile color."""
+    label = hex_to_label(value)
+    if label:
+        return label
+    return BRAND_LABELS[fallback_index % len(BRAND_LABELS)]
+
+
 def resolve_color_label(
     *,
     feed_color: str | None = None,

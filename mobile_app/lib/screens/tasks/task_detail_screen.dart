@@ -7,6 +7,8 @@ import '../../models/repeat_settings.dart';
 import '../../models/task_item.dart';
 import '../../models/person.dart';
 import '../../providers/tasks_provider.dart';
+import '../../ui/material_task_icon.dart';
+import '../../widgets/icon_picker_field.dart';
 import '../../widgets/repeat_settings_field.dart';
 
 class TaskDetailScreen extends ConsumerStatefulWidget {
@@ -29,6 +31,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   DateTime? _anchorDate;
+  String _icon = kDefaultTaskIcon;
   RepeatSettings _repeat = const RepeatSettings();
   bool _loading = true;
   bool _saving = false;
@@ -43,6 +46,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     _titleCtrl.text = widget.task.title;
     _descCtrl.text = widget.task.description;
     _anchorDate = widget.task.date;
+    _icon = MaterialTaskIcon.normalize(widget.task.icon);
     _apiTaskId = int.tryParse(widget.task.id);
     _loadDetail();
   }
@@ -65,6 +69,9 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       setState(() {
         _titleCtrl.text = raw['title'] as String? ?? widget.task.title;
         _descCtrl.text = raw['description'] as String? ?? '';
+        _icon = MaterialTaskIcon.normalize(
+          raw['icon'] as String? ?? widget.task.icon,
+        );
         final anchorRaw = raw['anchor_date'] as String?;
         if (anchorRaw != null) {
           _anchorDate = DateTime.parse(anchorRaw);
@@ -146,8 +153,16 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(_titleCtrl.text,
-            style: Theme.of(context).textTheme.headlineSmall),
+        Row(
+          children: [
+            MaterialTaskIcon(iconId: _icon, size: 32),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(_titleCtrl.text,
+                  style: Theme.of(context).textTheme.headlineSmall),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         if (_descCtrl.text.isNotEmpty) ...[
           Text(_descCtrl.text),
@@ -205,7 +220,11 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           ),
           maxLines: 3,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 4),
+        IconPickerField(
+          value: _icon,
+          onChanged: (id) => setState(() => _icon = id),
+        ),
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.calendar_today),
@@ -246,6 +265,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
         'title': _titleCtrl.text.trim(),
         'description': _descCtrl.text.trim(),
         'anchor_date': _isoDate(anchor),
+        'icon': _icon,
         ..._repeat.toApiPayload(),
       };
       await ApiClient.instance.updateTask(id, data);

@@ -15,8 +15,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const show = secretInput.type === "password";
         secretInput.type = show ? "text" : "password";
         document.getElementById("btn-toggle-secret").innerHTML = show
-            ? '<i class="fa-solid fa-eye-slash"></i> Verbergen'
-            : '<i class="fa-solid fa-eye"></i> Tonen';
+            ? '<span class="material-symbols-rounded bp-icon-inline">visibility_off</span> Verbergen'
+            : '<span class="material-symbols-rounded bp-icon-inline">visibility</span> Tonen';
     });
 
     overrideInput.addEventListener("input", () => {

@@ -7,6 +7,8 @@ import '../../models/task_item.dart';
 import '../../providers/task_users_provider.dart';
 import '../../providers/tasks_provider.dart';
 import '../../ui/color_palette.dart';
+import '../../ui/material_task_icon.dart';
+import '../../widgets/icon_picker_field.dart';
 import '../../widgets/repeat_settings_field.dart';
 
 class AddTaskSheet extends ConsumerStatefulWidget {
@@ -26,6 +28,7 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
   final _descCtrl = TextEditingController();
   late DateTime _date;
   int? _personId;
+  String _icon = kDefaultTaskIcon;
   RepeatSettings _repeat = const RepeatSettings();
   bool _saving = false;
   String? _error;
@@ -91,7 +94,11 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
                       border: OutlineInputBorder()),
                   maxLines: 2,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 4),
+                IconPickerField(
+                  value: _icon,
+                  onChanged: (id) => setState(() => _icon = id),
+                ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.calendar_today),
@@ -187,7 +194,7 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
         'title': _titleCtrl.text.trim(),
         'description': _descCtrl.text.trim(),
         'anchor_date': _isoDate(_date),
-        'icon': 'check',
+        'icon': _icon,
         ..._repeat.toApiPayload(),
       };
       final localId = 'local-${DateTime.now().millisecondsSinceEpoch}';
@@ -195,7 +202,7 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
         id: localId,
         title: _titleCtrl.text.trim(),
         description: _descCtrl.text.trim(),
-        icon: 'check',
+        icon: _icon,
         personId: _personId,
         date: _date,
         completed: false,

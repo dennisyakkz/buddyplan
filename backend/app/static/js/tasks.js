@@ -45,7 +45,7 @@ async function renderDayContent(date) {
 function showTaskForm(task = null, defaultDate = null) {
     const isEdit = !!task;
     const anchorDate = task?.anchor_date || defaultDate || toISODate(new Date());
-    const selectedIcon = normalizeIconId(task?.icon || "fas:circle-check");
+    const selectedIcon = normalizeIconId(task?.icon || "md:check_circle");
     showModal(`
         <h2>${isEdit ? "Taak bewerken" : "Nieuwe taak"}</h2>
         <form id="task-form">

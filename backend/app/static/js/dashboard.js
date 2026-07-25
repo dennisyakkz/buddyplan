@@ -31,15 +31,37 @@ function addDays(iso, n) {
     return `${y}-${m}-${dd}`;
 }
 
-function renderTodoTile(task) {
+/** Resolve brandbook label for a task from profile_color or person map. */
+function taskColorLabel(task, personColors = {}) {
+    const fromTask = typeof normalizeColorLabel === "function"
+        ? normalizeColorLabel(task.profile_color)
+        : (task.profile_color || "");
+    if (fromTask) return fromTask;
+    const pid = task.person_id;
+    if (pid != null && personColors[pid]) {
+        return typeof normalizeColorLabel === "function"
+            ? (normalizeColorLabel(personColors[pid]) || personColors[pid])
+            : personColors[pid];
+    }
+    return "";
+}
+
+function renderTodoTile(task, personColors = {}) {
     const completed = task.completed ? "completed" : "";
+    const color = taskColorLabel(task, personColors);
+    const colorClass = color && !task.completed ? ` todo-color-${color}` : "";
+    const style = color && !task.completed && typeof colorSwatchStyle === "function"
+        ? colorSwatchStyle(color)
+        : "";
     const icon = iconHtml(task.icon);
     const title = escapeHtml(task.title);
     const desc = escapeHtml(task.description || "");
+    const personAttr = task.person_id != null ? ` data-person-id="${task.person_id}"` : "";
+    const colorAttr = color ? ` data-profile-color="${escapeHtml(color)}"` : "";
     return `
-        <div class="todo-tile ${completed}" data-id="${task.id}">
+        <div class="todo-tile ${completed}${colorClass}" data-id="${task.id}"${personAttr}${colorAttr} style="${style}">
             <div class="todo-icon">${icon}</div>
-            <div>
+            <div class="todo-body">
                 <div class="todo-title">${title}</div>
                 <div class="todo-desc">${desc}</div>
             </div>
@@ -88,11 +110,45 @@ function renderWeekGrid(data) {
 
 let currentWeekStart = null;
 let currentMe = null;
+let personColors = {};
+let todayTasks = [];
+
+async function loadPersonColors() {
+    try {
+        const persons = await api("/api/persons");
+        const map = {};
+        (persons || []).forEach((p) => {
+            const label = typeof normalizeColorLabel === "function"
+                ? normalizeColorLabel(p.profile_color)
+                : (p.profile_color || "");
+            if (p.id != null && label) map[p.id] = label;
+        });
+        personColors = map;
+    } catch (_err) {
+        personColors = {};
+    }
+}
+
+function renderTodoList(tasks) {
+    const list = document.getElementById("dashboard-todo-list");
+    const empty = document.getElementById("dashboard-todo-empty");
+    if (!list || !empty) return;
+
+    todayTasks = tasks || [];
+    if (!todayTasks.length) {
+        empty.classList.remove("hidden");
+        list.innerHTML = "";
+        return;
+    }
+    empty.classList.add("hidden");
+    list.innerHTML = todayTasks.map((t) => renderTodoTile(t, personColors)).join("");
+}
 
 async function renderCalendar() {
     const week = document.getElementById("dashboard-week");
     const weekData = await api(`/api/dashboard?start_date=${currentWeekStart}`);
     week.innerHTML = renderWeekGrid(weekData);
+    return weekData;
 }
 
 async function loadDashboard() {
@@ -101,36 +157,24 @@ async function loadDashboard() {
 
     const grid = document.getElementById("dashboard-grid");
     const leftPanel = document.getElementById("dashboard-left");
-    const list = document.getElementById("dashboard-todo-list");
-    const empty = document.getElementById("dashboard-todo-empty");
 
-    await renderCalendar();
-
-    if (!currentMe.tasks_enabled) {
-        grid?.classList.add("single");
-        leftPanel?.classList.add("hidden");
-        return;
-    }
+    await loadPersonColors();
+    const weekData = await renderCalendar();
+    // API returns today's todos even when calendar week start differs
+    renderTodoList(weekData.todo || []);
 
     grid?.classList.remove("single");
     leftPanel?.classList.remove("hidden");
 
-    const iso = todayIso();
-    const tasks = await api(`/api/tasks?date=${iso}&person_id=${currentMe.id}`);
-    if (!tasks.length) {
-        empty.classList.remove("hidden");
-        list.innerHTML = "";
-    } else {
-        empty.classList.add("hidden");
-        list.innerHTML = tasks.map(renderTodoTile).join("");
-    }
-
+    const list = document.getElementById("dashboard-todo-list");
     if (!list) return;
-    list.addEventListener("click", async (e) => {
+    list.replaceWith(list.cloneNode(true));
+    const freshList = document.getElementById("dashboard-todo-list");
+    freshList.addEventListener("click", async (e) => {
         const tile = e.target.closest(".todo-tile");
         if (!tile) return;
         const id = tile.dataset.id;
-        const task = tasks.find(t => String(t.id) === String(id));
+        const task = todayTasks.find(t => String(t.id) === String(id));
         if (!task || task.completed) return;
 
         showModal(`
@@ -141,12 +185,13 @@ async function loadDashboard() {
                 <button type="button" class="btn btn-primary" id="btn-dashboard-done">Ik heb het uitgevoerd</button>
             </div>
         `);
+        const iso = todayIso();
         document.getElementById("btn-dashboard-done").addEventListener("click", async () => {
             await api(`/api/tasks/${task.id}/complete?date=${iso}`, { method: "POST" });
             hideModal();
             await loadDashboard();
         });
-    }, { once: true });
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

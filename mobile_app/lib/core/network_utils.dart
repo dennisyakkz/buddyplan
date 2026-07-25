@@ -14,5 +14,25 @@ bool isNetworkError(Object err) {
         err.type == DioExceptionType.connectionError ||
         (err.type == DioExceptionType.unknown && err.response == null);
   }
-  return true;
+  return false;
+}
+
+/// User-facing message for connectivity/DNS failures (e.g. after screen wake).
+String friendlyErrorMessage(Object err) {
+  if (isAuthError(err)) {
+    return 'Sessie verlopen. Log opnieuw in.';
+  }
+  if (isNetworkError(err)) {
+    return 'Geen verbinding met de server. Controleer je netwerk en probeer opnieuw.';
+  }
+  if (err is DioException) {
+    final detail = err.response?.data;
+    if (detail is Map && detail['detail'] != null) {
+      return detail['detail'].toString();
+    }
+    if (err.message != null && err.message!.isNotEmpty) {
+      return err.message!;
+    }
+  }
+  return err.toString();
 }

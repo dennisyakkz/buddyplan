@@ -135,8 +135,14 @@ object DayViewBuilder {
                 row.background = ColorPalette.chipDrawable(context, label, 12f)
                 personName.setTextColor(colors.second)
                 titleView.setTextColor(colors.second)
+                return row
             }
         }
+        // Manual / uncolored items: gray background like web `.cal-chip`
+        val defaults = ColorPalette.defaultChipColors(context)
+        row.background = ColorPalette.defaultChipDrawable(context, 12f)
+        personName.setTextColor(defaults.second)
+        titleView.setTextColor(defaults.second)
 
         return row
     }

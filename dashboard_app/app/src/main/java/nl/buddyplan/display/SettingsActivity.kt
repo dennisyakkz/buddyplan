@@ -52,7 +52,7 @@ class SettingsActivity : AppCompatActivity() {
     private var installWatchJob: Job? = null
 
     // Taken tab state
-    private data class AppUser(val id: Int, val name: String)
+    private data class AppUser(val id: Int, val name: String, val profileColor: String? = null)
     private var appUsers: List<AppUser> = emptyList()
     private val userEnabled = mutableMapOf<Int, Boolean>()
     private val userColors = mutableMapOf<Int, String>()
@@ -411,9 +411,15 @@ class SettingsActivity : AppCompatActivity() {
                 return@launch
             }
 
-            appUsers = users.map { AppUser(it.first, it.second) }
+            appUsers = users.map { AppUser(it.first, it.second, it.third) }
             val ids = appUsers.map { it.id }
-            AppPreferences.ensureDefaultColors(this@SettingsActivity, ids)
+            val serverColors = appUsers
+                .mapNotNull { u -> u.profileColor?.let { u.id to it } }
+                .toMap()
+            if (serverColors.isNotEmpty()) {
+                AppPreferences.setUserColors(this@SettingsActivity, serverColors)
+            }
+            userColors.clear()
             userColors.putAll(AppPreferences.getUserColors(this@SettingsActivity))
             ids.forEach { id ->
                 if (!userEnabled.containsKey(id)) userEnabled[id] = true
@@ -457,47 +463,28 @@ class SettingsActivity : AppCompatActivity() {
         topRow.addView(toggle)
         row.addView(topRow)
 
-        // Color swatches
-        val colorRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(8), 0, 0)
-            gravity = Gravity.START
-        }
-
-        var selectedSwatch: View? = null
-        val currentLabel = userColors[user.id]?.let { ColorPalette.migrateStoredColor(it) }
-
-        ColorPalette.LABELS.forEach { label ->
-            val swatch = View(this).apply {
-                val size = dp(36)
-                layoutParams = LinearLayout.LayoutParams(size, size).also { it.setMargins(0, 0, dp(8), 0) }
+        val colorLabel = user.profileColor?.let { ColorPalette.migrateStoredColor(it) }
+            ?: userColors[user.id]?.let { ColorPalette.migrateStoredColor(it) }
+        if (colorLabel != null) {
+            val colorHint = TextView(this).apply {
+                text = "Kleur: $colorLabel (wijzigen via webprofiel)"
+                textSize = 13f
+                setPadding(0, dp(6), 0, 0)
+                setTextColor(ContextCompat.getColor(this@SettingsActivity, R.color.text_secondary))
+            }
+            val preview = View(this).apply {
+                val size = dp(20)
+                layoutParams = LinearLayout.LayoutParams(size, size).also {
+                    it.topMargin = dp(8)
+                }
                 background = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(ColorPalette.swatchPreviewColor(label))
-                    if (label == currentLabel) {
-                        setStroke(dp(3), Color.BLACK)
-                    }
+                    setColor(ColorPalette.swatchPreviewColor(colorLabel))
                 }
             }
-            if (label == currentLabel) selectedSwatch = swatch
-
-            swatch.setOnClickListener {
-                selectedSwatch?.background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    val prevLabel = (selectedSwatch?.tag as? String) ?: label
-                    setColor(ColorPalette.swatchPreviewColor(prevLabel))
-                }
-                (swatch.background as? GradientDrawable)?.setStroke(dp(3), Color.BLACK)
-                selectedSwatch = swatch
-
-                userColors[user.id] = label
-                AppPreferences.setUserColors(this, userColors.toMap())
-            }
-            swatch.tag = label
-            colorRow.addView(swatch)
+            row.addView(preview)
+            row.addView(colorHint)
         }
-
-        row.addView(colorRow)
 
         // Divider
         val divider = View(this).apply {

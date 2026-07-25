@@ -72,11 +72,19 @@ function badgeHtml(label, text) {
     return `<span class="${cls}">${text}</span>`;
 }
 
-function buildColorSwatches(selectedColor) {
+function buildColorSwatches(selectedColor, { allowNone = true } = {}) {
     const normalized = normalizeColorLabel(selectedColor);
-    const noneSelected = !normalized;
+    const noneSelected = allowNone && !normalized;
     const swatches = COLOR_SWATCHES.map((c) =>
         `<button type="button" class="color-swatch${normalized === c.label ? " selected" : ""}" data-color="${c.label}" title="${c.name}" style="background:${c.bg};color:${c.text}"></button>`
     ).join("");
+    if (!allowNone) return swatches;
     return `<button type="button" class="color-swatch swatch-none${noneSelected ? " selected" : ""}" data-color="" title="Geen kleur">✕</button>${swatches}`;
+}
+
+function colorSwatchStyle(label) {
+    const normalized = normalizeColorLabel(label);
+    const swatch = COLOR_SWATCHES.find((c) => c.label === normalized);
+    if (!swatch) return "";
+    return `background:${swatch.bg};color:${swatch.text}`;
 }

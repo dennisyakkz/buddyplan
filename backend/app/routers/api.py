@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.icons import LEGACY_ICON_MAP, load_icons, normalize_icon_id
+from app.icons import load_icons, normalize_icon_id
 from app.services.color_palette import normalize_stored_color
 from app.services.dashboard_service import AgendaService, DashboardService, PersonService, TaskService
 from app.services.ical_sync_service import sync_feed, sync_feed_from_content
@@ -56,9 +56,12 @@ def app_login(data: AppLoginRequest, db: Session = Depends(get_db)):
     return {"token": plain_token, "person_id": person.id, "name": person.name}
 
 
-def _profile_color_label(index: int) -> str:
-    from app.services.color_palette import BRAND_LABELS
-    return BRAND_LABELS[index % len(BRAND_LABELS)]
+def _profile_color_for(person) -> str:
+    from app.services.color_palette import normalize_profile_color
+    return normalize_profile_color(
+        getattr(person, "profile_color", None),
+        getattr(person, "sort_order", 0) or 0,
+    )
 
 
 @router.get("/app/users")
@@ -75,10 +78,10 @@ def app_get_users(current_user=Depends(get_current_user), db: Session = Depends(
         {
             "id": u.id,
             "name": u.name,
-            "profile_color": _profile_color_label(i),
+            "profile_color": _profile_color_for(u),
             "can_manage_tasks": svc.can_manage_tasks(u.id, current_user.id),
         }
-        for i, u in enumerate(users)
+        for u in users
     ]
 
 
@@ -102,10 +105,10 @@ def mobile_persons(current_user=Depends(get_current_user), db: Session = Depends
             "id": p.id,
             "name": p.name,
             "is_me": p.id == current_user.id,
-            "profile_color": _profile_color_label(i),
+            "profile_color": _profile_color_for(p),
             "can_manage_agenda": svc.can_manage_agenda(p.id, current_user.id),
         }
-        for i, p in enumerate(persons)
+        for p in persons
     ]
 
 
@@ -162,17 +165,24 @@ def mobile_tasks(
         raise HTTPException(400, "Datumbereik te groot (max 180 dagen)")
 
     svc = TaskService(db)
+    from app.models import Person as _Person
+    person_colors = {
+        p.id: _profile_color_for(p)
+        for p in db.query(_Person).all()
+    }
     result = []
     cursor = start
     while cursor <= end:
         day_tasks = svc.get_for_date(cursor, person_id)
         for t in day_tasks:
+            color = person_colors.get(t.person_id) if t.person_id else None
             result.append({
                 "id": str(t.id),
                 "title": t.title,
                 "description": t.description,
                 "icon": t.icon,
                 "person_id": t.person_id,
+                "profile_color": color,
                 "date": cursor.isoformat(),
                 "completed": svc.task_to_dict(t, cursor).get("completed", False),
             })
@@ -278,6 +288,7 @@ class PersonFeedCreate(BaseModel):
 class MeUpdate(BaseModel):
     name: str
     email: Optional[str] = None
+    profile_color: Optional[str] = None
 
 
 class PasswordUpdate(BaseModel):
@@ -303,10 +314,15 @@ class AdminUserCreate(BaseModel):
     can_login: bool = False
     password: Optional[str] = None
     password_confirm: Optional[str] = None
+    profile_color: Optional[str] = None
 
 
 class AdminUserUpdate(AdminUserCreate):
     pass
+
+
+class UsersReorder(BaseModel):
+    ids: list[int]
 
 
 class TaskManagersUpdate(BaseModel):
@@ -717,7 +733,14 @@ def update_me(data: MeUpdate, user=Depends(get_current_user), db: Session = Depe
     if not data.name.strip():
         raise HTTPException(400, "Naam is verplicht")
     service = PersonService(db)
-    updated = service.update_user_fields(user.id, user.username, data.email, user.is_admin)
+    updated = service.update_user_fields(
+        user.id,
+        user.username,
+        data.email,
+        user.is_admin,
+        profile_color=data.profile_color,
+        update_profile_color=True,
+    )
     if not updated:
         raise HTTPException(404, "Gebruiker niet gevonden")
     updated = service.update(user.id, data.name.strip(), user.can_login, None)
@@ -855,6 +878,19 @@ def admin_list_users(_admin=Depends(require_admin), db: Session = Depends(get_db
     service = PersonService(db)
     return [service.person_to_dict(p) for p in service.list_all()]
 
+
+@router.put("/admin/users/reorder")
+def admin_reorder_users(
+    data: UsersReorder,
+    _admin=Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    if not data.ids:
+        raise HTTPException(400, "ids is verplicht")
+    PersonService(db).reorder(data.ids)
+    return {"ok": True}
+
+
 @router.get("/admin/users/{user_id}")
 def admin_get_user(user_id: int, _admin=Depends(require_admin), db: Session = Depends(get_db)):
     service = PersonService(db)
@@ -878,10 +914,17 @@ def admin_create_user(data: AdminUserCreate, _admin=Depends(require_admin), db: 
 
     service = PersonService(db)
     # create Person with display name
-    person = service.create(data.name.strip())
+    person = service.create(data.name.strip(), profile_color=data.profile_color)
     # set user fields
     try:
-        service.update_user_fields(person.id, data.username.strip(), data.email, data.is_admin)
+        service.update_user_fields(
+            person.id,
+            data.username.strip(),
+            data.email,
+            data.is_admin,
+            profile_color=data.profile_color,
+            update_profile_color=data.profile_color is not None,
+        )
     except IntegrityError:
         db.rollback()
         service.delete(person.id)
@@ -908,7 +951,14 @@ def admin_update_user(
         raise HTTPException(404, "Gebruiker niet gevonden")
 
     try:
-        service.update_user_fields(user_id, data.username.strip(), data.email, data.is_admin)
+        service.update_user_fields(
+            user_id,
+            data.username.strip(),
+            data.email,
+            data.is_admin,
+            profile_color=data.profile_color,
+            update_profile_color=True,
+        )
     except IntegrityError:
         db.rollback()
         raise HTTPException(400, "Username of e-mail bestaat al")
@@ -1102,10 +1152,10 @@ class AfvalwijzerTypeUpdate(BaseModel):
     naam: str = ""
     buiten_dag: str = "day_before"
     buiten_person_id: Optional[int] = None
-    buiten_icon: str = "fas:trash"
+    buiten_icon: str = "custom:kliko-restafval"
     binnen_dag: str = "same_day"
     binnen_person_id: Optional[int] = None
-    binnen_icon: str = "fas:trash"
+    binnen_icon: str = "custom:kliko-restafval"
 
 
 class AfvalwijzerTypePatch(BaseModel):
