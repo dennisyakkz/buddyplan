@@ -194,10 +194,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         if (e.target.closest(".edit-agenda")) {
             if (!canManage) return;
-            const id = parseInt(e.target.closest(".edit-agenda").dataset.id);
-            const items = await loadAgendaForDate(calendar.currentDate);
-            const item = items.find(i => i.id === id);
-            if (item) showAgendaForm(item);
+            const btn = e.target.closest(".edit-agenda");
+            const id = parseInt(btn.dataset.id, 10);
+            const zone = btn.closest("[data-date]");
+            const dateIso = zone?.dataset?.date || toISODate(calendar.currentDate);
+            const items = await loadAgendaForDate(new Date(dateIso + "T00:00:00"));
+            const item = items.find(i => Number(i.id) === id);
+            if (item) {
+                showAgendaForm(item);
+            } else {
+                showModal(`<h2>Fout</h2><p>Agenda-item niet gevonden.</p>`);
+            }
             return;
         }
         if (e.target.closest(".delete-agenda")) {

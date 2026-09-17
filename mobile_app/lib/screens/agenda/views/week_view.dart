@@ -133,9 +133,9 @@ class WeekView extends StatelessWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        if (e.startTime != null)
+                                        if (e.timeRangeLabel != null)
                                           Text(
-                                            e.startTime!,
+                                            e.timeRangeLabel!,
                                             style: TextStyle(
                                               fontSize: 10,
                                               color: chip.text,

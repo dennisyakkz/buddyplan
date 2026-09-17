@@ -12,7 +12,6 @@ from app.services.color_palette import (
     label_to_badge_classes,
     normalize_profile_color,
     normalize_stored_color,
-    resolve_color_label,
 )
 from app.services.recurrence import (
     DAY_KEYS,
@@ -189,7 +188,6 @@ class DashboardService:
         persons = ctx["persons"]
         items = ctx["items"]
         feeds = ctx["feeds"]
-        google_feeds = ctx["google_feeds"]
 
         result = []
         for person in persons:
@@ -205,21 +203,15 @@ class DashboardService:
                         continue
                     feed = feed_for_item(item, feeds)
                     prefix = (feed.prefix or "").strip() if feed else ""
-                    gfeed = google_feeds.get(item.google_feed_id) if item.google_feed_id else None
-                    feed_color = (feed.color or "").strip() if feed else ""
-                    google_calendar_color = (gfeed.calendar_color or "").strip() if gfeed else ""
-                    event_color = (item.event_color or "").strip() or None
-                    color_label = resolve_color_label(
-                        feed_color=feed_color or None,
-                        event_color=event_color,
-                        google_calendar_color=google_calendar_color or None,
+                    color_label = normalize_profile_color(
+                        person.profile_color,
+                        person.sort_order or 0,
                     )
-                    legacy_color = event_color or google_calendar_color or feed_color or None
                     text = build_agenda_event_dict(
                         item,
                         feed,
                         prefix=prefix,
-                        color=legacy_color,
+                        color=color_label,
                         color_label=color_label,
                     )
                     day_events.append(text)
@@ -435,6 +427,11 @@ class AgendaService:
         feeds: dict[int, PersonCalendarFeed] | None = None,
         google_feeds: dict[int, PersonGoogleCalendarFeed] | None = None,
     ) -> dict:
+        person = self.db.query(Person).filter(Person.id == item.person_id).first()
+        color_label = normalize_profile_color(
+            person.profile_color if person else None,
+            (person.sort_order if person else 0) or 0,
+        )
         result = {
             "id": item.id,
             "person_id": item.person_id,
@@ -447,20 +444,9 @@ class AgendaService:
             "end_time": item.end_time,
             "sort_order": item.sort_order,
             "source": item.source,
+            "color_label": color_label,
+            "badge_classes": label_to_badge_classes(color_label),
         }
-        if feeds is not None:
-            feed = feed_for_item(item, feeds)
-            gfeed = google_feeds.get(item.google_feed_id) if item.google_feed_id and google_feeds else None
-            feed_color = (feed.color or "").strip() if feed else ""
-            google_calendar_color = (gfeed.calendar_color or "").strip() if gfeed else ""
-            event_color = (item.event_color or "").strip() or None
-            color_label = resolve_color_label(
-                feed_color=feed_color or None,
-                event_color=event_color,
-                google_calendar_color=google_calendar_color or None,
-            )
-            result["color_label"] = color_label
-            result["badge_classes"] = label_to_badge_classes(color_label)
         return result
 
 

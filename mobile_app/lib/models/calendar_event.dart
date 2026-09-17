@@ -19,6 +19,18 @@ class CalendarEvent {
 
   bool get isFeedSynced => source == 'ical' || source == 'gcal';
 
+  /// Compact time label for list/chip UIs (`09:00` or `09:00–10:30`).
+  String? get timeRangeLabel {
+    if (startTime != null && endTime != null) return '$startTime–$endTime';
+    return startTime ?? endTime;
+  }
+
+  /// Display label for compact chips (month); includes times when present.
+  String get displayText {
+    final time = timeRangeLabel;
+    return time == null ? title : '$time $title';
+  }
+
   factory CalendarEvent.fromJson(Map<String, dynamic> json) {
     return CalendarEvent(
       id: json['id'] as int,
@@ -30,9 +42,6 @@ class CalendarEvent {
       source: json['source'] as String? ?? 'manual',
     );
   }
-
-  /// Display label shown in calendar chips/tiles (server applies feed rules).
-  String get displayText => title;
 
   Map<String, dynamic> toJson() => {
         'id': id,

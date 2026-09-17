@@ -1,7 +1,7 @@
 class CalendarView {
     constructor(container, options = {}) {
         this.container = container;
-        this.view = "week";
+        this.view = "day";
         this.currentDate = new Date();
         this.currentDate.setHours(0, 0, 0, 0);
         this.onDateClick = options.onDateClick || (() => {});

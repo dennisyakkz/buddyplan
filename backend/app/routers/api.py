@@ -122,7 +122,7 @@ def mobile_calendar(
     """Flat list of AgendaItems expanded over a date range."""
     from app.models import AgendaItem as _AgendaItem
     from app.models import PersonCalendarFeed as _PersonCalendarFeed
-    from app.services.agenda_display import build_agenda_display_text, feed_for_item
+    from app.services.agenda_display import feed_for_item
     from app.services.recurrence import occurs_on_date as _occurs
     from datetime import timedelta as _td
 
@@ -137,9 +137,14 @@ def mobile_calendar(
         for item in items:
             if _occurs(item.repeat_type, item.get_weekdays(), item.anchor_date, item.end_date, cursor):
                 feed = feed_for_item(item, feeds)
+                prefix = ((feed.prefix or "").strip() if feed else "")
+                # Mobile UI renders start/end times separately; keep title clean.
+                title = item.title
+                if prefix:
+                    title = f"{prefix}: {title}"
                 result.append({
                     "id": item.id,
-                    "title": build_agenda_display_text(item, feed),
+                    "title": title,
                     "person_id": item.person_id,
                     "date": cursor.isoformat(),
                     "start_time": item.start_time,

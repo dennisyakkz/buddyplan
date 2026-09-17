@@ -95,10 +95,10 @@ class DayView extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               SizedBox(
-                                width: 40,
+                                width: 52,
                                 child: Text(
-                                  e.startTime ?? '',
-                                  style: const TextStyle(fontSize: 12),
+                                  e.timeRangeLabel ?? '',
+                                  style: const TextStyle(fontSize: 11),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -108,10 +108,6 @@ class DayView extends StatelessWidget {
                             e.title,
                             style: TextStyle(color: chip.text),
                           ),
-                          subtitle: e.endTime != null
-                              ? Text('tot ${e.endTime}',
-                                  style: const TextStyle(fontSize: 12))
-                              : null,
                           tileColor: chip.background,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(

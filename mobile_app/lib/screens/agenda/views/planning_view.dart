@@ -128,16 +128,16 @@ class _EventTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (event.startTime != null) ...[
+            if (event.timeRangeLabel != null) ...[
               SizedBox(
-                width: 52,
+                width: 72,
                 child: Text(
-                  event.startTime!,
+                  event.timeRangeLabel!,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
             ] else
-              const SizedBox(width: 52),
+              const SizedBox(width: 72),
             Expanded(
               child: Container(
                 padding:

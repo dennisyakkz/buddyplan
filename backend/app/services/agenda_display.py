@@ -14,7 +14,10 @@ def build_agenda_display_text(
     prefix_value = prefix if prefix is not None else (
         (feed.prefix or "").strip() if feed else ""
     )
-    show_times = bool(feed and feed.show_times)
+    # Manual/app items always show times; feed items honor feed.show_times
+    source = (getattr(item, "source", None) or "manual").lower()
+    is_manual = source == "manual"
+    show_times = bool(feed and feed.show_times) or is_manual
     hide_title = bool(feed and feed.hide_title and show_times)
 
     time_str = ""

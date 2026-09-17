@@ -43,7 +43,7 @@ class TasksNotifier extends Notifier<TasksState> {
         state = TasksState(
           tasks: cached,
           isLoading: true,
-          isOffline: cached.isNotEmpty,
+          isOffline: state.isOffline,
         );
       } else {
         state = TasksState(
@@ -106,16 +106,22 @@ class TasksNotifier extends Notifier<TasksState> {
     }).toList();
     state = TasksState(
       tasks: updated,
-      isOffline: true,
+      isOffline: state.isOffline,
       hasPendingMutations: true,
     );
     await repo.completeTaskLocal(taskId, date);
     ref.read(syncWorkerProvider)?.trigger();
     try {
       await repo.processOutbox();
-      state = TasksState(tasks: updated, isOffline: state.isOffline);
-    } catch (_) {
-      // Outbox will retry when connectivity returns.
+      state = TasksState(tasks: updated, isOffline: false);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        state = TasksState(
+          tasks: updated,
+          isOffline: true,
+          hasPendingMutations: true,
+        );
+      }
     }
   }
 
@@ -132,7 +138,7 @@ class TasksNotifier extends Notifier<TasksState> {
     );
     state = TasksState(
       tasks: [...state.tasks, optimistic],
-      isOffline: true,
+      isOffline: state.isOffline,
       hasPendingMutations: true,
     );
     ref.read(syncWorkerProvider)?.trigger();
@@ -143,9 +149,25 @@ class TasksNotifier extends Notifier<TasksState> {
         optimistic.date,
       );
       if (refreshed.isNotEmpty) {
-        state = TasksState(tasks: [...state.tasks.where((t) => t.id != optimistic.id), ...refreshed]);
+        state = TasksState(
+          tasks: [
+            ...state.tasks.where((t) => t.id != optimistic.id),
+            ...refreshed,
+          ],
+          isOffline: false,
+        );
+      } else {
+        state = TasksState(tasks: state.tasks, isOffline: false);
       }
-    } catch (_) {}
+    } catch (err) {
+      if (isNetworkError(err)) {
+        state = TasksState(
+          tasks: state.tasks,
+          isOffline: true,
+          hasPendingMutations: true,
+        );
+      }
+    }
   }
 
   void addTask(TaskItem task) {

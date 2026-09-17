@@ -46,7 +46,7 @@ class CalendarNotifier extends Notifier<CalendarState> {
         state = CalendarState(
           events: cached,
           isLoading: true,
-          isOffline: cached.isNotEmpty,
+          isOffline: state.isOffline,
         );
       } else {
         state = CalendarState(
@@ -106,13 +106,45 @@ class CalendarNotifier extends Notifier<CalendarState> {
     );
     state = CalendarState(
       events: [...state.events, optimistic],
-      isOffline: true,
+      isOffline: state.isOffline,
       hasPendingMutations: true,
     );
     ref.read(syncWorkerProvider)?.trigger();
     try {
       await repo.processOutbox();
-    } catch (_) {}
+      // Prefer server/cache row (real id) over optimistic local id.
+      final refreshed = await DataCache.calendarEventsForRange(
+        optimistic.date,
+        optimistic.date,
+      );
+      final withoutOptimistic =
+          state.events.where((e) => e.id != optimistic.id).toList();
+      final merged = [
+        ...withoutOptimistic,
+        ...refreshed.where(
+          (e) => !withoutOptimistic.any(
+            (existing) =>
+                existing.id == e.id &&
+                existing.date.year == e.date.year &&
+                existing.date.month == e.date.month &&
+                existing.date.day == e.date.day,
+          ),
+        ),
+      ];
+      state = CalendarState(
+        events: merged.isNotEmpty ? merged : withoutOptimistic,
+        isOffline: false,
+        hasPendingMutations: false,
+      );
+    } catch (err) {
+      if (isNetworkError(err)) {
+        state = CalendarState(
+          events: state.events,
+          isOffline: true,
+          hasPendingMutations: true,
+        );
+      }
+    }
   }
 
   void addEvent(CalendarEvent event) {
