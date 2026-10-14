@@ -24,6 +24,8 @@ data class BatterySnapshot(
 
 object BatteryInfoReader {
 
+    private val DUTCH = Locale("nl", "NL")
+
     fun read(context: Context): BatterySnapshot {
         @Suppress("UnspecifiedRegisterReceiverFlag")
         val intent = context.registerReceiver(
@@ -35,9 +37,9 @@ object BatteryInfoReader {
         return BatterySnapshot(
             levelPercent = formatCapacity(bm, intent),
             status = formatStatus(bm, intent),
-            usbConnected = formatPlugged(intent, BatteryManager.BATTERY_PLUGGED_USB, "usb"),
-            acConnected = formatPlugged(intent, BatteryManager.BATTERY_PLUGGED_AC, "ac"),
-            wirelessConnected = formatPlugged(intent, BatteryManager.BATTERY_PLUGGED_WIRELESS, "wireless"),
+            usbConnected = formatPlugged(intent, BatteryManager.BATTERY_PLUGGED_USB),
+            acConnected = formatPlugged(intent, BatteryManager.BATTERY_PLUGGED_AC),
+            wirelessConnected = formatPlugged(intent, BatteryManager.BATTERY_PLUGGED_WIRELESS),
             currentAvg = formatCurrentUa(
                 bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE),
             ),
@@ -75,11 +77,11 @@ object BatteryInfoReader {
             intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
         }
         return when (statusCode) {
-            BatteryManager.BATTERY_STATUS_CHARGING -> "Charging"
-            BatteryManager.BATTERY_STATUS_DISCHARGING -> "Discharging"
-            BatteryManager.BATTERY_STATUS_FULL -> "Full"
-            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> "Not charging"
-            else -> "Unknown"
+            BatteryManager.BATTERY_STATUS_CHARGING -> "Laden"
+            BatteryManager.BATTERY_STATUS_DISCHARGING -> "Ontladen"
+            BatteryManager.BATTERY_STATUS_FULL -> "Vol"
+            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> "Laadt niet"
+            else -> "Onbekend"
         }
     }
 
@@ -87,13 +89,13 @@ object BatteryInfoReader {
     private fun formatHealth(intent: Intent?): String {
         val healthCode = intent?.getIntExtra(BatteryManager.EXTRA_HEALTH, -1) ?: -1
         val healthName = when (healthCode) {
-            BatteryManager.BATTERY_HEALTH_GOOD -> "Good"
-            BatteryManager.BATTERY_HEALTH_OVERHEAT -> "Overheat"
-            BatteryManager.BATTERY_HEALTH_DEAD -> "Dead"
-            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "Over voltage"
-            BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "Failure"
-            BatteryManager.BATTERY_HEALTH_COLD -> "Cold"
-            else -> "Unknown"
+            BatteryManager.BATTERY_HEALTH_GOOD -> "Goed"
+            BatteryManager.BATTERY_HEALTH_OVERHEAT -> "Oververhit"
+            BatteryManager.BATTERY_HEALTH_DEAD -> "Defect"
+            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "Overspanning"
+            BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "Storing"
+            BatteryManager.BATTERY_HEALTH_COLD -> "Koud"
+            else -> "Onbekend"
         }
         val technology = intent
             ?.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)
@@ -102,10 +104,9 @@ object BatteryInfoReader {
     }
 
     /** EXTRA_PLUGGED → BATTERY_PLUGGED_USB / AC / WIRELESS. */
-    private fun formatPlugged(intent: Intent?, flag: Int, label: String): String {
+    private fun formatPlugged(intent: Intent?, flag: Int): String {
         val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
-        val online = (plugged and flag) != 0
-        return if (online) "Ja ($label/online = 1)" else "Nee ($label/online = 0)"
+        return if ((plugged and flag) != 0) "Ja" else "Nee"
     }
 
     /**
@@ -125,7 +126,7 @@ object BatteryInfoReader {
     private fun formatVoltage(intent: Intent?): String {
         val voltageMv = intent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1) ?: -1
         if (voltageMv <= 0) return "—"
-        return String.format(Locale.GERMANY, "%.3f V", voltageMv / 1000.0)
+        return String.format(DUTCH, "%.3f V", voltageMv / 1000.0)
     }
 
     /** EXTRA_TEMPERATURE in tenths of a degree Celsius. */
@@ -133,7 +134,7 @@ object BatteryInfoReader {
         val tempTenths = intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
             ?: Int.MIN_VALUE
         if (tempTenths == Int.MIN_VALUE) return "—"
-        return String.format(Locale.GERMANY, "%.1f °C", tempTenths / 10.0)
+        return String.format(DUTCH, "%.1f °C", tempTenths / 10.0)
     }
 
     /** BATTERY_PROPERTY_CHARGE_COUNTER — remaining capacity in µAh. */
