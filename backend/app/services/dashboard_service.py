@@ -453,6 +453,12 @@ class PersonService:
     def get(self, person_id: int) -> Person | None:
         return self.db.query(Person).filter(Person.id == person_id).first()
 
+    def name_taken(self, name: str, exclude_id: int | None = None) -> bool:
+        query = self.db.query(Person.id).filter(Person.name == name)
+        if exclude_id is not None:
+            query = query.filter(Person.id != exclude_id)
+        return query.first() is not None
+
     def get_by_username(self, username: str) -> Person | None:
         return self.db.query(Person).filter(Person.username == username).first()
 

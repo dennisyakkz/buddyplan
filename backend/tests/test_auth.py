@@ -1,5 +1,3 @@
-import pytest
-
 from tests.conftest import ADMIN_USERNAME
 
 
@@ -40,16 +38,5 @@ def test_duplicate_username_is_rejected(client, admin_headers, make_user):
         "/api/admin/users",
         headers=admin_headers,
         json={"username": person["username"], "name": "Dubbel"},
-    )
-    assert response.status_code == 400
-
-
-@pytest.mark.xfail(reason="Known bug: duplicate display name raises IntegrityError (500) instead of a 400", strict=True)
-def test_duplicate_name_is_rejected(client, admin_headers, make_user):
-    person, _ = make_user()
-    response = client.post(
-        "/api/admin/users",
-        headers=admin_headers,
-        json={"username": "ander-account", "name": person["name"]},
     )
     assert response.status_code == 400

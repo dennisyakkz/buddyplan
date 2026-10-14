@@ -336,6 +336,12 @@ class TaskManagersUpdate(BaseModel):
     manager_ids: list[int] = []
 
 
+def _ensure_name_available(service: PersonService, name: str, exclude_id: int | None = None) -> None:
+    # persons.name is unique; check up front so callers fail before any partial commit
+    if service.name_taken(name, exclude_id):
+        raise HTTPException(400, "Er bestaat al een gebruiker met deze naam")
+
+
 def _parse_date(value: str | None) -> date | None:
     if not value:
         return None
@@ -631,8 +637,10 @@ def list_persons(_user=Depends(get_current_user), db: Session = Depends(get_db))
 
 @router.post("/persons")
 def create_person(data: PersonCreate, _admin=Depends(require_admin), db: Session = Depends(get_db)):
-    person = PersonService(db).create(data.name)
-    return PersonService(db).person_to_dict(person)
+    service = PersonService(db)
+    _ensure_name_available(service, data.name)
+    person = service.create(data.name)
+    return service.person_to_dict(person)
 
 
 @router.get("/persons/{person_id}")
@@ -650,6 +658,7 @@ def update_person(person_id: int, data: PersonUpdate, _admin=Depends(require_adm
     person = service.get(person_id)
     if not person:
         raise HTTPException(404, "Persoon niet gevonden")
+    _ensure_name_available(service, data.name.strip(), exclude_id=person_id)
 
     password = None
     if data.can_login:
@@ -736,6 +745,7 @@ def update_me(data: MeUpdate, user=Depends(get_current_user), db: Session = Depe
     if not data.name.strip():
         raise HTTPException(400, "Naam is verplicht")
     service = PersonService(db)
+    _ensure_name_available(service, data.name.strip(), exclude_id=user.id)
     updated = service.update_user_fields(
         user.id,
         user.username,
@@ -917,6 +927,7 @@ def admin_create_user(data: AdminUserCreate, _admin=Depends(require_admin), db: 
             raise HTTPException(400, "Wachtwoorden komen niet overeen")
 
     service = PersonService(db)
+    _ensure_name_available(service, data.name.strip())
     # create Person with display name
     person = service.create(data.name.strip(), profile_color=data.profile_color)
     # set user fields
@@ -932,7 +943,7 @@ def admin_create_user(data: AdminUserCreate, _admin=Depends(require_admin), db: 
     except IntegrityError:
         db.rollback()
         service.delete(person.id)
-        raise HTTPException(400, "Username of e-mail bestaat al")
+        raise HTTPException(400, "Username of e-mail bestaat al") from None
     # set login
     service.update(person.id, data.name.strip(), data.can_login, data.password)
     return service.person_to_dict(service.get(person.id))
@@ -953,6 +964,7 @@ def admin_update_user(
     person = service.get(user_id)
     if not person:
         raise HTTPException(404, "Gebruiker niet gevonden")
+    _ensure_name_available(service, data.name.strip(), exclude_id=user_id)
 
     try:
         service.update_user_fields(
@@ -965,7 +977,7 @@ def admin_update_user(
         )
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Username of e-mail bestaat al")
+        raise HTTPException(400, "Username of e-mail bestaat al") from None
 
     password = None
     if data.can_login and data.password:
