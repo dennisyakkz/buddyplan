@@ -1,7 +1,7 @@
 """Low-level Google Calendar API calls using requests (no google-auth libs needed)."""
 
 import logging
-from urllib.parse import urlencode, quote
+from urllib.parse import quote, urlencode
 
 import requests
 
@@ -14,17 +14,17 @@ _CALENDAR_BASE = "https://www.googleapis.com/calendar/v3"
 _SCOPES = "https://www.googleapis.com/auth/calendar.readonly"
 
 GOOGLE_COLORS: dict[str, dict] = {
-    "1":  {"name": "Lavendel",  "hex": "#7986CB"},
-    "2":  {"name": "Salie",     "hex": "#33B679"},
-    "3":  {"name": "Druif",     "hex": "#8E24AA"},
-    "4":  {"name": "Flamingo",  "hex": "#E67C73"},
-    "5":  {"name": "Banaan",    "hex": "#F6BF26"},
-    "6":  {"name": "Mandarijn", "hex": "#F4511E"},
-    "7":  {"name": "Pauw",      "hex": "#039BE5"},
-    "8":  {"name": "Grafiet",   "hex": "#616161"},
-    "9":  {"name": "Bosbes",    "hex": "#3F51B5"},
+    "1": {"name": "Lavendel", "hex": "#7986CB"},
+    "2": {"name": "Salie", "hex": "#33B679"},
+    "3": {"name": "Druif", "hex": "#8E24AA"},
+    "4": {"name": "Flamingo", "hex": "#E67C73"},
+    "5": {"name": "Banaan", "hex": "#F6BF26"},
+    "6": {"name": "Mandarijn", "hex": "#F4511E"},
+    "7": {"name": "Pauw", "hex": "#039BE5"},
+    "8": {"name": "Grafiet", "hex": "#616161"},
+    "9": {"name": "Bosbes", "hex": "#3F51B5"},
     "10": {"name": "Basilicum", "hex": "#0B8043"},
-    "11": {"name": "Tomaat",    "hex": "#D50000"},
+    "11": {"name": "Tomaat", "hex": "#D50000"},
 }
 
 
@@ -46,24 +46,32 @@ def get_auth_url(client_id: str, redirect_uri: str, state: str) -> str:
 
 
 def exchange_code(client_id: str, client_secret: str, redirect_uri: str, code: str) -> dict:
-    resp = requests.post(_TOKEN_URL, data={
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "redirect_uri": redirect_uri,
-        "code": code,
-        "grant_type": "authorization_code",
-    }, timeout=15)
+    resp = requests.post(
+        _TOKEN_URL,
+        data={
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+            "code": code,
+            "grant_type": "authorization_code",
+        },
+        timeout=15,
+    )
     resp.raise_for_status()
     return resp.json()
 
 
 def refresh_access_token(client_id: str, client_secret: str, refresh_token: str) -> dict:
-    resp = requests.post(_TOKEN_URL, data={
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "refresh_token": refresh_token,
-        "grant_type": "refresh_token",
-    }, timeout=15)
+    resp = requests.post(
+        _TOKEN_URL,
+        data={
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+        },
+        timeout=15,
+    )
     resp.raise_for_status()
     return resp.json()
 

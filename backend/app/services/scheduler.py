@@ -31,6 +31,7 @@ def start_scheduler() -> BackgroundScheduler:
 
     def afvalwijzer_job():
         from app.services.afvalwijzer_service import AfvalwijzerService
+
         db = SessionLocal()
         try:
             service = AfvalwijzerService(db)
@@ -46,6 +47,7 @@ def start_scheduler() -> BackgroundScheduler:
 
     def google_calendar_job():
         from app.services.google_sync_service import sync_all_google_calendars
+
         db = SessionLocal()
         try:
             sync_all_google_calendars(db)
@@ -56,20 +58,34 @@ def start_scheduler() -> BackgroundScheduler:
 
     # Poll every 5 minutes; each feed decides based on its own sync_interval_minutes.
     _scheduler.add_job(
-        ical_job, "interval", minutes=5, id="ical_sync",
-        replace_existing=True, max_instances=1,
+        ical_job,
+        "interval",
+        minutes=5,
+        id="ical_sync",
+        replace_existing=True,
+        max_instances=1,
     )
 
     # Sync Google Calendar feeds every 10 minutes.
     _scheduler.add_job(
-        google_calendar_job, "interval", minutes=10, id="google_calendar_sync",
-        replace_existing=True, max_instances=1,
+        google_calendar_job,
+        "interval",
+        minutes=10,
+        id="google_calendar_sync",
+        replace_existing=True,
+        max_instances=1,
     )
 
     # Every Sunday at 02:00 Europe/Amsterdam time create waste tasks for the coming week.
     _scheduler.add_job(
-        afvalwijzer_job, "cron", day_of_week="sun", hour=2, minute=0,
-        id="afvalwijzer_create_tasks", replace_existing=True, max_instances=1,
+        afvalwijzer_job,
+        "cron",
+        day_of_week="sun",
+        hour=2,
+        minute=0,
+        id="afvalwijzer_create_tasks",
+        replace_existing=True,
+        max_instances=1,
     )
 
     _scheduler.start()

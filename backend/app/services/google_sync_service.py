@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -46,9 +46,7 @@ def _sync_feed(
     *,
     full_sync: bool = False,
 ) -> None:
-    auth = db.query(PersonGoogleAuth).filter(
-        PersonGoogleAuth.person_id == feed.person_id
-    ).first()
+    auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == feed.person_id).first()
 
     if not auth or not auth.refresh_token:
         return
@@ -60,7 +58,7 @@ def _sync_feed(
     if full_sync:
         feed.sync_token = None
 
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(UTC)
     time_min = (now_utc - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     try:
@@ -87,21 +85,15 @@ def _sync_feed(
 
 
 def _ensure_valid_token(db: Session, auth: PersonGoogleAuth, config: GoogleApiConfig) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expiry = auth.token_expiry
     if expiry and expiry.tzinfo is None:
-        expiry = expiry.replace(tzinfo=timezone.utc)
+        expiry = expiry.replace(tzinfo=UTC)
 
-    needs_refresh = (
-        not auth.access_token
-        or not expiry
-        or expiry <= now + timedelta(minutes=5)
-    )
+    needs_refresh = not auth.access_token or not expiry or expiry <= now + timedelta(minutes=5)
 
     if needs_refresh:
-        token_data = refresh_access_token(
-            config.client_id, config.client_secret, auth.refresh_token
-        )
+        token_data = refresh_access_token(config.client_id, config.client_secret, auth.refresh_token)
         auth.access_token = token_data["access_token"]
         if "refresh_token" in token_data:
             auth.refresh_token = token_data["refresh_token"]
@@ -176,20 +168,22 @@ def _apply_events(
             existing.end_time = end_time
             existing.event_color = event_color
         else:
-            db.add(AgendaItem(
-                person_id=feed.person_id,
-                title=title,
-                repeat_type="once",
-                repeat_weekdays="[]",
-                anchor_date=anchor_date,
-                end_date=end_date if end_date and end_date != anchor_date else None,
-                start_time=start_time,
-                end_time=end_time,
-                source="gcal",
-                external_uid=external_uid,
-                google_feed_id=feed.id,
-                event_color=event_color,
-            ))
+            db.add(
+                AgendaItem(
+                    person_id=feed.person_id,
+                    title=title,
+                    repeat_type="once",
+                    repeat_weekdays="[]",
+                    anchor_date=anchor_date,
+                    end_date=end_date if end_date and end_date != anchor_date else None,
+                    start_time=start_time,
+                    end_time=end_time,
+                    source="gcal",
+                    external_uid=external_uid,
+                    google_feed_id=feed.id,
+                    event_color=event_color,
+                )
+            )
 
     if full_sync:
         _purge_unseen_gcal_items(db, feed.id, seen_uids)
@@ -254,6 +248,7 @@ def _parse_date(dt_obj: dict) -> date | None:
     if "dateTime" in dt_obj:
         try:
             from zoneinfo import ZoneInfo
+
             tz = ZoneInfo(_TZ_NAME)
             dt = datetime.fromisoformat(dt_obj["dateTime"])
             return dt.astimezone(tz).date()
@@ -267,6 +262,7 @@ def _parse_time(dt_obj: dict) -> str | None:
         return None
     try:
         from zoneinfo import ZoneInfo
+
         tz = ZoneInfo(_TZ_NAME)
         dt = datetime.fromisoformat(dt_obj["dateTime"])
         return dt.astimezone(tz).strftime("%H:%M")

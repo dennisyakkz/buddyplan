@@ -11,9 +11,7 @@ def build_agenda_display_text(
     prefix: str | None = None,
 ) -> str:
     """Build the user-facing label for an agenda item."""
-    prefix_value = prefix if prefix is not None else (
-        (feed.prefix or "").strip() if feed else ""
-    )
+    prefix_value = prefix if prefix is not None else ((feed.prefix or "").strip() if feed else "")
     # Manual/app items always show times; feed items honor feed.show_times
     source = (getattr(item, "source", None) or "manual").lower()
     is_manual = source == "manual"
@@ -46,9 +44,7 @@ def build_agenda_event_dict(
     color_label: str | None = None,
 ) -> dict:
     """Structured calendar event; times are always included when present on the item."""
-    prefix_value = prefix if prefix is not None else (
-        (feed.prefix or "").strip() if feed else ""
-    )
+    prefix_value = prefix if prefix is not None else ((feed.prefix or "").strip() if feed else "")
     return {
         "text": build_agenda_display_text(item, feed, prefix=prefix_value),
         "color": color,

@@ -22,9 +22,7 @@ class AfvalwijzerService:
             self.db.refresh(config)
         return config
 
-    def update_config(
-        self, enabled: bool, postcode: str | None, huisnummer: str | None
-    ) -> AfvalwijzerConfig:
+    def update_config(self, enabled: bool, postcode: str | None, huisnummer: str | None) -> AfvalwijzerConfig:
         config = self.get_or_create_config()
         config.enabled = enabled
         config.postcode = postcode
@@ -43,12 +41,14 @@ class AfvalwijzerService:
             if wt in existing:
                 existing[wt].type_label = info["label"]
             else:
-                self.db.add(AfvalwijzerType(
-                    config_id=config.id,
-                    waste_type=wt,
-                    type_label=info["label"],
-                    naam=info["label"],
-                ))
+                self.db.add(
+                    AfvalwijzerType(
+                        config_id=config.id,
+                        waste_type=wt,
+                        type_label=info["label"],
+                        naam=info["label"],
+                    )
+                )
 
         for wt, t in existing.items():
             if wt not in incoming:
@@ -143,49 +143,49 @@ class AfvalwijzerService:
                 # Buiten zetten task
                 if afval_type.buiten_person_id:
                     buiten_date = (
-                        pickup_date - timedelta(days=1)
-                        if afval_type.buiten_dag == "day_before"
-                        else pickup_date
+                        pickup_date - timedelta(days=1) if afval_type.buiten_dag == "day_before" else pickup_date
                     )
                     if buiten_date in all_dates:
                         title = f"{naam} buitenzetten"
                         if not self._task_exists(afval_type.buiten_person_id, title, buiten_date):
-                            task_service.create({
-                                "person_id": afval_type.buiten_person_id,
-                                "title": title[:200],
-                                "description": f"Zet de {naam} buiten",
-                                "icon": afval_type.buiten_icon or "custom:kliko-restafval",
-                                "repeat_type": "once",
-                                "repeat_weekdays": "[]",
-                                "anchor_date": buiten_date,
-                                "start_date": None,
-                                "end_date": None,
-                                "sort_order": 0,
-                            })
+                            task_service.create(
+                                {
+                                    "person_id": afval_type.buiten_person_id,
+                                    "title": title[:200],
+                                    "description": f"Zet de {naam} buiten",
+                                    "icon": afval_type.buiten_icon or "custom:kliko-restafval",
+                                    "repeat_type": "once",
+                                    "repeat_weekdays": "[]",
+                                    "anchor_date": buiten_date,
+                                    "start_date": None,
+                                    "end_date": None,
+                                    "sort_order": 0,
+                                }
+                            )
                             count += 1
 
                 # Binnen zetten task
                 if afval_type.binnen_person_id:
                     binnen_date = (
-                        pickup_date + timedelta(days=1)
-                        if afval_type.binnen_dag == "day_after"
-                        else pickup_date
+                        pickup_date + timedelta(days=1) if afval_type.binnen_dag == "day_after" else pickup_date
                     )
                     if binnen_date in all_dates:
                         title = f"{naam} binnenzetten"
                         if not self._task_exists(afval_type.binnen_person_id, title, binnen_date):
-                            task_service.create({
-                                "person_id": afval_type.binnen_person_id,
-                                "title": title[:200],
-                                "description": f"Breng {naam} naar binnen",
-                                "icon": afval_type.binnen_icon or "custom:kliko-restafval",
-                                "repeat_type": "once",
-                                "repeat_weekdays": "[]",
-                                "anchor_date": binnen_date,
-                                "start_date": None,
-                                "end_date": None,
-                                "sort_order": 0,
-                            })
+                            task_service.create(
+                                {
+                                    "person_id": afval_type.binnen_person_id,
+                                    "title": title[:200],
+                                    "description": f"Breng {naam} naar binnen",
+                                    "icon": afval_type.binnen_icon or "custom:kliko-restafval",
+                                    "repeat_type": "once",
+                                    "repeat_weekdays": "[]",
+                                    "anchor_date": binnen_date,
+                                    "start_date": None,
+                                    "end_date": None,
+                                    "sort_order": 0,
+                                }
+                            )
                             count += 1
 
         return count

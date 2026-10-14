@@ -1,6 +1,6 @@
 import json
-from datetime import date, datetime, timedelta
-from typing import Optional
+import secrets
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse
@@ -9,14 +9,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.icons import load_icons, normalize_icon_id
+from app.icons import load_icons
 from app.services.color_palette import normalize_stored_color
+from app.services.current_user import get_current_user, require_admin
 from app.services.dashboard_service import AgendaService, DashboardService, PersonService, TaskService
 from app.services.ical_sync_service import sync_feed, sync_feed_from_content
-from app.services.current_user import get_current_user, require_admin
 from app.services.ical_validation import validate_ical_feed
-
-import secrets
 
 router = APIRouter(prefix="/api")
 
@@ -25,12 +23,13 @@ router = APIRouter(prefix="/api")
 # Mobile app auth
 # ---------------------------------------------------------------------------
 
+
 class AppLoginRequest(BaseModel):
     username: str
     password: str
     device_id: str
-    device_name: Optional[str] = None
-    device_type: Optional[str] = None
+    device_name: str | None = None
+    device_type: str | None = None
 
 
 @router.post("/auth/login")
@@ -58,6 +57,7 @@ def app_login(data: AppLoginRequest, db: Session = Depends(get_db)):
 
 def _profile_color_for(person) -> str:
     from app.services.color_palette import normalize_profile_color
+
     return normalize_profile_color(
         getattr(person, "profile_color", None),
         getattr(person, "sort_order", 0) or 0,
@@ -67,6 +67,7 @@ def _profile_color_for(person) -> str:
 @router.get("/app/users")
 def app_get_users(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     from app.models import Person
+
     users = (
         db.query(Person)
         .filter(Person.tasks_enabled == True)  # noqa: E712
@@ -94,11 +95,8 @@ def app_get_users(current_user=Depends(get_current_user), db: Session = Depends(
 def mobile_persons(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     """All persons with brandbook profile_color label."""
     from app.models import Person
-    persons = (
-        db.query(Person)
-        .order_by(Person.sort_order, Person.id)
-        .all()
-    )
+
+    persons = db.query(Person).order_by(Person.sort_order, Person.id).all()
     svc = PersonService(db)
     return [
         {
@@ -120,11 +118,12 @@ def mobile_calendar(
     db: Session = Depends(get_db),
 ):
     """Flat list of AgendaItems expanded over a date range."""
+    from datetime import timedelta as _td
+
     from app.models import AgendaItem as _AgendaItem
     from app.models import PersonCalendarFeed as _PersonCalendarFeed
     from app.services.agenda_display import feed_for_item
     from app.services.recurrence import occurs_on_date as _occurs
-    from datetime import timedelta as _td
 
     if (end - start).days > 180:
         raise HTTPException(400, "Datumbereik te groot (max 180 dagen)")
@@ -137,20 +136,22 @@ def mobile_calendar(
         for item in items:
             if _occurs(item.repeat_type, item.get_weekdays(), item.anchor_date, item.end_date, cursor):
                 feed = feed_for_item(item, feeds)
-                prefix = ((feed.prefix or "").strip() if feed else "")
+                prefix = (feed.prefix or "").strip() if feed else ""
                 # Mobile UI renders start/end times separately; keep title clean.
                 title = item.title
                 if prefix:
                     title = f"{prefix}: {title}"
-                result.append({
-                    "id": item.id,
-                    "title": title,
-                    "person_id": item.person_id,
-                    "date": cursor.isoformat(),
-                    "start_time": item.start_time,
-                    "end_time": item.end_time,
-                    "source": item.source,
-                })
+                result.append(
+                    {
+                        "id": item.id,
+                        "title": title,
+                        "person_id": item.person_id,
+                        "date": cursor.isoformat(),
+                        "start_time": item.start_time,
+                        "end_time": item.end_time,
+                        "source": item.source,
+                    }
+                )
         cursor += _td(days=1)
     return result
 
@@ -159,7 +160,7 @@ def mobile_calendar(
 def mobile_tasks(
     start: date = Query(...),
     end: date = Query(...),
-    person_id: Optional[int] = Query(None),
+    person_id: int | None = Query(None),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -171,26 +172,26 @@ def mobile_tasks(
 
     svc = TaskService(db)
     from app.models import Person as _Person
-    person_colors = {
-        p.id: _profile_color_for(p)
-        for p in db.query(_Person).all()
-    }
+
+    person_colors = {p.id: _profile_color_for(p) for p in db.query(_Person).all()}
     result = []
     cursor = start
     while cursor <= end:
         day_tasks = svc.get_for_date(cursor, person_id)
         for t in day_tasks:
             color = person_colors.get(t.person_id) if t.person_id else None
-            result.append({
-                "id": str(t.id),
-                "title": t.title,
-                "description": t.description,
-                "icon": t.icon,
-                "person_id": t.person_id,
-                "profile_color": color,
-                "date": cursor.isoformat(),
-                "completed": svc.task_to_dict(t, cursor).get("completed", False),
-            })
+            result.append(
+                {
+                    "id": str(t.id),
+                    "title": t.title,
+                    "description": t.description,
+                    "icon": t.icon,
+                    "person_id": t.person_id,
+                    "profile_color": color,
+                    "date": cursor.isoformat(),
+                    "completed": svc.task_to_dict(t, cursor).get("completed", False),
+                }
+            )
         cursor += _td(days=1)
     return result
 
@@ -227,7 +228,7 @@ class TaskCreate(BaseModel):
     repeat_type: str = "once"
     repeat_weekdays: list[int] = []
     anchor_date: str
-    end_date: Optional[str] = None
+    end_date: str | None = None
     sort_order: int = 0
 
 
@@ -252,21 +253,21 @@ class AgendaCreate(BaseModel):
     repeat_type: str = "once"
     repeat_weekdays: list[int] = []
     anchor_date: str
-    end_date: Optional[str] = None
-    start_time: Optional[str] = None
-    end_time: Optional[str] = None
+    end_date: str | None = None
+    start_time: str | None = None
+    end_time: str | None = None
     sort_order: int = 0
 
 
 class AgendaUpdate(BaseModel):
-    title: Optional[str] = None
-    repeat_type: Optional[str] = None
-    repeat_weekdays: Optional[list[int]] = None
-    anchor_date: Optional[str] = None
-    end_date: Optional[str] = None
-    start_time: Optional[str] = None
-    end_time: Optional[str] = None
-    sort_order: Optional[int] = None
+    title: str | None = None
+    repeat_type: str | None = None
+    repeat_weekdays: list[int] | None = None
+    anchor_date: str | None = None
+    end_date: str | None = None
+    start_time: str | None = None
+    end_time: str | None = None
+    sort_order: int | None = None
 
 
 class PersonCreate(BaseModel):
@@ -276,8 +277,8 @@ class PersonCreate(BaseModel):
 class PersonUpdate(BaseModel):
     name: str
     can_login: bool = False
-    password: Optional[str] = None
-    password_confirm: Optional[str] = None
+    password: str | None = None
+    password_confirm: str | None = None
 
 
 class PersonFeedCreate(BaseModel):
@@ -292,8 +293,8 @@ class PersonFeedCreate(BaseModel):
 
 class MeUpdate(BaseModel):
     name: str
-    email: Optional[str] = None
-    profile_color: Optional[str] = None
+    email: str | None = None
+    profile_color: str | None = None
 
 
 class PasswordUpdate(BaseModel):
@@ -314,12 +315,12 @@ class UserFeedCreate(BaseModel):
 class AdminUserCreate(BaseModel):
     username: str
     name: str
-    email: Optional[str] = None
+    email: str | None = None
     is_admin: bool = False
     can_login: bool = False
-    password: Optional[str] = None
-    password_confirm: Optional[str] = None
-    profile_color: Optional[str] = None
+    password: str | None = None
+    password_confirm: str | None = None
+    profile_color: str | None = None
 
 
 class AdminUserUpdate(AdminUserCreate):
@@ -335,7 +336,7 @@ class TaskManagersUpdate(BaseModel):
     manager_ids: list[int] = []
 
 
-def _parse_date(value: Optional[str]) -> Optional[date]:
+def _parse_date(value: str | None) -> date | None:
     if not value:
         return None
     return date.fromisoformat(value)
@@ -389,8 +390,8 @@ def list_icons():
 @router.get("/dashboard")
 def get_dashboard(
     response: Response,
-    start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None),
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
     _user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -425,11 +426,10 @@ def get_dashboard_etag(response: Response, _user=Depends(get_current_user), db: 
     return {"etag": DashboardService(db).get_etag()}
 
 
-
 @router.get("/tasks")
 def list_tasks(
-    date_str: Optional[str] = Query(None, alias="date"),
-    person_id: Optional[int] = Query(None),
+    date_str: str | None = Query(None, alias="date"),
+    person_id: int | None = Query(None),
     _user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -439,8 +439,7 @@ def list_tasks(
     target = _parse_date(date_str) or date.today()
     tasks = service.get_for_date(target, person_id=person_id)
     day_orders = {
-        o.task_id: o.sort_order
-        for o in db.query(TaskDayOrder).filter(TaskDayOrder.order_date == target).all()
+        o.task_id: o.sort_order for o in db.query(TaskDayOrder).filter(TaskDayOrder.order_date == target).all()
     }
     tasks.sort(key=lambda t: (day_orders.get(t.id, t.sort_order), t.id))
     return [service.task_to_dict(t, target) for t in tasks]
@@ -538,7 +537,7 @@ def delete_task(task_id: int, user=Depends(get_current_user), db: Session = Depe
 @router.post("/tasks/{task_id}/complete")
 def complete_task(
     task_id: int,
-    date_str: Optional[str] = Query(None, alias="date"),
+    date_str: str | None = Query(None, alias="date"),
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -561,7 +560,7 @@ def agenda_access(person_id: int, user=Depends(get_current_user), db: Session = 
 @router.get("/agenda")
 def list_agenda(
     person_id: int = Query(...),
-    date_str: Optional[str] = Query(None, alias="date"),
+    date_str: str | None = Query(None, alias="date"),
     _user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -590,10 +589,7 @@ def update_agenda_item(item_id: int, data: AgendaUpdate, user=Depends(get_curren
     if existing.source in ("ical", "gcal"):
         raise HTTPException(403, "Agenda-items uit een feed kunnen niet worden bewerkt")
     dumped = data.model_dump(exclude_unset=True)
-    payload = {
-        k: v for k, v in dumped.items()
-        if v is not None and k not in ("start_time", "end_time")
-    }
+    payload = {k: v for k, v in dumped.items() if v is not None and k not in ("start_time", "end_time")}
     for time_key in ("start_time", "end_time"):
         if time_key in dumped:
             payload[time_key] = dumped[time_key] or None
@@ -673,7 +669,9 @@ def update_person(person_id: int, data: PersonUpdate, _admin=Depends(require_adm
 
 
 @router.post("/persons/{person_id}/feeds")
-def add_person_feed(person_id: int, data: PersonFeedCreate, _admin=Depends(require_admin), db: Session = Depends(get_db)):
+def add_person_feed(
+    person_id: int, data: PersonFeedCreate, _admin=Depends(require_admin), db: Session = Depends(get_db)
+):
     url = data.url.strip()
     if not url:
         raise HTTPException(400, "iCal URL is verplicht")
@@ -785,10 +783,7 @@ def list_my_devices(
 
     current_hash = _bearer_token_hash(request)
     records = list_active_devices(db, user.id)
-    return [
-        device_to_dict(record, current_token_hash=current_hash)
-        for record in records
-    ]
+    return [device_to_dict(record, current_token_hash=current_hash) for record in records]
 
 
 @router.delete("/me/devices/{device_id}")
@@ -817,7 +812,9 @@ def add_my_feed(data: UserFeedCreate, user=Depends(get_current_user), db: Sessio
         raise HTTPException(400, f"iCal test faalde: {exc}") from exc
     service = PersonService(db)
     interval = data.sync_interval_minutes if data.sync_interval_minutes in {15, 60, 1440} else 60
-    feed = service.add_feed(user.id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title)
+    feed = service.add_feed(
+        user.id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title
+    )
     if not feed:
         raise HTTPException(404, "Gebruiker niet gevonden")
     return service.feed_to_dict(feed)
@@ -840,7 +837,9 @@ def update_my_feed(feed_id: int, data: UserFeedCreate, user=Depends(get_current_
         except Exception as exc:
             raise HTTPException(400, f"iCal test faalde: {exc}") from exc
     interval = data.sync_interval_minutes if data.sync_interval_minutes in {15, 60, 1440} else 60
-    feed = service.update_feed(user.id, feed_id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title)
+    feed = service.update_feed(
+        user.id, feed_id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title
+    )
     if not feed:
         raise HTTPException(404, "Kalender niet gevonden")
     return service.feed_to_dict(feed)
@@ -976,6 +975,7 @@ def admin_update_user(
     updated = service.update(user_id, data.name.strip(), data.can_login, password)
     return service.person_to_dict(updated)
 
+
 @router.put("/admin/users/{user_id}/task-managers")
 def admin_update_task_managers(
     user_id: int,
@@ -1031,7 +1031,9 @@ def admin_add_user_feed(
         raise HTTPException(400, f"iCal test faalde: {exc}") from exc
     interval = data.sync_interval_minutes if data.sync_interval_minutes in {15, 60, 1440} else 60
     service = PersonService(db)
-    feed = service.add_feed(user_id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title)
+    feed = service.add_feed(
+        user_id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title
+    )
     if not feed:
         raise HTTPException(404, "Gebruiker niet gevonden")
     return service.feed_to_dict(feed)
@@ -1060,7 +1062,9 @@ def admin_update_user_feed(
         except Exception as exc:
             raise HTTPException(400, f"iCal test faalde: {exc}") from exc
     interval = data.sync_interval_minutes if data.sync_interval_minutes in {15, 60, 1440} else 60
-    feed = service.update_feed(user_id, feed_id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title)
+    feed = service.update_feed(
+        user_id, feed_id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title
+    )
     if not feed:
         raise HTTPException(404, "Kalender niet gevonden")
     return service.feed_to_dict(feed)
@@ -1146,6 +1150,7 @@ def admin_delete_user(user_id: int, _admin=Depends(require_admin), db: Session =
 
 # ── Afvalwijzer ──────────────────────────────────────────────────────────────
 
+
 class AfvalwijzerConfigUpdate(BaseModel):
     enabled: bool
     postcode: str = ""
@@ -1156,27 +1161,28 @@ class AfvalwijzerTypeUpdate(BaseModel):
     enabled: bool = False
     naam: str = ""
     buiten_dag: str = "day_before"
-    buiten_person_id: Optional[int] = None
+    buiten_person_id: int | None = None
     buiten_icon: str = "custom:kliko-restafval"
     binnen_dag: str = "same_day"
-    binnen_person_id: Optional[int] = None
+    binnen_person_id: int | None = None
     binnen_icon: str = "custom:kliko-restafval"
 
 
 class AfvalwijzerTypePatch(BaseModel):
-    enabled: Optional[bool] = None
-    naam: Optional[str] = None
-    buiten_dag: Optional[str] = None
-    buiten_person_id: Optional[int] = None
-    buiten_icon: Optional[str] = None
-    binnen_dag: Optional[str] = None
-    binnen_person_id: Optional[int] = None
-    binnen_icon: Optional[str] = None
+    enabled: bool | None = None
+    naam: str | None = None
+    buiten_dag: str | None = None
+    buiten_person_id: int | None = None
+    buiten_icon: str | None = None
+    binnen_dag: str | None = None
+    binnen_person_id: int | None = None
+    binnen_icon: str | None = None
 
 
 @router.get("/admin/afvalwijzer")
 def admin_get_afvalwijzer(_admin=Depends(require_admin), db: Session = Depends(get_db)):
     from app.services.afvalwijzer_service import AfvalwijzerService
+
     service = AfvalwijzerService(db)
     return service.config_to_dict(service.get_or_create_config())
 
@@ -1188,6 +1194,7 @@ def admin_update_afvalwijzer(
     db: Session = Depends(get_db),
 ):
     from app.services.afvalwijzer_service import AfvalwijzerService
+
     service = AfvalwijzerService(db)
     config = service.update_config(
         data.enabled,
@@ -1201,6 +1208,7 @@ def admin_update_afvalwijzer(
 def admin_sync_afvalwijzer(_admin=Depends(require_admin), db: Session = Depends(get_db)):
     from app.services.afvalwijzer_service import AfvalwijzerService
     from app.services.mijnafvalwijzer import get_afval_types
+
     service = AfvalwijzerService(db)
     config = service.get_or_create_config()
     if not config.postcode or not config.huisnummer:
@@ -1221,6 +1229,7 @@ def admin_update_afvalwijzer_type(
     db: Session = Depends(get_db),
 ):
     from app.services.afvalwijzer_service import AfvalwijzerService
+
     service = AfvalwijzerService(db)
     t = service.update_type(
         type_id,
@@ -1246,6 +1255,7 @@ def admin_patch_afvalwijzer_type(
     db: Session = Depends(get_db),
 ):
     from app.services.afvalwijzer_service import AfvalwijzerService
+
     service = AfvalwijzerService(db)
     kwargs = {}
     if data.enabled is not None:
@@ -1273,6 +1283,7 @@ def admin_patch_afvalwijzer_type(
 @router.post("/admin/afvalwijzer/create-tasks")
 def admin_create_afval_tasks(_admin=Depends(require_admin), db: Session = Depends(get_db)):
     from app.services.afvalwijzer_service import AfvalwijzerService
+
     service = AfvalwijzerService(db)
     today = date.today()
     monday = today - timedelta(days=today.weekday())
@@ -1288,6 +1299,7 @@ def admin_create_afval_tasks(_admin=Depends(require_admin), db: Session = Depend
 # Google Calendar – admin API config
 # ---------------------------------------------------------------------------
 
+
 class GoogleApiConfigUpdate(BaseModel):
     client_id: str = ""
     client_secret: str = ""
@@ -1297,6 +1309,7 @@ class GoogleApiConfigUpdate(BaseModel):
 @router.get("/admin/google-calendar/config")
 def admin_get_google_config(_admin=Depends(require_admin), db: Session = Depends(get_db)):
     from app.models import GoogleApiConfig
+
     cfg = db.query(GoogleApiConfig).first()
     if not cfg:
         return {"client_id": "", "client_secret": "", "redirect_uri_override": ""}
@@ -1314,6 +1327,7 @@ def admin_update_google_config(
     db: Session = Depends(get_db),
 ):
     from app.models import GoogleApiConfig
+
     cfg = db.query(GoogleApiConfig).first()
     if not cfg:
         cfg = GoogleApiConfig()
@@ -1322,15 +1336,21 @@ def admin_update_google_config(
     cfg.client_secret = data.client_secret.strip() or None
     cfg.redirect_uri_override = data.redirect_uri_override.strip() or None
     db.commit()
-    return {"client_id": cfg.client_id or "", "client_secret": cfg.client_secret or "", "redirect_uri_override": cfg.redirect_uri_override or ""}
+    return {
+        "client_id": cfg.client_id or "",
+        "client_secret": cfg.client_secret or "",
+        "redirect_uri_override": cfg.redirect_uri_override or "",
+    }
 
 
 # ---------------------------------------------------------------------------
 # Google Calendar – shared helpers
 # ---------------------------------------------------------------------------
 
+
 def _resolve_redirect_uri(request, db: Session) -> str:
     from app.models import GoogleApiConfig
+
     cfg = db.query(GoogleApiConfig).first()
     if cfg and cfg.redirect_uri_override:
         return cfg.redirect_uri_override
@@ -1340,19 +1360,22 @@ def _resolve_redirect_uri(request, db: Session) -> str:
 
 def _get_google_config(db: Session):
     from app.models import GoogleApiConfig
+
     cfg = db.query(GoogleApiConfig).first()
     if not cfg or not cfg.client_id or not cfg.client_secret:
-        raise HTTPException(400, "Google Calendar API is niet geconfigureerd. Stel de API-instellingen in via het admin menu.")
+        raise HTTPException(
+            400, "Google Calendar API is niet geconfigureerd. Stel de API-instellingen in via het admin menu."
+        )
     return cfg
 
 
 def _google_auth_url_for_person(person_id: int, return_to: str, request, db: Session) -> str:
     from app.services.google_calendar_service import get_auth_url
+
     cfg = _get_google_config(db)
     redirect_uri = _resolve_redirect_uri(request, db)
     request.session["gcal_oauth_person_id"] = person_id
     request.session["gcal_oauth_return_to"] = return_to
-    import secrets
     nonce = secrets.token_urlsafe(16)
     request.session["gcal_oauth_nonce"] = nonce
     return get_auth_url(cfg.client_id, redirect_uri, state=nonce)
@@ -1360,6 +1383,7 @@ def _google_auth_url_for_person(person_id: int, return_to: str, request, db: Ses
 
 def _get_or_create_google_auth(db: Session, person_id: int):
     from app.models import PersonGoogleAuth
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == person_id).first()
     if not auth:
         auth = PersonGoogleAuth(person_id=person_id)
@@ -1370,14 +1394,14 @@ def _get_or_create_google_auth(db: Session, person_id: int):
 
 def _google_feeds_for_person(db: Session, person_id: int) -> list[dict]:
     from app.models import PersonGoogleCalendarFeed
-    feeds = db.query(PersonGoogleCalendarFeed).filter(
-        PersonGoogleCalendarFeed.person_id == person_id
-    ).all()
+
+    feeds = db.query(PersonGoogleCalendarFeed).filter(PersonGoogleCalendarFeed.person_id == person_id).all()
     return [_google_feed_to_dict(f) for f in feeds]
 
 
 def _google_feed_to_dict(feed) -> dict:
     import json as _json
+
     return {
         "id": feed.id,
         "google_calendar_id": feed.google_calendar_id,
@@ -1392,10 +1416,15 @@ def _google_feed_to_dict(feed) -> dict:
 
 def _get_google_feed_or_404(db: Session, feed_id: int, person_id: int):
     from app.models import PersonGoogleCalendarFeed
-    feed = db.query(PersonGoogleCalendarFeed).filter(
-        PersonGoogleCalendarFeed.id == feed_id,
-        PersonGoogleCalendarFeed.person_id == person_id,
-    ).first()
+
+    feed = (
+        db.query(PersonGoogleCalendarFeed)
+        .filter(
+            PersonGoogleCalendarFeed.id == feed_id,
+            PersonGoogleCalendarFeed.person_id == person_id,
+        )
+        .first()
+    )
     if not feed:
         raise HTTPException(404, "Google calendar feed niet gevonden")
     return feed
@@ -1416,15 +1445,18 @@ def _run_google_feed_sync(db: Session, feed, *, full_sync: bool = False) -> None
 # Google Calendar – /api/me/google/…
 # ---------------------------------------------------------------------------
 
+
 @router.get("/google/colors")
 def get_google_colors():
     from app.services.google_calendar_service import GOOGLE_COLORS
+
     return GOOGLE_COLORS
 
 
 @router.get("/me/google/status")
 def me_google_status(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     from app.models import PersonGoogleAuth
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == current_user.id).first()
     return {
         "linked": bool(auth and auth.refresh_token),
@@ -1446,6 +1478,7 @@ def me_google_auth_url(
 @router.delete("/me/google/auth")
 def me_google_unlink(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     from app.models import PersonGoogleAuth
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == current_user.id).first()
     if auth:
         db.delete(auth)
@@ -1457,6 +1490,7 @@ def me_google_unlink(current_user=Depends(get_current_user), db: Session = Depen
 def me_google_list_calendars(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     from app.models import PersonGoogleAuth
     from app.services.google_calendar_service import list_calendars
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == current_user.id).first()
     if not auth or not auth.refresh_token:
         raise HTTPException(400, "Google account niet gekoppeld")
@@ -1466,7 +1500,9 @@ def me_google_list_calendars(current_user=Depends(get_current_user), db: Session
         cals = list_calendars(access_token)
     except Exception as exc:
         raise HTTPException(400, f"Ophalen agenda's mislukt: {exc}") from exc
-    return [{"id": c["id"], "summary": c.get("summary", ""), "backgroundColor": c.get("backgroundColor", "")} for c in cals]
+    return [
+        {"id": c["id"], "summary": c.get("summary", ""), "backgroundColor": c.get("backgroundColor", "")} for c in cals
+    ]
 
 
 @router.get("/me/google/feeds")
@@ -1477,16 +1513,16 @@ def me_google_feeds(current_user=Depends(get_current_user), db: Session = Depend
 class GoogleFeedCreate(BaseModel):
     google_calendar_id: str
     calendar_name: str = ""
-    calendar_color: Optional[str] = None
+    calendar_color: str | None = None
     color_filters: list[str] = []
     enabled: bool = True
 
 
 class GoogleFeedUpdate(BaseModel):
-    calendar_name: Optional[str] = None
-    calendar_color: Optional[str] = None
-    color_filters: Optional[list[str]] = None
-    enabled: Optional[bool] = None
+    calendar_name: str | None = None
+    calendar_color: str | None = None
+    color_filters: list[str] | None = None
+    enabled: bool | None = None
 
 
 @router.post("/me/google/feeds")
@@ -1496,7 +1532,9 @@ def me_google_add_feed(
     db: Session = Depends(get_db),
 ):
     import json as _json
+
     from app.models import PersonGoogleAuth, PersonGoogleCalendarFeed
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == current_user.id).first()
     if not auth or not auth.refresh_token:
         raise HTTPException(400, "Google account niet gekoppeld")
@@ -1522,6 +1560,7 @@ def me_google_update_feed(
     db: Session = Depends(get_db),
 ):
     import json as _json
+
     feed = _get_google_feed_or_404(db, feed_id, current_user.id)
     if data.calendar_name is not None:
         feed.calendar_name = data.calendar_name
@@ -1563,6 +1602,7 @@ def me_google_sync_feed(
 ):
     from app.models import GoogleApiConfig
     from app.services.google_sync_service import _sync_feed
+
     feed = _get_google_feed_or_404(db, feed_id, current_user.id)
     config = db.query(GoogleApiConfig).first()
     if not config or not config.client_id:
@@ -1578,9 +1618,11 @@ def me_google_sync_feed(
 # Google Calendar – /api/admin/users/{user_id}/google/…
 # ---------------------------------------------------------------------------
 
+
 @router.get("/admin/users/{user_id}/google/status")
 def admin_user_google_status(user_id: int, _admin=Depends(require_admin), db: Session = Depends(get_db)):
     from app.models import PersonGoogleAuth
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == user_id).first()
     return {
         "linked": bool(auth and auth.refresh_token),
@@ -1604,6 +1646,7 @@ def admin_user_google_auth_url(
 @router.delete("/admin/users/{user_id}/google/auth")
 def admin_user_google_unlink(user_id: int, _admin=Depends(require_admin), db: Session = Depends(get_db)):
     from app.models import PersonGoogleAuth
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == user_id).first()
     if auth:
         db.delete(auth)
@@ -1615,6 +1658,7 @@ def admin_user_google_unlink(user_id: int, _admin=Depends(require_admin), db: Se
 def admin_user_google_list_calendars(user_id: int, _admin=Depends(require_admin), db: Session = Depends(get_db)):
     from app.models import PersonGoogleAuth
     from app.services.google_calendar_service import list_calendars
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == user_id).first()
     if not auth or not auth.refresh_token:
         raise HTTPException(400, "Google account niet gekoppeld")
@@ -1624,7 +1668,9 @@ def admin_user_google_list_calendars(user_id: int, _admin=Depends(require_admin)
         cals = list_calendars(access_token)
     except Exception as exc:
         raise HTTPException(400, f"Ophalen agenda's mislukt: {exc}") from exc
-    return [{"id": c["id"], "summary": c.get("summary", ""), "backgroundColor": c.get("backgroundColor", "")} for c in cals]
+    return [
+        {"id": c["id"], "summary": c.get("summary", ""), "backgroundColor": c.get("backgroundColor", "")} for c in cals
+    ]
 
 
 @router.get("/admin/users/{user_id}/google/feeds")
@@ -1640,7 +1686,9 @@ def admin_user_google_add_feed(
     db: Session = Depends(get_db),
 ):
     import json as _json
+
     from app.models import PersonGoogleAuth, PersonGoogleCalendarFeed
+
     auth = db.query(PersonGoogleAuth).filter(PersonGoogleAuth.person_id == user_id).first()
     if not auth or not auth.refresh_token:
         raise HTTPException(400, "Google account niet gekoppeld")
@@ -1666,6 +1714,7 @@ def admin_user_google_update_feed(
     db: Session = Depends(get_db),
 ):
     import json as _json
+
     feed = _get_google_feed_or_404(db, feed_id, user_id)
     if data.calendar_name is not None:
         feed.calendar_name = data.calendar_name
@@ -1709,6 +1758,7 @@ def admin_user_google_sync_feed(
 ):
     from app.models import GoogleApiConfig
     from app.services.google_sync_service import _sync_feed
+
     feed = _get_google_feed_or_404(db, feed_id, user_id)
     config = db.query(GoogleApiConfig).first()
     if not config or not config.client_id:
@@ -1723,6 +1773,7 @@ def admin_user_google_sync_feed(
 # ---------------------------------------------------------------------------
 # Dashboard app upgrades
 # ---------------------------------------------------------------------------
+
 
 @router.get("/admin/dashboard-upgrade")
 def admin_dashboard_upgrade_info(_admin=Depends(require_admin), db: Session = Depends(get_db)):
@@ -1775,13 +1826,15 @@ def app_dashboard_upgrade_download(_user=Depends(get_current_user), db: Session 
 # Shared helper – ensure access token is valid
 # ---------------------------------------------------------------------------
 
+
 def _ensure_gcal_token(db: Session, auth, config) -> str:
-    from datetime import timezone as _tz
+
     from app.services.google_calendar_service import refresh_access_token
-    now = datetime.now(_tz.utc)
+
+    now = datetime.now(UTC)
     expiry = auth.token_expiry
     if expiry and expiry.tzinfo is None:
-        expiry = expiry.replace(tzinfo=_tz.utc)
+        expiry = expiry.replace(tzinfo=UTC)
     needs_refresh = not auth.access_token or not expiry or expiry <= now + timedelta(minutes=5)
     if needs_refresh:
         token_data = refresh_access_token(config.client_id, config.client_secret, auth.refresh_token)
