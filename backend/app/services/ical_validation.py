@@ -53,15 +53,11 @@ def fetch_ical_content(
     )
     if response.status_code == 304 and not response.content:
         if force_full:
-            raise ValueError(
-                "Agenda-server gaf geen data terug (304). Probeer later opnieuw."
-            )
+            raise ValueError("Agenda-server gaf geen data terug (304). Probeer later opnieuw.")
         response = fetch_ical_response(url, force_full=True)
     response.raise_for_status()
     if response.status_code == 304 or not response.content:
-        raise ValueError(
-            "Agenda-server gaf geen data terug (304). Probeer later opnieuw."
-        )
+        raise ValueError("Agenda-server gaf geen data terug (304). Probeer later opnieuw.")
     return response.content
 
 

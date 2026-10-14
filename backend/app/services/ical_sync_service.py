@@ -1,7 +1,7 @@
 import json
 import logging
 import threading
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from icalendar import Calendar
@@ -21,7 +21,7 @@ VALID_INTERVALS = {15, 60, 1440}
 
 
 def sync_all_feeds(db: Session) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     feeds = db.query(PersonCalendarFeed).all()
     for feed in feeds:
         interval = feed.sync_interval_minutes or 60
@@ -30,7 +30,7 @@ def sync_all_feeds(db: Session) -> None:
         else:
             last = feed.last_synced_at
             if last.tzinfo is None:
-                last = last.replace(tzinfo=timezone.utc)
+                last = last.replace(tzinfo=UTC)
             due = (now - last) >= timedelta(minutes=interval)
         if due:
             try:
@@ -88,9 +88,7 @@ def _do_sync(db: Session, feed: PersonCalendarFeed, *, force_full: bool = False)
 
         if use_conditional and response.status_code == 304:
             _touch_feed_sync(db, feed)
-            logger.debug(
-                "Feed %s: 304 Not Modified, kept %s items", feed.id, existing_count
-            )
+            logger.debug("Feed %s: 304 Not Modified, kept %s items", feed.id, existing_count)
             return 0
 
         if use_conditional and not response.content:
@@ -103,18 +101,14 @@ def _do_sync(db: Session, feed: PersonCalendarFeed, *, force_full: bool = False)
             return 0
 
         if response.status_code == 304 and not response.content:
-            raise ValueError(
-                "Agenda-server gaf geen data terug (304). Probeer later opnieuw."
-            )
+            raise ValueError("Agenda-server gaf geen data terug (304). Probeer later opnieuw.")
 
         response.raise_for_status()
 
         if not response.content:
             if existing_count > 0:
                 _touch_feed_sync(db, feed)
-                logger.warning(
-                    "Feed %s: empty full response, kept %s items", feed.id, existing_count
-                )
+                logger.warning("Feed %s: empty full response, kept %s items", feed.id, existing_count)
                 return 0
             raise ValueError("Agenda-server gaf geen data terug. Probeer later opnieuw.")
 
@@ -188,9 +182,7 @@ def _items_from_calendar(feed: PersonCalendarFeed, calendar: Calendar) -> list[A
     return items
 
 
-def _replace_feed_items(
-    db: Session, feed: PersonCalendarFeed, items: list[AgendaItem]
-) -> int:
+def _replace_feed_items(db: Session, feed: PersonCalendarFeed, items: list[AgendaItem]) -> int:
     db.query(AgendaItem).filter(
         AgendaItem.feed_id == feed.id,
         AgendaItem.source == "ical",
@@ -269,11 +261,7 @@ def _parse_recurrence(event, anchor: date) -> tuple[str, list[int], date | None]
     byday_raw = rule.get("BYDAY", "")
     if isinstance(byday_raw, bytes):
         byday_raw = byday_raw.decode()
-    weekdays = sorted({
-        ICAL_DAY_MAP[day]
-        for day in str(byday_raw).split(",")
-        if day in ICAL_DAY_MAP
-    })
+    weekdays = sorted({ICAL_DAY_MAP[day] for day in str(byday_raw).split(",") if day in ICAL_DAY_MAP})
 
     if freq == "DAILY":
         return "daily", [], end_date

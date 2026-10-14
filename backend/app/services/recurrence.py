@@ -2,8 +2,19 @@ from datetime import date
 
 DUTCH_DAYS = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"]
 DUTCH_MONTHS = [
-    "", "Januari", "Februari", "Maart", "April", "Mei", "Juni",
-    "Juli", "Augustus", "September", "Oktober", "November", "December",
+    "",
+    "Januari",
+    "Februari",
+    "Maart",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Augustus",
+    "September",
+    "Oktober",
+    "November",
+    "December",
 ]
 DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -16,6 +16,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
     if auth_header.startswith("Bearer "):
         token_str = auth_header[7:].strip()
         from app.models import PersonApiToken
+
         token_hash = hash_api_token(token_str)
         token_record = (
             db.query(PersonApiToken)
@@ -26,7 +27,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
             .first()
         )
         if token_record:
-            token_record.last_used_at = datetime.now(timezone.utc)
+            token_record.last_used_at = datetime.now(UTC)
             db.commit()
             user = service.get(token_record.person_id)
             if user:

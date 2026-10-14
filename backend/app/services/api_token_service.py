@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -28,7 +28,7 @@ def issue_token_for_device(
 
     plain_token = generate_api_token()
     token_hash = hash_api_token(plain_token)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     normalized_type = _normalize_device_type(device_type)
     display_name = (device_name or "").strip() or "Onbekend apparaat"
 
@@ -88,7 +88,7 @@ def revoke_device(db: Session, *, person_id: int, device_id: str) -> bool:
     )
     if not record:
         return False
-    record.revoked_at = datetime.now(timezone.utc)
+    record.revoked_at = datetime.now(UTC)
     db.commit()
     return True
 
@@ -105,7 +105,5 @@ def device_to_dict(
         "device_type": record.device_type or "mobile",
         "created_at": record.created_at.isoformat() if record.created_at else None,
         "last_used_at": record.last_used_at.isoformat() if record.last_used_at else None,
-        "is_current": bool(
-            current_token_hash and record.token_hash == current_token_hash
-        ),
+        "is_current": bool(current_token_hash and record.token_hash == current_token_hash),
     }

@@ -1,0 +1,7 @@
+target-version = "py311"
+line-length = 120
+extend-exclude = ["node_modules", "data"]
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["B008", "E501"]  # Depends() defaults; line length is the formatter's job

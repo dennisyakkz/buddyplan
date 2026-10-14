@@ -18,11 +18,7 @@ class DashboardUpgradeService:
         return path
 
     def get_latest(self) -> DashboardUpgrade | None:
-        return (
-            self.db.query(DashboardUpgrade)
-            .order_by(DashboardUpgrade.version.desc())
-            .first()
-        )
+        return self.db.query(DashboardUpgrade).order_by(DashboardUpgrade.version.desc()).first()
 
     def get_info(self) -> dict:
         latest = self.get_latest()

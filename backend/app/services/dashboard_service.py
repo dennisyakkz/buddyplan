@@ -6,7 +6,17 @@ import bcrypt
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models import AgendaItem, AgendaManager, Person, PersonCalendarFeed, PersonGoogleCalendarFeed, Task, TaskCompletion, TaskDayOrder, TaskManager
+from app.models import (
+    AgendaItem,
+    AgendaManager,
+    Person,
+    PersonCalendarFeed,
+    PersonGoogleCalendarFeed,
+    Task,
+    TaskCompletion,
+    TaskDayOrder,
+    TaskManager,
+)
 from app.services.agenda_display import agenda_event_sort_key, build_agenda_event_dict, feed_for_item
 from app.services.color_palette import (
     label_to_badge_classes,
@@ -23,15 +33,16 @@ from app.services.recurrence import (
 )
 
 
-
 def _hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
 
 def _verify_password(password: str, password_hash: str) -> bool:
     try:
         return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
     except Exception:
         return False
+
 
 class DashboardService:
     def __init__(self, db: Session):
@@ -57,9 +68,9 @@ class DashboardService:
         order_count = self.db.query(func.count(TaskDayOrder.id)).scalar()
         parts.append(f"counts:{task_count}:{max_task_id}:{agenda_count}:{order_count}")
 
-        completion_count = self.db.query(func.count(TaskCompletion.id)).filter(
-            TaskCompletion.completion_date == ref
-        ).scalar()
+        completion_count = (
+            self.db.query(func.count(TaskCompletion.id)).filter(TaskCompletion.completion_date == ref).scalar()
+        )
         parts.append(f"completions:{completion_count}:{ref.isoformat()}")
 
         return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
@@ -70,10 +81,7 @@ class DashboardService:
 
         # Task panel always shows today's tasks (calendar week may differ)
         todos = self._build_todos(date.today())
-        week_days = [
-            {"day": format_dutch_day(d), "date": format_dutch_date(d), "iso": d.isoformat()}
-            for d in week
-        ]
+        week_days = [{"day": format_dutch_day(d), "date": format_dutch_date(d), "iso": d.isoformat()} for d in week]
         calendar = self._build_calendar(week, range_start=week[0], range_end=week[-1])
 
         return {
@@ -102,14 +110,15 @@ class DashboardService:
         weeks = []
         for week_start in week_starts:
             week = week_dates(week_start)
-            weeks.append({
-                "week_start": week_start.isoformat(),
-                "weekDays": [
-                    {"day": format_dutch_day(d), "date": format_dutch_date(d), "iso": d.isoformat()}
-                    for d in week
-                ],
-                "calendar": self._build_calendar(week, calendar_ctx),
-            })
+            weeks.append(
+                {
+                    "week_start": week_start.isoformat(),
+                    "weekDays": [
+                        {"day": format_dutch_day(d), "date": format_dutch_date(d), "iso": d.isoformat()} for d in week
+                    ],
+                    "calendar": self._build_calendar(week, calendar_ctx),
+                }
+            )
 
         return {"todo": todos, "weeks": weeks}
 
@@ -128,20 +137,14 @@ class DashboardService:
     def _build_todos(self, target: date) -> list[dict]:
         tasks = self.db.query(Task).all()
         applicable = [
-            t for t in tasks
-            if occurs_on_date(
-                t.repeat_type, t.get_weekdays(), t.anchor_date,
-                t.end_date, target
-            )
+            t for t in tasks if occurs_on_date(t.repeat_type, t.get_weekdays(), t.anchor_date, t.end_date, target)
         ]
 
         day_orders = {
-            o.task_id: o.sort_order
-            for o in self.db.query(TaskDayOrder).filter(TaskDayOrder.order_date == target).all()
+            o.task_id: o.sort_order for o in self.db.query(TaskDayOrder).filter(TaskDayOrder.order_date == target).all()
         }
         completions = {
-            c.task_id
-            for c in self.db.query(TaskCompletion).filter(TaskCompletion.completion_date == target).all()
+            c.task_id for c in self.db.query(TaskCompletion).filter(TaskCompletion.completion_date == target).all()
         }
 
         applicable.sort(key=lambda t: (day_orders.get(t.id, t.sort_order), t.id))
@@ -149,10 +152,7 @@ class DashboardService:
         person_ids = {t.person_id for t in applicable if t.person_id}
         persons = {}
         if person_ids:
-            persons = {
-                p.id: p
-                for p in self.db.query(Person).filter(Person.id.in_(person_ids)).all()
-            }
+            persons = {p.id: p for p in self.db.query(Person).filter(Person.id.in_(person_ids)).all()}
 
         result = []
         for t in applicable:
@@ -163,15 +163,17 @@ class DashboardService:
                     person.profile_color,
                     person.sort_order or 0,
                 )
-            result.append({
-                "id": str(t.id),
-                "title": t.title,
-                "description": t.description,
-                "icon": t.icon,
-                "completed": t.id in completions,
-                "person_id": t.person_id,
-                "profile_color": profile_color,
-            })
+            result.append(
+                {
+                    "id": str(t.id),
+                    "title": t.title,
+                    "description": t.description,
+                    "icon": t.icon,
+                    "completed": t.id in completions,
+                    "person_id": t.person_id,
+                    "profile_color": profile_color,
+                }
+            )
         return result
 
     def _build_calendar(
@@ -197,8 +199,7 @@ class DashboardService:
                 day_events = []
                 for item in person_items:
                     if not occurs_on_date(
-                        item.repeat_type, item.get_weekdays(), item.anchor_date,
-                        item.end_date, day_date
+                        item.repeat_type, item.get_weekdays(), item.anchor_date, item.end_date, day_date
                     ):
                         continue
                     feed = feed_for_item(item, feeds)
@@ -229,12 +230,7 @@ class TaskService:
         return self.db.query(Task).order_by(Task.sort_order, Task.id).all()
 
     def list_for_person(self, person_id: int) -> list[Task]:
-        return (
-            self.db.query(Task)
-            .filter(Task.person_id == person_id)
-            .order_by(Task.sort_order, Task.id)
-            .all()
-        )
+        return self.db.query(Task).filter(Task.person_id == person_id).order_by(Task.sort_order, Task.id).all()
 
     def get(self, task_id: int) -> Task | None:
         return self.db.query(Task).filter(Task.id == task_id).first()
@@ -267,20 +263,18 @@ class TaskService:
 
     def get_for_date(self, target: date, person_id: int | None = None) -> list[Task]:
         tasks = self.list_for_person(person_id) if person_id is not None else self.list_all()
-        return [
-            t for t in tasks
-            if occurs_on_date(
-                t.repeat_type, t.get_weekdays(), t.anchor_date,
-                t.end_date, target
-            )
-        ]
+        return [t for t in tasks if occurs_on_date(t.repeat_type, t.get_weekdays(), t.anchor_date, t.end_date, target)]
 
     def reorder_for_date(self, target: date, task_ids: list[int]) -> None:
         for index, task_id in enumerate(task_ids):
-            existing = self.db.query(TaskDayOrder).filter(
-                TaskDayOrder.task_id == task_id,
-                TaskDayOrder.order_date == target,
-            ).first()
+            existing = (
+                self.db.query(TaskDayOrder)
+                .filter(
+                    TaskDayOrder.task_id == task_id,
+                    TaskDayOrder.order_date == target,
+                )
+                .first()
+            )
             if existing:
                 existing.sort_order = index
             else:
@@ -317,10 +311,14 @@ class TaskService:
         task = self.get(task_id)
         if not task:
             return False
-        existing = self.db.query(TaskCompletion).filter(
-            TaskCompletion.task_id == task_id,
-            TaskCompletion.completion_date == target,
-        ).first()
+        existing = (
+            self.db.query(TaskCompletion)
+            .filter(
+                TaskCompletion.task_id == task_id,
+                TaskCompletion.completion_date == target,
+            )
+            .first()
+        )
         if not existing:
             self.db.add(TaskCompletion(task_id=task_id, completion_date=target))
             self.db.commit()
@@ -332,9 +330,7 @@ class TaskService:
             "id": task.id,
             "person_id": task.person_id,
             "profile_color": (
-                normalize_profile_color(person.profile_color, person.sort_order or 0)
-                if person
-                else None
+                normalize_profile_color(person.profile_color, person.sort_order or 0) if person else None
             ),
             "title": task.title,
             "description": task.description,
@@ -346,10 +342,14 @@ class TaskService:
             "sort_order": task.sort_order,
         }
         if target:
-            completion = self.db.query(TaskCompletion).filter(
-                TaskCompletion.task_id == task.id,
-                TaskCompletion.completion_date == target,
-            ).first()
+            completion = (
+                self.db.query(TaskCompletion)
+                .filter(
+                    TaskCompletion.task_id == task.id,
+                    TaskCompletion.completion_date == target,
+                )
+                .first()
+            )
             result["completed"] = completion is not None
         return result
 
@@ -397,20 +397,13 @@ class AgendaService:
 
     def get_for_date(self, person_id: int, target: date) -> list[AgendaItem]:
         items = self.list_for_person(person_id)
-        return [
-            i for i in items
-            if occurs_on_date(
-                i.repeat_type, i.get_weekdays(), i.anchor_date,
-                i.end_date, target
-            )
-        ]
+        return [i for i in items if occurs_on_date(i.repeat_type, i.get_weekdays(), i.anchor_date, i.end_date, target)]
 
-    def feed_maps_for_person(self, person_id: int) -> tuple[dict[int, PersonCalendarFeed], dict[int, PersonGoogleCalendarFeed]]:
+    def feed_maps_for_person(
+        self, person_id: int
+    ) -> tuple[dict[int, PersonCalendarFeed], dict[int, PersonGoogleCalendarFeed]]:
         feeds = {
-            f.id: f
-            for f in self.db.query(PersonCalendarFeed)
-            .filter(PersonCalendarFeed.person_id == person_id)
-            .all()
+            f.id: f for f in self.db.query(PersonCalendarFeed).filter(PersonCalendarFeed.person_id == person_id).all()
         }
         google_feeds = {
             f.id: f
@@ -461,11 +454,7 @@ class PersonService:
         return self.db.query(Person).filter(Person.id == person_id).first()
 
     def get_by_username(self, username: str) -> Person | None:
-        return (
-            self.db.query(Person)
-            .filter(Person.username == username)
-            .first()
-        )
+        return self.db.query(Person).filter(Person.username == username).first()
 
     def verify_login(self, username: str, password: str) -> Person | None:
         person = self.get_by_username(username.strip())
@@ -480,11 +469,7 @@ class PersonService:
         return person
 
     def has_login_users(self) -> bool:
-        return (
-            self.db.query(Person)
-            .filter(Person.can_login.is_(True))
-            .count() > 0
-        )
+        return self.db.query(Person).filter(Person.can_login.is_(True)).count() > 0
 
     def bootstrap_admin(self, name: str, username: str, password: str) -> Person:
         username = username.strip()
@@ -502,9 +487,7 @@ class PersonService:
         self.db.add(person)
         self.db.commit()
         self.db.refresh(person)
-        self.db.add(
-            TaskManager(owner_person_id=person.id, manager_person_id=person.id)
-        )
+        self.db.add(TaskManager(owner_person_id=person.id, manager_person_id=person.id))
         self._ensure_self_agenda_manager(person.id)
         self.db.commit()
         self.db.refresh(person)
@@ -567,9 +550,7 @@ class PersonService:
         person = self.get(person_id)
         if not person:
             return None
-        person.profile_color = normalize_profile_color(
-            profile_color, person.sort_order or 0
-        )
+        person.profile_color = normalize_profile_color(profile_color, person.sort_order or 0)
         person.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(person)
@@ -592,9 +573,7 @@ class PersonService:
         person.email = email.strip() if email else None
         person.is_admin = bool(is_admin)
         if update_profile_color:
-            person.profile_color = normalize_profile_color(
-                profile_color, person.sort_order or 0
-            )
+            person.profile_color = normalize_profile_color(profile_color, person.sort_order or 0)
         person.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(person)
@@ -623,11 +602,7 @@ class PersonService:
         return self.db.query(Person).filter(Person.id.in_(ids)).order_by(Person.name).all()
 
     def set_task_managers(self, owner_person_id: int, manager_ids: list[int]) -> None:
-        existing = (
-            self.db.query(TaskManager)
-            .filter(TaskManager.owner_person_id == owner_person_id)
-            .all()
-        )
+        existing = self.db.query(TaskManager).filter(TaskManager.owner_person_id == owner_person_id).all()
         existing_ids = {p.manager_person_id for p in existing}
         desired_ids = {int(i) for i in manager_ids}
 
@@ -802,22 +777,14 @@ class PersonService:
         }
 
     def list_agenda_managers(self, owner_person_id: int) -> list[Person]:
-        pairs = (
-            self.db.query(AgendaManager)
-            .filter(AgendaManager.owner_person_id == owner_person_id)
-            .all()
-        )
+        pairs = self.db.query(AgendaManager).filter(AgendaManager.owner_person_id == owner_person_id).all()
         ids = [p.manager_person_id for p in pairs]
         if not ids:
             return []
         return self.db.query(Person).filter(Person.id.in_(ids)).order_by(Person.name).all()
 
     def set_agenda_managers(self, owner_person_id: int, manager_ids: list[int]) -> None:
-        existing = (
-            self.db.query(AgendaManager)
-            .filter(AgendaManager.owner_person_id == owner_person_id)
-            .all()
-        )
+        existing = self.db.query(AgendaManager).filter(AgendaManager.owner_person_id == owner_person_id).all()
         existing_ids = {p.manager_person_id for p in existing}
         desired_ids = {int(i) for i in manager_ids}
         for pair in existing:

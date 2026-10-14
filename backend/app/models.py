@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -8,7 +8,7 @@ from app.database import Base
 
 
 def utcnow():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Person(Base):
@@ -27,9 +27,7 @@ class Person(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
-    agenda_items: Mapped[list["AgendaItem"]] = relationship(
-        back_populates="person", cascade="all, delete-orphan"
-    )
+    agenda_items: Mapped[list["AgendaItem"]] = relationship(back_populates="person", cascade="all, delete-orphan")
     calendar_feeds: Mapped[list["PersonCalendarFeed"]] = relationship(
         back_populates="person", cascade="all, delete-orphan"
     )
@@ -55,9 +53,7 @@ class Person(Base):
         back_populates="manager",
         cascade="all, delete-orphan",
     )
-    api_tokens: Mapped[list["PersonApiToken"]] = relationship(
-        back_populates="person", cascade="all, delete-orphan"
-    )
+    api_tokens: Mapped[list["PersonApiToken"]] = relationship(back_populates="person", cascade="all, delete-orphan")
 
 
 class PersonCalendarFeed(Base):
@@ -80,9 +76,7 @@ class PersonCalendarFeed(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
     person: Mapped["Person"] = relationship(back_populates="calendar_feeds")
-    agenda_items: Mapped[list["AgendaItem"]] = relationship(
-        back_populates="feed", cascade="all, delete-orphan"
-    )
+    agenda_items: Mapped[list["AgendaItem"]] = relationship(back_populates="feed", cascade="all, delete-orphan")
 
 
 class Task(Base):
@@ -102,12 +96,8 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
-    day_orders: Mapped[list["TaskDayOrder"]] = relationship(
-        back_populates="task", cascade="all, delete-orphan"
-    )
-    completions: Mapped[list["TaskCompletion"]] = relationship(
-        back_populates="task", cascade="all, delete-orphan"
-    )
+    day_orders: Mapped[list["TaskDayOrder"]] = relationship(back_populates="task", cascade="all, delete-orphan")
+    completions: Mapped[list["TaskCompletion"]] = relationship(back_populates="task", cascade="all, delete-orphan")
     person: Mapped["Person | None"] = relationship(back_populates="tasks")
 
     def get_weekdays(self) -> list[int]:
@@ -143,9 +133,7 @@ class TaskCompletion(Base):
 
 class TaskManager(Base):
     __tablename__ = "task_managers"
-    __table_args__ = (
-        UniqueConstraint("owner_person_id", "manager_person_id", name="uq_task_manager_pair"),
-    )
+    __table_args__ = (UniqueConstraint("owner_person_id", "manager_person_id", name="uq_task_manager_pair"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     owner_person_id: Mapped[int] = mapped_column(ForeignKey("persons.id", ondelete="CASCADE"))
@@ -158,9 +146,7 @@ class TaskManager(Base):
 
 class AgendaManager(Base):
     __tablename__ = "agenda_managers"
-    __table_args__ = (
-        UniqueConstraint("owner_person_id", "manager_person_id", name="uq_agenda_manager_pair"),
-    )
+    __table_args__ = (UniqueConstraint("owner_person_id", "manager_person_id", name="uq_agenda_manager_pair"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     owner_person_id: Mapped[int] = mapped_column(ForeignKey("persons.id", ondelete="CASCADE"))
@@ -173,9 +159,7 @@ class AgendaManager(Base):
 
 class AgendaItem(Base):
     __tablename__ = "agenda_items"
-    __table_args__ = (
-        UniqueConstraint("feed_id", "external_uid", name="uq_feed_external_uid"),
-    )
+    __table_args__ = (UniqueConstraint("feed_id", "external_uid", name="uq_feed_external_uid"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[int] = mapped_column(ForeignKey("persons.id", ondelete="CASCADE"))
@@ -235,14 +219,10 @@ class AfvalwijzerType(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     naam: Mapped[str] = mapped_column(String(100), default="")
     buiten_dag: Mapped[str] = mapped_column(String(20), default="day_before")
-    buiten_person_id: Mapped[int | None] = mapped_column(
-        ForeignKey("persons.id", ondelete="SET NULL"), nullable=True
-    )
+    buiten_person_id: Mapped[int | None] = mapped_column(ForeignKey("persons.id", ondelete="SET NULL"), nullable=True)
     buiten_icon: Mapped[str] = mapped_column(String(50), default="custom:kliko-restafval")
     binnen_dag: Mapped[str] = mapped_column(String(20), default="same_day")
-    binnen_person_id: Mapped[int | None] = mapped_column(
-        ForeignKey("persons.id", ondelete="SET NULL"), nullable=True
-    )
+    binnen_person_id: Mapped[int | None] = mapped_column(ForeignKey("persons.id", ondelete="SET NULL"), nullable=True)
     binnen_icon: Mapped[str] = mapped_column(String(50), default="custom:kliko-restafval")
 
     config: Mapped["AfvalwijzerConfig"] = relationship(back_populates="types")
@@ -292,16 +272,12 @@ class PersonGoogleCalendarFeed(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     google_auth: Mapped["PersonGoogleAuth"] = relationship(back_populates="calendar_feeds")
-    agenda_items: Mapped[list["AgendaItem"]] = relationship(
-        back_populates="google_feed", cascade="all, delete-orphan"
-    )
+    agenda_items: Mapped[list["AgendaItem"]] = relationship(back_populates="google_feed", cascade="all, delete-orphan")
 
 
 class PersonApiToken(Base):
     __tablename__ = "person_api_tokens"
-    __table_args__ = (
-        UniqueConstraint("person_id", "device_id", name="uq_person_api_token_device"),
-    )
+    __table_args__ = (UniqueConstraint("person_id", "device_id", name="uq_person_api_token_device"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[int] = mapped_column(ForeignKey("persons.id", ondelete="CASCADE"))

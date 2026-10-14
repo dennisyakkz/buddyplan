@@ -29,8 +29,7 @@ LEGACY_ICON_MAP = {
 def load_icons() -> list[dict]:
     if not ICONS_FILE.is_file():
         raise FileNotFoundError(
-            f"Icon catalog missing: {ICONS_FILE}. "
-            "Ensure app/static/data/material-icons.json is included in the image."
+            f"Icon catalog missing: {ICONS_FILE}. Ensure app/static/data/material-icons.json is included in the image."
         )
     with open(ICONS_FILE, encoding="utf-8") as f:
         return json.load(f)

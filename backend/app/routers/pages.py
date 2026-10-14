@@ -1,8 +1,8 @@
+from datetime import UTC
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import RedirectResponse
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.config import APP_NAME_DISPLAY
@@ -122,6 +122,7 @@ def admin_user_detail_page(request: Request, user_id: int):
         {"request": request, "page": "admin", "user_id": user_id},
     )
 
+
 @router.get("/admin/google-calendar-api", response_class=HTMLResponse)
 def admin_google_calendar_page(request: Request):
     redirect = _require_admin(request)
@@ -159,9 +160,10 @@ def google_oauth_callback(request: Request, code: str = "", state: str = "", err
 
     db = SessionLocal()
     try:
+        from datetime import datetime, timedelta
+
         from app.models import GoogleApiConfig, PersonGoogleAuth
         from app.services.google_calendar_service import exchange_code, get_userinfo
-        from datetime import datetime, timedelta, timezone
 
         cfg = db.query(GoogleApiConfig).first()
         if not cfg or not cfg.client_id or not cfg.client_secret:
@@ -183,7 +185,7 @@ def google_oauth_callback(request: Request, code: str = "", state: str = "", err
             auth = PersonGoogleAuth(person_id=person_id)
             db.add(auth)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         auth.access_token = token_data.get("access_token")
         auth.refresh_token = token_data.get("refresh_token", auth.refresh_token)
         expires_in = int(token_data.get("expires_in", 3600))
