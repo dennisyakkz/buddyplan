@@ -29,3 +29,4 @@ local.properties
 
 # Node (Tailwind build toolchain)
 backend/node_modules/
+*.apk.idsig
