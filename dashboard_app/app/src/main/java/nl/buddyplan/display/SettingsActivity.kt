@@ -50,6 +50,8 @@ class SettingsActivity : AppCompatActivity() {
     private var pendingUpdateVersion = 0
     private var awaitingInstallPermission = false
     private var installWatchJob: Job? = null
+    private var batteryPollJob: Job? = null
+    private var currentTabIndex = -1
 
     // Taken tab state
     private data class AppUser(val id: Int, val name: String, val profileColor: String? = null)
@@ -123,6 +125,8 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         cancelInstallWatch()
+        batteryPollJob?.cancel()
+        batteryPollJob = null
         super.onDestroy()
     }
 
@@ -131,6 +135,9 @@ class SettingsActivity : AppCompatActivity() {
     // -------------------------------------------------------------------------
 
     private fun switchTab(index: Int) {
+        batteryPollJob?.cancel()
+        batteryPollJob = null
+        currentTabIndex = index
         tabButtons.forEachIndexed { i, btn -> btn.isSelected = i == index }
         contentFrame.removeAllViews()
         val view = when (index) {
@@ -617,6 +624,12 @@ class SettingsActivity : AppCompatActivity() {
         ))
 
         layout.addView(divider())
+        layout.addView(sectionHeading("Batterij"))
+        val batteryRows = buildBatteryRows()
+        layout.addView(batteryRows.container)
+        startBatteryPolling(batteryRows)
+
+        layout.addView(divider())
 
         // System settings button
         val sysBtn = Button(this).apply {
@@ -929,6 +942,111 @@ class SettingsActivity : AppCompatActivity() {
             formatter.format(date)
         } catch (_: Exception) {
             iso
+        }
+    }
+
+    private data class BatteryRows(
+        val container: LinearLayout,
+        val valueViews: List<TextView>,
+    )
+
+    private fun sectionHeading(text: String) = TextView(this).apply {
+        this.text = text
+        textSize = 18f
+        setTypeface(nl.buddyplan.display.ui.FontHelper.headingSemiBold(this@SettingsActivity), android.graphics.Typeface.BOLD)
+        setTextColor(ContextCompat.getColor(this@SettingsActivity, R.color.text_primary))
+        setPadding(0, dp(4), 0, dp(12))
+    }
+
+    private fun buildBatteryRows(): BatteryRows {
+        val metrics = listOf(
+            "Batterijniveau",
+            "Status",
+            "USB aangesloten",
+            "AC/oplader",
+            "Draadloos",
+            "Stroom (current_avg)",
+            "Stroom (current_now)",
+            "Spanning",
+            "Temperatuur",
+            "Gezondheid",
+            "Charge counter",
+            "Energy counter",
+        )
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = GradientDrawable().apply {
+                setColor(ContextCompat.getColor(this@SettingsActivity, R.color.panel_todo))
+                setStroke(dp(1), ContextCompat.getColor(this@SettingsActivity, R.color.divider))
+                cornerRadius = dp(8).toFloat()
+            }
+            setPadding(0, 0, 0, 0)
+        }
+        val valueViews = mutableListOf<TextView>()
+        metrics.forEachIndexed { index, metric ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dp(12), dp(10), dp(12), dp(10))
+            }
+            row.addView(TextView(this).apply {
+                text = metric
+                textSize = 14f
+                setTextColor(ContextCompat.getColor(this@SettingsActivity, R.color.text_secondary))
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            val value = TextView(this).apply {
+                text = "…"
+                textSize = 14f
+                gravity = Gravity.END
+                setTextColor(ContextCompat.getColor(this@SettingsActivity, R.color.text_primary))
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f)
+            }
+            row.addView(value)
+            valueViews.add(value)
+            container.addView(row)
+            if (index < metrics.lastIndex) {
+                container.addView(View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(1),
+                    )
+                    setBackgroundColor(ContextCompat.getColor(this@SettingsActivity, R.color.divider))
+                })
+            }
+        }
+        applyBatterySnapshot(valueViews, BatteryInfoReader.read(this))
+        return BatteryRows(container, valueViews)
+    }
+
+    private fun applyBatterySnapshot(valueViews: List<TextView>, snap: BatterySnapshot) {
+        val values = listOf(
+            snap.levelPercent,
+            snap.status,
+            snap.usbConnected,
+            snap.acConnected,
+            snap.wirelessConnected,
+            snap.currentAvg,
+            snap.currentNow,
+            snap.voltage,
+            snap.temperature,
+            snap.health,
+            snap.chargeCounter,
+            snap.energyCounter,
+        )
+        valueViews.zip(values).forEach { (view, text) -> view.text = text }
+    }
+
+    private fun startBatteryPolling(rows: BatteryRows) {
+        batteryPollJob?.cancel()
+        batteryPollJob = lifecycleScope.launch {
+            while (isActive && currentTabIndex == TAB_SYSTEEM) {
+                val snap = withContext(Dispatchers.Default) {
+                    BatteryInfoReader.read(this@SettingsActivity)
+                }
+                applyBatterySnapshot(rows.valueViews, snap)
+                delay(1000)
+            }
         }
     }
 
