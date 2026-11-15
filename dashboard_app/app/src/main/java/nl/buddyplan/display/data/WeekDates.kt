@@ -39,7 +39,8 @@ object WeekDates {
     fun weeksBetween(fromMonday: String, toMonday: String): Int {
         val from = dateFmt.parse(fromMonday)!!.time
         val to = dateFmt.parse(toMonday)!!.time
-        val diffDays = kotlin.math.abs(to - from) / (24L * 60 * 60 * 1000)
+        // Round instead of truncating: a DST change makes a day 23 or 25 hours long.
+        val diffDays = Math.round(kotlin.math.abs(to - from) / (24.0 * 60 * 60 * 1000))
         return (diffDays / 7).toInt()
     }
 
