@@ -22,7 +22,6 @@ import retrofit2.HttpException
 object DataRepository {
 
     private const val TAG = "DataRepository"
-    private const val MAX_STALE_MS = 2 * 60 * 1000L
 
     private val gson = Gson()
     private val cacheMutex = Mutex()
@@ -30,6 +29,7 @@ object DataRepository {
     private var cachedEtag: String? = null
     private var cachedBundle: DashboardCacheBundle? = null
     private var lastSuccessfulSyncMs: Long = 0L
+    private var lastSyncDay: String? = null
     private var dao: DashboardDao? = null
     private var initialized = false
 
@@ -43,6 +43,7 @@ object DataRepository {
         cachedEtag = null
         cachedBundle = null
         lastSuccessfulSyncMs = 0L
+        lastSyncDay = null
         val dbDao = ensureDao(context)
         dbDao.clearTasks()
         dbDao.clearWeeks()
@@ -70,6 +71,11 @@ object DataRepository {
             }
     }
 
+    /**
+     * Checks the server etag and, when anything changed (or [force] is set), reloads every
+     * week worth keeping plus today's window. The etag is read *before* the data so a change
+     * made during the download is picked up by the next poll.
+     */
     suspend fun syncFromNetwork(
         context: Context,
         force: Boolean = false,
@@ -79,49 +85,31 @@ object DataRepository {
             val appContext = context.applicationContext
             ensureDao(appContext)
             val weekStart = viewWeekStart ?: WeekDates.mondayOfToday()
-            var etagValue: String? = null
+            val today = WeekDates.todayIso()
 
-            if (!force) {
-                val stale = lastSuccessfulSyncMs == 0L ||
-                    System.currentTimeMillis() - lastSuccessfulSyncMs > MAX_STALE_MS
-                if (!stale) {
-                    when (val etag = fetchEtag(appContext)) {
-                        is FetchResult.AuthRequired -> return@withLock SyncResult.AuthRequired
-                        is FetchResult.Failed -> return@withLock SyncResult.Failed
-                        is FetchResult.Ok -> {
-                            etagValue = etag.value
-                            if (etag.value == cachedEtag && cachedBundle != null) {
-                                val data = dashboardForWeek(cachedBundle!!, weekStart)
-                                return@withLock if (data != null) {
-                                    SyncResult.Unchanged(data)
-                                } else {
-                                    SyncResult.Failed
-                                }
-                            }
-                        }
-                    }
-                }
+            val etag = when (val result = fetchEtag(appContext)) {
+                is FetchResult.AuthRequired -> return@withLock SyncResult.AuthRequired
+                is FetchResult.Failed -> return@withLock SyncResult.Failed
+                is FetchResult.Ok -> result.value
             }
 
-            val weeksToLoad = weeksToRefresh(weekStart)
-            when (val refreshed = refreshWeeksAndTasks(appContext, weeksToLoad)) {
+            val bundle = cachedBundle
+            if (!force && bundle != null && etag == cachedEtag && today == lastSyncDay) {
+                dashboardForWeek(bundle, weekStart)?.let { return@withLock SyncResult.Unchanged(it) }
+            }
+
+            when (val refreshed = refreshWeeksAndTasks(appContext, weeksToRefresh(weekStart))) {
                 is FetchResult.AuthRequired -> SyncResult.AuthRequired
                 is FetchResult.Failed -> SyncResult.Failed
                 is FetchResult.Ok -> {
                     cachedBundle = refreshed.value
+                    cachedEtag = etag
                     lastSuccessfulSyncMs = System.currentTimeMillis()
-                    if (etagValue != null) {
-                        cachedEtag = etagValue
-                    } else {
-                        when (val etag = fetchEtag(appContext)) {
-                            is FetchResult.Ok -> cachedEtag = etag.value
-                            else -> cachedEtag = null
-                        }
-                    }
+                    lastSyncDay = today
                     persistCache(appContext)
-                    val data = dashboardForWeek(refreshed.value, weekStart)
-                        ?: return@withLock SyncResult.Failed
-                    SyncResult.Success(data)
+                    dashboardForWeek(refreshed.value, weekStart)
+                        ?.let { SyncResult.Success(it) }
+                        ?: SyncResult.Failed
                 }
             }
         }
@@ -236,16 +224,17 @@ object DataRepository {
     private suspend fun persistCache(context: Context) {
         val bundle = cachedBundle ?: return
         val dbDao = ensureDao(context)
-        dbDao.upsertTasks(bundle.tasks.map { it.toEntity() })
-        dbDao.upsertWeeks(bundle.weeks.map { (weekStart, data) ->
-            WeekCalendarEntity(
-                weekStart = weekStart,
-                weekDaysJson = gson.toJson(data.weekDays),
-                calendarJson = gson.toJson(data.calendar),
-            )
-        })
-        dbDao.upsertMeta(
-            CacheMetaEntity(
+        // Replace everything so deleted tasks and pruned weeks don't come back after a restart.
+        dbDao.replaceAll(
+            tasks = bundle.tasks.map { it.toEntity() },
+            weeks = bundle.weeks.map { (weekStart, data) ->
+                WeekCalendarEntity(
+                    weekStart = weekStart,
+                    weekDaysJson = gson.toJson(data.weekDays),
+                    calendarJson = gson.toJson(data.calendar),
+                )
+            },
+            meta = CacheMetaEntity(
                 etag = cachedEtag,
                 lastSyncMs = lastSuccessfulSyncMs,
             ),
@@ -295,8 +284,11 @@ object DataRepository {
     // -------------------------------------------------------------------------
 
     private fun weeksToRefresh(viewWeekStart: String): List<String> {
-        val weeks = WeekDates.defaultWindowWeekStarts().toMutableSet()
-        cachedBundle?.weeks?.keys?.forEach { weeks.add(it) }
+        val todayMonday = WeekDates.mondayOfToday()
+        val weeks = WeekDates.defaultWindowWeekStarts(todayMonday).toMutableSet()
+        cachedBundle?.weeks?.keys
+            ?.filter { WeekDates.shouldKeepWeek(it, todayMonday, viewWeekStart) }
+            ?.forEach { weeks.add(it) }
         weeks.add(viewWeekStart)
         return weeks.sorted()
     }
@@ -355,54 +347,62 @@ object DataRepository {
         persistCache(context)
     }
 
+    /** Adds weeks to the cache (week navigation / prefetch). Keeps the cache on failure. */
     private suspend fun fetchWeeksWithTasks(
         context: Context,
         weekStarts: List<String>,
     ): FetchResult<Unit> {
-        when (fetchAndMergeWeeks(context, weekStarts, mergeIntoExisting = true)) {
-            is FetchResult.AuthRequired -> return FetchResult.AuthRequired
-            is FetchResult.Failed -> if (cachedBundle == null) return FetchResult.Failed
-            is FetchResult.Ok -> Unit
-        }
-
-        val (start, end) = WeekDates.dateRangeForWeekStarts(weekStarts)
-        return when (val tasks = fetchTasksRange(context, start, end)) {
+        val base = cachedBundle ?: DashboardCacheBundle()
+        return when (val fetched = fetchWeeksAndTasks(context, weekStarts, base)) {
             is FetchResult.AuthRequired -> FetchResult.AuthRequired
-            is FetchResult.Failed -> FetchResult.Ok(Unit)
+            is FetchResult.Failed -> FetchResult.Failed
             is FetchResult.Ok -> {
-                val current = cachedBundle ?: DashboardCacheBundle()
-                cachedBundle = current.copy(
-                    tasks = mergeTasksInRange(current.tasks, tasks.value, start, end),
-                )
+                cachedBundle = fetched.value
                 FetchResult.Ok(Unit)
             }
         }
     }
 
+    /**
+     * Reloads [weekStarts] and drops weeks/tasks outside them, so the cache (and the next
+     * refresh) cannot keep growing. Fails as a whole: a half refresh would look up to date.
+     */
     private suspend fun refreshWeeksAndTasks(
         context: Context,
         weekStarts: List<String>,
     ): FetchResult<DashboardCacheBundle> {
-        when (fetchAndMergeWeeks(context, weekStarts, mergeIntoExisting = true)) {
-            is FetchResult.AuthRequired -> return FetchResult.AuthRequired
-            is FetchResult.Failed -> if (cachedBundle == null) return FetchResult.Failed
-            is FetchResult.Ok -> Unit
-        }
+        val keep = weekStarts.toSet()
+        val (keepStart, keepEnd) = WeekDates.dateRangeForWeekStarts(weekStarts)
+        val current = cachedBundle ?: DashboardCacheBundle()
+        val pruned = DashboardCacheBundle(
+            tasks = current.tasks.filter { it.date in keepStart..keepEnd },
+            weeks = current.weeks.filterKeys { it in keep },
+        )
+        return fetchWeeksAndTasks(context, weekStarts, pruned)
+    }
 
-        val (start, end) = WeekDates.dateRangeForWeekStarts(weekStarts)
-        return when (val tasks = fetchTasksRange(context, start, end)) {
-            is FetchResult.AuthRequired -> FetchResult.AuthRequired
-            is FetchResult.Failed -> {
-                cachedBundle?.let { FetchResult.Ok(it) } ?: FetchResult.Failed
+    /** Fetches calendar weeks and tasks in request-sized chunks and merges them into [base]. */
+    private suspend fun fetchWeeksAndTasks(
+        context: Context,
+        weekStarts: List<String>,
+        base: DashboardCacheBundle,
+    ): FetchResult<DashboardCacheBundle> {
+        val weeks = base.weeks.toMutableMap()
+        var tasks = base.tasks
+        for (chunk in WeekDates.chunkWeekStarts(weekStarts)) {
+            val (start, end) = WeekDates.dateRangeForWeekStarts(chunk)
+            when (val result = fetchDashboardRange(context, start, end)) {
+                is FetchResult.AuthRequired -> return FetchResult.AuthRequired
+                is FetchResult.Failed -> return FetchResult.Failed
+                is FetchResult.Ok -> weeks.putAll(result.value)
             }
-            is FetchResult.Ok -> {
-                val bundle = cachedBundle ?: DashboardCacheBundle()
-                val mergedTasks = mergeTasksInRange(bundle.tasks, tasks.value, start, end)
-                val updated = bundle.copy(tasks = mergedTasks)
-                cachedBundle = updated
-                FetchResult.Ok(updated)
+            when (val result = fetchTasksRange(context, start, end)) {
+                is FetchResult.AuthRequired -> return FetchResult.AuthRequired
+                is FetchResult.Failed -> return FetchResult.Failed
+                is FetchResult.Ok -> tasks = mergeTasksInRange(tasks, result.value, start, end)
             }
         }
+        return FetchResult.Ok(DashboardCacheBundle(tasks = tasks, weeks = weeks))
     }
 
     private fun mergeTasksInRange(
@@ -413,39 +413,6 @@ object DataRepository {
     ): List<CachedTaskItem> {
         val retained = existing.filter { it.date < start || it.date > end }
         return retained + fresh
-    }
-
-    private suspend fun fetchAndMergeWeeks(
-        context: Context,
-        weekStarts: List<String>,
-        mergeIntoExisting: Boolean = true,
-    ): FetchResult<DashboardCacheBundle> {
-        if (weekStarts.isEmpty()) {
-            return FetchResult.Ok(cachedBundle ?: DashboardCacheBundle())
-        }
-
-        val sorted = weekStarts.sorted()
-        val rangeStart = sorted.first()
-        val rangeEnd = WeekDates.addDays(sorted.last(), 6)
-
-        return when (val result = fetchDashboardRange(context, rangeStart, rangeEnd)) {
-            is FetchResult.AuthRequired -> FetchResult.AuthRequired
-            is FetchResult.Failed -> FetchResult.Failed
-            is FetchResult.Ok -> {
-                val baseWeeks = if (mergeIntoExisting) {
-                    cachedBundle?.weeks?.toMutableMap() ?: mutableMapOf()
-                } else {
-                    mutableMapOf()
-                }
-                baseWeeks.putAll(result.value)
-                val bundle = DashboardCacheBundle(
-                    tasks = cachedBundle?.tasks ?: emptyList(),
-                    weeks = baseWeeks,
-                )
-                cachedBundle = bundle
-                FetchResult.Ok(bundle)
-            }
-        }
     }
 
     private suspend fun fetchTasksRange(

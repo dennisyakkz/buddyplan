@@ -2,6 +2,8 @@ package nl.buddyplan.display.data
 
 import java.util.TimeZone
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -56,5 +58,35 @@ class WeekDatesTest {
     fun dateRangeRunsFromFirstMondayToLastSunday() {
         val range = WeekDates.dateRangeForWeekStarts(listOf("2026-11-16", "2026-11-02", "2026-11-09"))
         assertEquals("2026-11-02" to "2026-11-22", range)
+    }
+
+    @Test
+    fun chunksFitTheBackendRangeLimit() {
+        // 16 consecutive weeks: one request may cover at most 12 weeks (83 days).
+        val weeks = (0 until 16).map { WeekDates.addWeeks("2026-09-07", it) }.shuffled()
+        val chunks = WeekDates.chunkWeekStarts(weeks)
+        assertEquals(listOf(12, 4), chunks.map { it.size })
+        assertEquals(weeks.sorted(), chunks.flatten())
+        for (chunk in chunks) {
+            val (start, end) = WeekDates.dateRangeForWeekStarts(chunk)
+            assertTrue(WeekDates.weeksBetween(start, WeekDates.mondayOf(end)) < WeekDates.MAX_REQUEST_WEEKS)
+        }
+    }
+
+    @Test
+    fun chunksSplitOnGapsAndDropDuplicates() {
+        val chunks = WeekDates.chunkWeekStarts(listOf("2026-11-02", "2027-03-01", "2026-11-02", "2026-11-09"))
+        assertEquals(listOf(listOf("2026-11-02", "2026-11-09"), listOf("2027-03-01")), chunks)
+        assertTrue(WeekDates.chunkWeekStarts(emptyList()).isEmpty())
+    }
+
+    @Test
+    fun keepsWeeksNearTodayOrTheViewedWeek() {
+        val today = "2026-11-16"
+        assertTrue(WeekDates.shouldKeepWeek("2026-09-21", today, today)) // 8 weeks back
+        assertFalse(WeekDates.shouldKeepWeek("2026-09-14", today, today)) // 9 weeks back
+        assertTrue(WeekDates.shouldKeepWeek("2027-01-11", today, today)) // 8 weeks ahead
+        assertFalse(WeekDates.shouldKeepWeek("2027-02-15", today, today))
+        assertTrue(WeekDates.shouldKeepWeek("2027-02-15", today, "2027-03-01")) // near the viewed week
     }
 }

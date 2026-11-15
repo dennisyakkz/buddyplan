@@ -23,6 +23,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private var syncManager: DashboardSyncManager? = null
     private var syncStarted = false
+    private var todayWeekStart = _uiState.value.currentWeekStart
 
     fun initialize() {
         viewModelScope.launch {
@@ -98,6 +99,22 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update { it.copy(authRequired = false) }
     }
 
+    /**
+     * The tablet runs for weeks without a restart: when a new week starts while it shows the
+     * current week, follow along instead of staying on last week.
+     */
+    private fun rollOverToNewWeekIfNeeded(): String {
+        val newTodayWeek = WeekDates.mondayOfToday()
+        if (newTodayWeek != todayWeekStart) {
+            val previousTodayWeek = todayWeekStart
+            todayWeekStart = newTodayWeek
+            _uiState.update {
+                if (it.currentWeekStart == previousTodayWeek) it.copy(currentWeekStart = newTodayWeek) else it
+            }
+        }
+        return _uiState.value.currentWeekStart
+    }
+
     override fun onCleared() {
         syncManager?.stop()
         super.onCleared()
@@ -108,7 +125,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         syncManager = DashboardSyncManager(
             context = getApplication(),
             scope = viewModelScope,
-            weekStartProvider = { _uiState.value.currentWeekStart },
+            weekStartProvider = { rollOverToNewWeekIfNeeded() },
             onUpdated = { data ->
                 _uiState.update {
                     it.copy(

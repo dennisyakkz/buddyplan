@@ -6,12 +6,24 @@ import java.util.Locale
 
 object WeekDates {
 
-    private val dateFmt = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    // SimpleDateFormat is not thread-safe and WeekDates is used from the UI and IO threads.
+    private val dateFmtLocal = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue() = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    }
+    private val dateFmt: SimpleDateFormat
+        get() = dateFmtLocal.get()!!
 
     const val INITIAL_WEEKS_BEFORE = 1
     const val INITIAL_WEEKS_AFTER = 6
     const val PREFETCH_THRESHOLD_WEEKS = 2
     const val PREFETCH_CHUNK_WEEKS = 3
+
+    /** GET /api/dashboard rejects ranges longer than 12 weeks (83 days). */
+    const val MAX_REQUEST_WEEKS = 12
+
+    /** Cached weeks further than this from today and from the viewed week are dropped. */
+    const val KEEP_WEEKS_AROUND_TODAY = 8
+    const val KEEP_WEEKS_AROUND_VIEW = 4
 
     fun todayIso(): String = dateFmt.format(Calendar.getInstance().time)
 
@@ -49,6 +61,28 @@ object WeekDates {
             addWeeks(anchorMonday, offset)
         }
     }
+
+    /** Splits Monday dates into sorted groups that each fit in one dashboard request. */
+    fun chunkWeekStarts(
+        weekStarts: Collection<String>,
+        maxWeeks: Int = MAX_REQUEST_WEEKS,
+    ): List<List<String>> {
+        val chunks = mutableListOf<MutableList<String>>()
+        for (week in weekStarts.distinct().sorted()) {
+            val current = chunks.lastOrNull()
+            if (current != null && weeksBetween(current.first(), week) < maxWeeks) {
+                current.add(week)
+            } else {
+                chunks.add(mutableListOf(week))
+            }
+        }
+        return chunks
+    }
+
+    /** Whether a cached week is still worth keeping (and refreshing). */
+    fun shouldKeepWeek(weekStart: String, todayMonday: String, viewWeekStart: String): Boolean =
+        weeksBetween(weekStart, todayMonday) <= KEEP_WEEKS_AROUND_TODAY ||
+            weeksBetween(weekStart, viewWeekStart) <= KEEP_WEEKS_AROUND_VIEW
 
     fun dateRangeForWeekStarts(weekStarts: Collection<String>): Pair<String, String> {
         require(weekStarts.isNotEmpty())
