@@ -76,7 +76,7 @@ Set image coordinates in `.env` or export before `compose up`:
 
 ```bash
 export GHCR_OWNER=YOUR_GITHUB_USER
-export BUDDYPLAN_VERSION=1.0.0
+export BUDDYPLAN_VERSION=0.7.3
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
@@ -85,8 +85,8 @@ In OMV’s Compose UI: paste `docker-compose.prod.yml`, set environment variable
 
 ## Upgrade
 
-1. Publish a new GitHub Release (e.g. `v1.0.1`).
-2. On the server: set `BUDDYPLAN_VERSION=1.0.1`, then `docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d`.
+1. Publish a new GitHub Release `vX.Y.Z` (use `/release X.Y.Z` in Claude Code).
+2. On the server: set `BUDDYPLAN_VERSION=X.Y.Z`, then `docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d`.
 
 The `buddyplan-data` volume keeps your SQLite database across upgrades.
 

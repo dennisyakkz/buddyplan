@@ -12,8 +12,8 @@ android {
         applicationId = "nl.buddyplan.display"
         minSdk = 23
         targetSdk = 33
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 703
+        versionName = "0.7.3"
     }
 
     signingConfigs {

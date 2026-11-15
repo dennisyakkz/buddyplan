@@ -37,6 +37,7 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 ## Cross-cutting
 - All user-facing text is **Dutch**, hardcoded with no l10n files. This includes backend error messages. Keep new strings in Dutch.
 - The brand palette lives in `brand/brandbook.md` and is mirrored in `backend/tailwind.config.js`, `mobile_app/lib/ui/buddyplan_colors.dart` and `dashboard_app/app/src/main/res/values{,-night}/colors.xml`. Keep all of them in sync.
+- Version numbers (mobile `pubspec.yaml`, dashboard `versionName`/`versionCode`, `BUDDYPLAN_VERSION` in compose/README/docs) match the latest `vX.Y.Z` tag. Change them only with `scripts/bump_version.py` (`--check` verifies them).
 - The material-icons JSON is duplicated in `backend/app/static/data/` and `mobile_app/assets/data/`. Update both copies.
 - API changes affect both apps. Check the mobile (`/api/mobile/*`, `/api/tasks`, `/api/agenda`, `/api/app/*`) and dashboard (`/api/dashboard*`, `/api/app/*`, `/api/mobile/tasks`, `/api/tasks/{id}/complete`) clients.
 
