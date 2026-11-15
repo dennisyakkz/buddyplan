@@ -74,6 +74,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var connectionStatusSpinner: ProgressBar
 
     private var settingsOpenedForSetup = false
+    // The UI state also changes for every sync status update; only redraw (and refetch the user
+    // colors) when the dashboard data itself changed.
+    private var lastAppliedDashboard: nl.buddyplan.display.data.DashboardData? = null
     private var currentWeekDays: List<WeekDay> = emptyList()
     private var currentCalendarPeople: List<PersonCalendar> = emptyList()
     private var dayViewOpen = false
@@ -165,6 +168,9 @@ class MainActivity : AppCompatActivity() {
             viewModel.clearAuthRequired()
         }
 
+        // Settings (user colors, enabled users) may have changed while we were away.
+        viewModel.uiState.value.dashboard?.let { applyDashboard(it) }
+
         val isConnectionConfigured = AppPreferences.isConnectionConfigured(this)
         viewModel.onResume(isConnectionConfigured, settingsOpenedForSetup) {
             settingsOpenedForSetup = true
@@ -178,7 +184,9 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    state.dashboard?.let { applyDashboard(it) }
+                    state.dashboard
+                        ?.takeIf { it != lastAppliedDashboard }
+                        ?.let { applyDashboard(it) }
 
                     when (state.connectionState) {
                         ConnectionState.Connected -> {
@@ -219,6 +227,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyDashboard(data: nl.buddyplan.display.data.DashboardData) {
+        lastAppliedDashboard = data
         loadingOverlay.visibility = View.GONE
         setupTodoList(data.todo)
         setupCalendar(data.weekDays, data.calendar)
