@@ -61,7 +61,7 @@ Alternatively, set `BUDDYPLAN_ADMIN_USERNAME`, `BUDDYPLAN_ADMIN_PASSWORD`, and o
 
 Pre-built backend images are published to [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) (GHCR) when a [GitHub Release](https://github.com/dennisyakkz/buddyplan/releases) is published. Use this on a NAS, VPS, or any host where you do not want to build the image locally.
 
-**Image:** `ghcr.io/dennisyakkz/buddyplan-backend:<version>` (e.g. `0.7.3`)
+**Image:** `ghcr.io/dennisyakkz/buddyplan-backend:<version>` (e.g. `0.7.4`)
 
 On the server:
 
@@ -77,7 +77,7 @@ Generate secrets and add them to `.env` (see step 1 above). Then pin the release
 
 ```bash
 export GHCR_OWNER=dennisyakkz
-export BUDDYPLAN_VERSION=0.7.3
+export BUDDYPLAN_VERSION=0.7.4
 
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d

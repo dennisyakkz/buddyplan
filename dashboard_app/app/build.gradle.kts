@@ -12,8 +12,8 @@ android {
         applicationId = "nl.buddyplan.display"
         minSdk = 23
         targetSdk = 33
-        versionCode = 703
-        versionName = "0.7.3"
+        versionCode = 704
+        versionName = "0.7.4"
     }
 
     // The signing key never lives in this (public) repo. Put BUDDYPLAN_KEYSTORE,

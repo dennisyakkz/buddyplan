@@ -76,7 +76,7 @@ Set image coordinates in `.env` or export before `compose up`:
 
 ```bash
 export GHCR_OWNER=YOUR_GITHUB_USER
-export BUDDYPLAN_VERSION=0.7.3
+export BUDDYPLAN_VERSION=0.7.4
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
