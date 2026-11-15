@@ -27,11 +27,13 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 - Tests: `pip install -r requirements-dev.txt`, then `pytest` in `backend/` (single test: `pytest tests/test_tasks.py::test_task_lifecycle`). `tests/conftest.py` points the app at a temporary SQLite DB *before* importing `app`, because `app.main` migrates and seeds at import time. Use the `make_user` fixture for users; `persons.name` is unique.
 
 ## Mobile app
-- `flutter analyze` and `flutter test` (there is only a smoke test).
+- Use Flutter 3.38.x (`pubspec.lock` was resolved with it; newer Flutter rewrites the lockfile). Run `flutter pub get --enforce-lockfile`, `flutter analyze --no-fatal-infos` and `flutter test`. The app itself can't be pumped in widget tests (it needs SharedPreferences, Drift and the sync worker), so test logic directly.
 - After changing Drift tables, run `dart run build_runner build --delete-conflicting-outputs` and commit `lib/data/local_database.g.dart`.
 
 ## Dashboard app
-- `./gradlew assembleRelease` needs JDK 17+ and the Android SDK. There are no tests.
+- `./gradlew assembleRelease` needs JDK 17+, the Android SDK and `~/.android/debug.keystore` (release builds are signed with it).
+- JVM unit tests: `./gradlew testDebugUnitTest` (JUnit 4, in `app/src/test`). android.* calls return defaults there, so only test plain Kotlin logic.
+- CI (`.github/workflows/app-tests.yml`) runs the mobile and dashboard tests on PRs.
 
 ## Cross-cutting
 - All user-facing text is **Dutch**, hardcoded with no l10n files. This includes backend error messages. Keep new strings in Dutch.
