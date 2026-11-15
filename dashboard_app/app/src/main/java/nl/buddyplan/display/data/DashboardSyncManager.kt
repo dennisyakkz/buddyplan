@@ -1,6 +1,7 @@
 package nl.buddyplan.display.data
 
 import android.content.Context
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,13 +26,16 @@ class DashboardSyncManager(
     private val retryDelaysMs = longArrayOf(
         10_000, 20_000, 40_000, 80_000, 160_000, 300_000,
     )
+    // Every poll asks the server for its etag and reloads as soon as it changed; the forced
+    // full refresh is only a safety net.
     private val regularIntervalMs = 1 * 60 * 1000L
-    private val forceFullRefreshEveryPolls = 3
+    private val forceFullRefreshEveryPolls = 10
 
     private var retryIndex = 0
     private var pollCount = 0
     private var stopped = false
     private var forceNextSync = false
+    private var rerunRequested = false
     private val syncInProgress = AtomicBoolean(false)
     private var pollingJob: Job? = null
     private val startMutex = Mutex()
@@ -42,10 +46,13 @@ class DashboardSyncManager(
                 stopped = false
                 if (force) retryIndex = 0
                 forceNextSync = forceNextSync || force
-                pollingJob?.cancel()
-                if (!syncInProgress.get()) {
-                    performSync()
+                if (syncInProgress.get()) {
+                    // Let the running sync finish; it starts the next one right away.
+                    rerunRequested = true
+                    return@withLock
                 }
+                pollingJob?.cancel()
+                performSync()
             }
         }
     }
@@ -100,6 +107,8 @@ class DashboardSyncManager(
                     scheduleRetry()
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             if (!stopped) {
                 DataRepository.getCachedDashboard(weekStartProvider())?.let { onUpdated(it) }
@@ -122,9 +131,11 @@ class DashboardSyncManager(
 
     private fun scheduleNext(delayMs: Long) {
         if (stopped) return
+        val effectiveDelayMs = if (rerunRequested) 0L else delayMs
+        rerunRequested = false
         pollingJob?.cancel()
         pollingJob = scope.launch {
-            delay(delayMs)
+            delay(effectiveDelayMs)
             if (isActive && !stopped) {
                 performSync()
             }
