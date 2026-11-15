@@ -279,6 +279,9 @@ class TaskService:
                 existing.sort_order = index
             else:
                 self.db.add(TaskDayOrder(task_id=task_id, order_date=target, sort_order=index))
+        # Touch the tasks so the dashboard etag changes even when only sort_order changed.
+        now = datetime.utcnow()
+        self.db.query(Task).filter(Task.id.in_(task_ids)).update({Task.updated_at: now}, synchronize_session=False)
         self.db.commit()
 
     def move_to_date(self, task_id: int, from_date: date, to_date: date) -> bool:
