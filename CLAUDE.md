@@ -31,7 +31,7 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 - After changing Drift tables, run `dart run build_runner build --delete-conflicting-outputs` and commit `lib/data/local_database.g.dart`.
 
 ## Dashboard app
-- `./gradlew assembleRelease` needs JDK 17+, the Android SDK and `~/.android/debug.keystore` (release builds are signed with it).
+- `./gradlew assembleRelease` needs JDK 17+, the Android SDK and the signing key (see Git).
 - JVM unit tests: `./gradlew testDebugUnitTest` (JUnit 4, in `app/src/test`). android.* calls return defaults there, so only test plain Kotlin logic.
 - CI (`.github/workflows/app-tests.yml`) runs the mobile and dashboard tests on PRs.
 
