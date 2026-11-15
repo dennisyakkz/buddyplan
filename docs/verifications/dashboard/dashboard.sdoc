@@ -12,6 +12,26 @@ How each requirement in ``docs/requirements/dashboard/`` is verified. Automated 
 <<<
 
 [[SECTION]]
+TITLE: Display
+
+[VERIFICATION]
+UID: VER-DSH-006
+METHOD: Demonstration
+TITLE: Refused completion is shown
+STATEMENT: >>>
+With the tablet logged in, tap 'done' on a task the server refuses to complete (for example against a backend without REQ-BE-024, for a person the tablet account does not manage). Expected: the task shows as open again and a message says it may not be completed. With the network disconnected, the message says completing failed.
+<<<
+COMMENT: >>>
+Not automated: needs Android UI. Not yet performed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-022
+  ROLE: Verifies
+
+[[/SECTION]]
+
+[[SECTION]]
 TITLE: Data refresh
 
 [VERIFICATION]
