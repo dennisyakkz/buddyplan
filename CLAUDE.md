@@ -10,7 +10,6 @@ Buddyplan (formerly "fiona"; the folder, APK names and some local files still us
 Neither app has a compiled-in backend URL. The user enters it in each app's settings.
 
 ## Git
-- The repo is on a root-owned mount, so plain `git` fails with "dubious ownership". Use `git -c safe.directory=/media/Data/projects/fiona-todo ...`.
 - Work on feature branches and merge through PRs. Don't commit directly to `main`.
 - Commit messages are one short imperative sentence ending in a period, e.g. `Fix agenda colors, times, edit flow, and false offline banner.`
 - Never commit APKs (`*.apk` is gitignored).
@@ -24,7 +23,9 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 - `001_initial_schema` runs `Base.metadata.create_all` from the *current* models, so a fresh database already contains later columns. Later migrations must check that a column or table exists before adding it (see `003_person_profile_color.py`).
 - Tailwind CSS is prebuilt. After changing templates, JS class names or `tailwind.config.js`, run `npm run build:css` in `backend/` and commit `app/static/css/tailwind.css`. The Docker image has no Node step.
 - Lint and format with `ruff` (configured in `backend/ruff.toml`). CI (`.github/workflows/backend-tests.yml`, Python 3.11) fails PRs on `ruff check`, `ruff format --check` or `pytest`.
-- Tests: `pip install -r requirements-dev.txt`, then `pytest` in `backend/` (single test: `pytest tests/test_tasks.py::test_task_lifecycle`). `tests/conftest.py` points the app at a temporary SQLite DB *before* importing `app`, because `app.main` migrates and seeds at import time. Use the `make_user` fixture for users; `persons.name` is unique.
+- Target Python 3.11 (Docker, CI and `ruff.toml`); the local venv may be newer, so avoid 3.12+ syntax and stdlib features.
+- All env vars are listed in `backend/.env.example`. `BUDDYPLAN_ADMIN_USERNAME`/`_PASSWORD`/`_NAME` bootstrap the admin and skip `/setup`.
+- Tests: `pip install -r requirements-dev.txt`, then `pytest` in `backend/` (single test: `pytest tests/test_tasks.py::test_task_lifecycle`). `tests/conftest.py` points the app at a temporary SQLite DB *before* importing `app`, because `app.main` migrates and seeds at import time. Use the `make_user` fixture for users and `admin_headers` for authenticated API calls; `persons.name` is unique. APScheduler does not run in tests.
 
 ## Mobile app
 - `flutter analyze` and `flutter test` (there is only a smoke test).
@@ -37,8 +38,8 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 - All user-facing text is **Dutch**, hardcoded with no l10n files. This includes backend error messages. Keep new strings in Dutch.
 - The brand palette lives in `brand/brandbook.md` and is mirrored in `backend/tailwind.config.js`, `mobile_app/lib/ui/buddyplan_colors.dart` and `dashboard_app/app/src/main/res/values{,-night}/colors.xml`. Keep all of them in sync.
 - The material-icons JSON is duplicated in `backend/app/static/data/` and `mobile_app/assets/data/`. Update both copies.
-- API changes affect both apps. Check the mobile (`/api/mobile/*`, `/api/tasks`, `/api/agenda`) and dashboard (`/api/dashboard*`) clients.
+- API changes affect both apps. Check the mobile (`/api/mobile/*`, `/api/tasks`, `/api/agenda`, `/api/app/*`) and dashboard (`/api/dashboard*`, `/api/app/*`, `/api/mobile/tasks`, `/api/tasks/{id}/complete`) clients.
 
 ## Release
 - Publishing a GitHub Release tagged `vX.Y.Z` triggers `.github/workflows/publish-backend.yml`, which pushes `ghcr.io/dennisyakkz/buddyplan-backend:X.Y.Z`.
-- Production runs `backend/docker-compose.prod.yml` on OpenMediaVault. Use `/release`.
+- Production runs `backend/docker-compose.prod.yml` on OpenMediaVault (deploy steps in `docs/releases.md`). Use `/release`.
