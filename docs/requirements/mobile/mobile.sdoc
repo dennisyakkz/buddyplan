@@ -8,5 +8,158 @@ IMPORT_FROM_FILE: @requirement
 
 [TEXT]
 STATEMENT: >>>
-Requirements for the Flutter app in ``mobile_app/``. Verifications live in ``docs/verifications/mobile/``. No requirements have been recorded yet.
+Requirements for the Flutter app in ``mobile_app/``. Verifications live in ``docs/verifications/mobile/``.
 <<<
+
+[[SECTION]]
+TITLE: Connection and login
+
+[REQUIREMENT]
+UID: REQ-MOB-001
+STATUS: Draft
+TITLE: Configurable server
+STATEMENT: >>>
+The app shall have no built-in server address; the user enters the server URL in the settings.
+<<<
+RATIONALE: >>>
+Every household runs its own server.
+<<<
+
+[REQUIREMENT]
+UID: REQ-MOB-002
+STATUS: Draft
+TITLE: Login
+STATEMENT: >>>
+The user shall log in with a household account; the app shall then use the token from REQ-BE-012.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-012
+
+[REQUIREMENT]
+UID: REQ-MOB-003
+STATUS: Draft
+TITLE: Expired session
+STATEMENT: >>>
+When the server rejects the token, the app shall tell the user the session has expired and let them log in again.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Agenda
+
+[REQUIREMENT]
+UID: REQ-MOB-010
+STATUS: Draft
+TITLE: Agenda views
+STATEMENT: >>>
+The app shall show the agenda as a planning list and as day, week and month views.
+<<<
+
+[REQUIREMENT]
+UID: REQ-MOB-011
+STATUS: Draft
+TITLE: Edit agenda
+STATEMENT: >>>
+Users with agenda manager rights shall be able to create, edit and delete agenda items, including start and end time and repeat options.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-021
+- TYPE: Parent
+  VALUE: REQ-BE-040
+
+[REQUIREMENT]
+UID: REQ-MOB-012
+STATUS: Draft
+TITLE: Per-person visibility and colour
+STATEMENT: >>>
+The user shall be able to choose per person whether their agenda and tasks are shown and in which colour.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Tasks
+
+[REQUIREMENT]
+UID: REQ-MOB-020
+STATUS: Draft
+TITLE: Task views
+STATEMENT: >>>
+The app shall show tasks in a day view and a week view.
+<<<
+
+[REQUIREMENT]
+UID: REQ-MOB-021
+STATUS: Draft
+TITLE: Complete tasks
+STATEMENT: >>>
+The user shall be able to mark a task occurrence as done.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-032
+
+[REQUIREMENT]
+UID: REQ-MOB-022
+STATUS: Draft
+TITLE: Edit tasks
+STATEMENT: >>>
+Users with task manager rights shall be able to create, edit and delete tasks with title, description, icon, date and repeat options.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-022
+- TYPE: Parent
+  VALUE: REQ-BE-030
+- TYPE: Parent
+  VALUE: REQ-BE-031
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Offline use and refresh
+
+[REQUIREMENT]
+UID: REQ-MOB-030
+STATUS: Draft
+TITLE: Read offline
+STATEMENT: >>>
+Without a connection the app shall show the agenda and tasks from its local cache and show that it is offline.
+<<<
+
+[REQUIREMENT]
+UID: REQ-MOB-031
+STATUS: Draft
+TITLE: Queue changes offline
+STATEMENT: >>>
+Creating tasks and agenda items and completing tasks without a connection shall be queued and sent to the server when the connection returns.
+<<<
+COMMENT: >>>
+Editing and deleting existing items needs a connection.
+<<<
+
+[REQUIREMENT]
+UID: REQ-MOB-032
+STATUS: Draft
+TITLE: Automatic refresh
+STATEMENT: >>>
+While the agenda or tasks screen is open, the app shall refresh its data every minute; the user can also pull to refresh.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: General
+
+[REQUIREMENT]
+UID: REQ-MOB-040
+STATUS: Draft
+TITLE: Dutch interface
+STATEMENT: >>>
+All user-facing text shall be in Dutch, with Dutch date and time formatting.
+<<<
+
+[[/SECTION]]

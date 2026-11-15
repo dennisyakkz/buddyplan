@@ -6,6 +6,7 @@ on:
       - "docs/requirements/**"
       - "docs/verifications/**"
       - "docs/strictdoc_config.py"
+      - "docs/requirements_coverage.py"
       - "docs/requirements-docs.txt"
       - ".github/workflows/requirements.yml"
   push:
@@ -14,6 +15,7 @@ on:
       - "docs/requirements/**"
       - "docs/verifications/**"
       - "docs/strictdoc_config.py"
+      - "docs/requirements_coverage.py"
       - "docs/requirements-docs.txt"
       - ".github/workflows/requirements.yml"
 
@@ -38,6 +40,10 @@ jobs:
       # Fails on syntax errors, grammar violations and links to unknown UIDs.
       - name: Export requirements and verifications
         run: strictdoc export docs --output-dir strictdoc-output
+
+      # Requirements without a verification are reported as warnings, not failures.
+      - name: Report requirements without verification
+        run: python docs/requirements_coverage.py --github
 
       - uses: actions/upload-artifact@v4
         with:

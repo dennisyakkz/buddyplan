@@ -37,7 +37,7 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 
 ## Requirements
 - Formal requirements live in `docs/requirements/<backend|mobile|dashboard>/*.sdoc` (UIDs `REQ-BE-`, `REQ-MOB-`, `REQ-DSH-`) and how each is verified in `docs/verifications/<app>/*.sdoc` (`VER-...`, linked with a `Parent` relation and `ROLE: Verifies`). Format is StrictDoc 0.30 (`[[SECTION]]`, grammars imported as `@requirement` / `@verification` via `docs/strictdoc_config.py`).
-- Validate with `pip install -r docs/requirements-docs.txt` and `strictdoc export docs --output-dir /tmp/sdoc` (fails on unknown UIDs). CI: `.github/workflows/requirements.yml`.
+- Validate with `pip install -r docs/requirements-docs.txt` and `strictdoc export docs --output-dir /tmp/sdoc` (fails on unknown UIDs); `python docs/requirements_coverage.py` lists requirements without a verification. CI: `.github/workflows/requirements.yml`. Write requirements before new behaviour: see `.claude/rules/requirements-first.md`.
 
 ## Cross-cutting
 - All user-facing text is **Dutch**, hardcoded with no l10n files. This includes backend error messages. Keep new strings in Dutch.

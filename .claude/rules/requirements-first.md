@@ -9,4 +9,6 @@ New behaviour starts with a requirement, not with code.
 - No new requirement is needed when the change is already covered by an existing one: a bugfix that makes the code meet an existing requirement, a refactor, dependency updates, tooling, CI or docs. Name the requirement UID(s) it falls under in the summary to the user.
   - If a bugfix shows that the existing verification missed the bug, add or tighten the verification.
   - If a bug turns out to be behaviour no requirement describes, it is not covered: write the requirement first.
-- Run `strictdoc export docs --output-dir /tmp/sdoc` after editing; it must pass.
+- Much existing behaviour is only described at feature level (requirements with `STATUS: Draft` from the initial inventory). When a change touches such an area, first describe the existing behaviour of the part you touch in more detail, then the change. Don't describe current behaviour that looks wrong as a requirement; raise it with the user as a possible bug.
+- When the user confirms a Draft requirement from the inventory as correct, set it to `STATUS: Active`.
+- Run `strictdoc export docs --output-dir /tmp/sdoc` after editing; it must pass. `python docs/requirements_coverage.py` lists requirements that still lack a verification.
