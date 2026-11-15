@@ -254,32 +254,49 @@ def _parse_recurrence(event, anchor: date) -> tuple[str, list[int], date | None]
     if not rrule:
         return "once", [], None
 
-    rule = {str(k): str(v) for k, v in rrule.items()}
-    freq = rule.get("FREQ", "").upper()
-    end_date = _parse_until(rule.get("UNTIL"))
+    # icalendar parses every RRULE part into a list (FREQ=['WEEKLY'], BYDAY=['MO', 'WE'])
+    freq = str(_first(rrule.get("FREQ")) or "").upper()
+    end_date = _parse_until(_first(rrule.get("UNTIL")))
+    try:
+        interval = int(_first(rrule.get("INTERVAL")) or 1)
+    except (TypeError, ValueError):
+        interval = 1
 
-    byday_raw = rule.get("BYDAY", "")
-    if isinstance(byday_raw, bytes):
-        byday_raw = byday_raw.decode()
-    weekdays = sorted({ICAL_DAY_MAP[day] for day in str(byday_raw).split(",") if day in ICAL_DAY_MAP})
+    days = [str(day).upper() for day in _as_list(rrule.get("BYDAY"))]
+    weekdays = sorted({ICAL_DAY_MAP[day] for day in days if day in ICAL_DAY_MAP})
 
     if freq == "DAILY":
         return "daily", [], end_date
     if freq == "WEEKLY":
         if len(weekdays) > 1:
             return "weekdays", weekdays, end_date
-        if len(weekdays) == 1:
-            return "weekly", weekdays, end_date
-        return "weekly", [], end_date
+        if interval == 2:
+            return "biweekly", weekdays, end_date
+        return "weekly", weekdays, end_date
     if freq == "MONTHLY":
         return "once", [], end_date
 
     return "once", [], end_date
 
 
+def _as_list(value) -> list:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return list(value)
+    return [value]
+
+
+def _first(value):
+    values = _as_list(value)
+    return values[0] if values else None
+
+
 def _parse_until(value) -> date | None:
     if not value:
         return None
+    if isinstance(value, (date, datetime)):
+        return _to_local_date(value)
     text = str(value)
     if "T" in text:
         text = text.split("T", 1)[0]
