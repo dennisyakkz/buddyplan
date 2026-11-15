@@ -160,7 +160,27 @@ cd dashboard_app
 # Output: app/build/outputs/apk/release/app-release.apk
 ```
 
-Release builds of the display app currently use the Android debug keystore for convenience. For production distribution, configure your own signing keystore in `dashboard_app/app/build.gradle.kts`.
+### APK signing
+
+Both apps sign with one keystore that is **never stored in this repository**. Android only installs an update when it is signed with the same key as the installed app, so keep a backup of the keystore file and its passwords: a lost key means uninstalling and reconfiguring the apps on every device.
+
+Create a key once:
+
+```bash
+keytool -genkeypair -keystore ~/.android/buddyplan-release.jks -storetype PKCS12 \
+  -alias buddyplan -keyalg RSA -keysize 4096 -validity 36500 -dname "CN=Buddyplan"
+```
+
+Then add these lines to `~/.gradle/gradle.properties` (or set them as environment variables):
+
+```properties
+BUDDYPLAN_KEYSTORE=/home/you/.android/buddyplan-release.jks
+BUDDYPLAN_KEYSTORE_PASSWORD=...
+BUDDYPLAN_KEY_ALIAS=buddyplan
+BUDDYPLAN_KEY_PASSWORD=...
+```
+
+Release builds fail without them. Debug builds of the display app also use this key when it is configured, so a test APK installs over the release app on the wall tablet.
 
 Do not commit built APK files; distribute them via your own release channel.
 
