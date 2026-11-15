@@ -44,6 +44,11 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    testOptions {
+        // JVM unit tests: android.* stubs return defaults instead of throwing
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -68,6 +73,8 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
+
+    testImplementation("junit:junit:4.13.2")
 }
 
 fun signingValue(name: String): String? =
