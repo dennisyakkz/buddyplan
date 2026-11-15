@@ -112,6 +112,7 @@ De backend kan agenda's **importeren**; clients tonen de resultaten.
 - Schoolrooster (bijv. rooster.nl), werk, sportclub, etc.
 - Per feed: label, sync-interval (15 min / 1 uur / 1 dag), prefix, kleur, tijden tonen/verbergen.
 - Automatische achtergrondsync (standaard elke 5 minuten gecontroleerd; interval per feed).
+- **voetbal.nl-feeds** (via data.sportlink.com) worden herkend: wedstrijden verschijnen als "Voetbal thuis tegen …" of "Voetbal uit tegen …". Het eigen team wordt automatisch bepaald en is aan te passen; de uit/thuis-modus is per feed uit te zetten.
 
 **Google Calendar:**
 
