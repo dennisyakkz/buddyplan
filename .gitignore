@@ -1,3 +1,7 @@
+# StrictDoc export (docs/requirements, docs/verifications)
+strictdoc-output/
+output/
+
 # Secrets & local data
 .env
 **/.env

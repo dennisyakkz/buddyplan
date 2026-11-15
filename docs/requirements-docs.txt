@@ -1,0 +1,2 @@
+# Tooling for docs/requirements and docs/verifications (StrictDoc).
+strictdoc==0.30.4

@@ -1,0 +1,256 @@
+[DOCUMENT]
+TITLE: Backend requirements
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Requirements for the FastAPI backend and web admin in ``backend/``. Verifications live in ``docs/verifications/backend/``.
+<<<
+
+[[SECTION]]
+TITLE: Setup and authentication
+
+[REQUIREMENT]
+UID: REQ-BE-010
+STATUS: Draft
+TITLE: First-run setup
+STATEMENT: >>>
+While no user with a login exists, the web admin shall offer a setup wizard that creates the first administrator. Once a login user exists, the setup pages shall redirect to the login page.
+<<<
+RATIONALE: >>>
+A fresh installation ships without accounts or default passwords.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-011
+STATUS: Draft
+TITLE: Web sessions
+STATEMENT: >>>
+Web admin pages shall require a logged-in session (cookie ``buddyplan_session``); administrator pages shall additionally require administrator rights.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-012
+STATUS: Draft
+TITLE: API tokens per device
+STATEMENT: >>>
+``POST /api/auth/login`` shall exchange a valid username and password plus a device ID for a bearer token. Logging in again from the same device shall replace that device's token. Tokens shall be stored only as a peppered hash.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-013
+STATUS: Draft
+TITLE: Device revocation
+STATEMENT: >>>
+A user shall be able to list and revoke their own logged-in devices, and an administrator those of any user. Requests with a revoked token shall get HTTP 401.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-014
+STATUS: Draft
+TITLE: Required secrets
+STATEMENT: >>>
+The backend shall refuse to start without ``SESSION_SECRET_KEY`` and ``TOKEN_PEPPER``, unless ``BUDDYPLAN_DEV=1`` is set.
+<<<
+RATIONALE: >>>
+Prevents running production with guessable or missing secrets.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: People and permissions
+
+[REQUIREMENT]
+UID: REQ-BE-020
+STATUS: Draft
+TITLE: User management
+STATEMENT: >>>
+An administrator shall be able to create, edit, reorder and delete people, and set per person whether they can log in and whether they are an administrator.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-021
+STATUS: Draft
+TITLE: Agenda managers
+STATEMENT: >>>
+Each person shall have a list of people who may manage their agenda, by default the person themself. Only those people shall be able to create, edit or delete that person's agenda items.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-022
+STATUS: Draft
+TITLE: Task managers
+STATEMENT: >>>
+The task system shall be enabled per person, with a list of people who may manage that person's tasks. Only those people shall be able to create, edit, move, reorder, delete or complete that person's tasks.
+<<<
+COMMENT: >>>
+Completing also requires manager rights, so the account a wall tablet is logged in with must manage the tasks it should be able to complete.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-023
+STATUS: Draft
+TITLE: Own profile
+STATEMENT: >>>
+A logged-in user shall be able to change their own name, e-mail address, password and profile colour.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Tasks
+
+[REQUIREMENT]
+UID: REQ-BE-030
+STATUS: Draft
+TITLE: Task contents
+STATEMENT: >>>
+A task shall have a title, an optional description, a person, a date and an icon.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-031
+STATUS: Draft
+TITLE: Recurrence
+STATEMENT: >>>
+Tasks and agenda items shall support the repeat types once, daily, weekly, every two weeks and selected weekdays, with an optional end date. A repeating item shall not occur before its start date or after its end date.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-032
+STATUS: Draft
+TITLE: Completion per occurrence
+STATEMENT: >>>
+Completing a repeating task shall mark only the occurrence on the given date as done.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-033
+STATUS: Draft
+TITLE: Move and reorder
+STATEMENT: >>>
+Task managers shall be able to move a task to another date and to set the order of tasks within a day.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Agenda
+
+[REQUIREMENT]
+UID: REQ-BE-040
+STATUS: Draft
+TITLE: Manual agenda items
+STATEMENT: >>>
+Agenda managers shall be able to create, edit and delete agenda items with a title, date, optional start and end time and the repeat options of REQ-BE-031.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-041
+STATUS: Draft
+TITLE: iCal feeds
+STATEMENT: >>>
+A person shall be able to subscribe to iCal feeds (HTTPS or webcal URL) with a label, sync interval (15 minutes, 1 hour or 1 day), title prefix, colour and the choice to show times. The backend shall import the feeds in the background, honouring each feed's interval, including repeating events.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-042
+STATUS: Draft
+TITLE: Google Calendar
+STATEMENT: >>>
+Once an administrator has configured OAuth credentials, a person shall be able to connect their Google account, choose which calendars to import and filter events by colour. The backend shall sync the chosen calendars about every 10 minutes.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-043
+STATUS: Draft
+TITLE: Imported items are read-only
+STATEMENT: >>>
+Agenda items imported from iCal or Google shall not be editable through Buddyplan (HTTP 403).
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Dashboard API
+
+[REQUIREMENT]
+UID: REQ-BE-001
+STATUS: Active
+TITLE: Dashboard change token
+STATEMENT: >>>
+``GET /api/dashboard/etag`` shall return a value that changes whenever data shown on the dashboard changes: creating, editing, reordering, moving, completing or deleting tasks, creating, editing or deleting agenda items, and changing a person's profile.
+<<<
+RATIONALE: >>>
+The wall tablet only reloads its data when this value changes.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-002
+STATUS: Active
+TITLE: Dashboard range limit
+STATEMENT: >>>
+``GET /api/dashboard`` shall accept date ranges of up to 12 weeks (83 days) and shall reject longer ranges with HTTP 400.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Wall tablet upgrades
+
+[REQUIREMENT]
+UID: REQ-BE-050
+STATUS: Draft
+TITLE: Display APK distribution
+STATEMENT: >>>
+An administrator shall be able to upload a new display app APK. The API shall report the uploaded version to the tablets and serve the APK for download to logged-in devices.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Afvalwijzer (optional)
+
+[REQUIREMENT]
+UID: REQ-BE-060
+STATUS: Draft
+TITLE: Waste collection schedule
+STATEMENT: >>>
+When configured with a Dutch postcode and house number, the backend shall fetch the collection schedule from mijnafvalwijzer.nl.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-061
+STATUS: Draft
+TITLE: Waste tasks
+STATEMENT: >>>
+Per waste type an administrator shall be able to choose who puts the bin out and who brings it back in, and when (the day before, the same day or the day after). The backend shall create these as normal tasks, on request and automatically every Sunday at 02:00 for the coming week.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: General
+
+[REQUIREMENT]
+UID: REQ-BE-070
+STATUS: Draft
+TITLE: Dutch interface
+STATEMENT: >>>
+All user-facing text, including API error messages, shall be in Dutch.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-071
+STATUS: Draft
+TITLE: Automatic migrations
+STATEMENT: >>>
+On startup the backend shall bring the database schema up to date without losing existing data.
+<<<
+
+[[/SECTION]]

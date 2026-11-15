@@ -1,0 +1,221 @@
+[DOCUMENT]
+TITLE: Dashboard app requirements
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Requirements for the wall tablet app in ``dashboard_app/`` (Buddyplan Display). Verifications live in ``docs/verifications/dashboard/``.
+<<<
+
+[[SECTION]]
+TITLE: Setup
+
+[REQUIREMENT]
+UID: REQ-DSH-010
+STATUS: Draft
+TITLE: Configurable server and login
+STATEMENT: >>>
+The app shall have no built-in server address; the server URL and the household account are entered in the settings.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-012
+
+[REQUIREMENT]
+UID: REQ-DSH-011
+STATUS: Draft
+TITLE: Settings PIN
+STATEMENT: >>>
+The settings shall optionally be protected with a PIN.
+<<<
+RATIONALE: >>>
+Children use the tablet; settings should stay put.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-012
+STATUS: Draft
+TITLE: Expired session
+STATEMENT: >>>
+When the server rejects the token, the app shall show that the session has expired and keep showing the cached data.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Display
+
+[REQUIREMENT]
+UID: REQ-DSH-020
+STATUS: Draft
+TITLE: Week overview
+STATEMENT: >>>
+The app shall show a week calendar with a row per person, coloured per person.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-021
+STATUS: Draft
+TITLE: Today's tasks
+STATEMENT: >>>
+The app shall show today's tasks per person, with icon and person colour.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-022
+STATUS: Draft
+TITLE: Complete with one tap
+STATEMENT: >>>
+Tapping an open task shall show it with a 'done' button; confirming shall mark today's occurrence as done.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-032
+
+[REQUIREMENT]
+UID: REQ-DSH-023
+STATUS: Draft
+TITLE: Day detail
+STATEMENT: >>>
+Tapping a day shall open a day view with the day's events and an analogue clock for timed events. The day view shall close itself after two minutes without interaction.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-024
+STATUS: Draft
+TITLE: Week navigation
+STATEMENT: >>>
+The user shall be able to go to the previous or next week with buttons or by swiping, and back to the current week with one tap.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-025
+STATUS: Draft
+TITLE: Per-person visibility and colour
+STATEMENT: >>>
+The settings shall allow choosing per person whether they are shown and in which colour.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Offline
+
+[REQUIREMENT]
+UID: REQ-DSH-030
+STATUS: Draft
+TITLE: Show last known data
+STATEMENT: >>>
+Without a connection the app shall keep showing the last data it received, also after a restart of the app or tablet.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-005
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Tablet
+
+[REQUIREMENT]
+UID: REQ-DSH-040
+STATUS: Draft
+TITLE: Always on
+STATEMENT: >>>
+While the dashboard is shown the screen shall stay on and the app shall run full screen.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-041
+STATUS: Draft
+TITLE: Dark mode
+STATEMENT: >>>
+The app shall offer a dark mode.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-042
+STATUS: Draft
+TITLE: Home screen
+STATEMENT: >>>
+The app shall be selectable as the tablet's home screen (launcher) and offer a list of installed apps to start.
+<<<
+RATIONALE: >>>
+Turns the tablet into a simple kiosk.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-043
+STATUS: Draft
+TITLE: Updates from own server
+STATEMENT: >>>
+The app shall detect a newer display APK on the server and install it after the user confirms.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-050
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Data refresh
+
+[REQUIREMENT]
+UID: REQ-DSH-001
+STATUS: Active
+TITLE: Periodic change check
+STATEMENT: >>>
+While the dashboard is shown and the server is reachable, the app shall check the server for changes at least once per minute.
+<<<
+RATIONALE: >>>
+The tablet runs for weeks without anyone touching it; it is the family's shared view of the planning.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-002
+STATUS: Active
+TITLE: Show changes without restart
+STATEMENT: >>>
+When a task or agenda item is added, changed or deleted through the mobile app or the web admin, the dashboard shall show the change at the first change check after it, without a restart or user action.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-001
+- TYPE: Parent
+  VALUE: REQ-BE-001
+
+[REQUIREMENT]
+UID: REQ-DSH-003
+STATUS: Active
+TITLE: Follow the current week
+STATEMENT: >>>
+When a new week starts while the dashboard shows the current week, the dashboard shall switch to the new current week.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-004
+STATUS: Active
+TITLE: Request size within server limits
+STATEMENT: >>>
+The app shall request dashboard data in ranges of at most 12 weeks per request, and shall keep a bounded number of cached weeks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-002
+
+[REQUIREMENT]
+UID: REQ-DSH-005
+STATUS: Active
+TITLE: Visible sync failures
+STATEMENT: >>>
+When refreshing fails, the app shall keep showing the cached data and shall show the offline indicator.
+<<<
+RATIONALE: >>>
+Stale data must never look up to date.
+<<<
+
+[[/SECTION]]
