@@ -140,14 +140,17 @@ object DataRepository {
             }
         }
 
-    suspend fun reportCompletion(context: Context, taskId: String) = withContext(Dispatchers.IO) {
+    suspend fun reportCompletion(context: Context, taskId: String): CompletionResult = withContext(Dispatchers.IO) {
         cacheMutex.withLock {
             val appContext = context.applicationContext
             try {
                 val api = ApiClient.getApi(appContext)
                 val response = api.completeTask(taskId)
-                if (response.code() == 401) return@withLock
                 response.errorBody()?.close()
+                when {
+                    response.code() == 403 -> return@withLock CompletionResult.NotAllowed
+                    !response.isSuccessful -> return@withLock CompletionResult.Failed
+                }
                 cachedEtag = null
                 cachedBundle = cachedBundle?.let { bundle ->
                     bundle.copy(
@@ -157,8 +160,10 @@ object DataRepository {
                     )
                 }
                 persistCache(appContext)
+                CompletionResult.Done
             } catch (e: Exception) {
                 Log.w(TAG, "reportCompletion failed", e)
+                CompletionResult.Failed
             }
         }
     }
