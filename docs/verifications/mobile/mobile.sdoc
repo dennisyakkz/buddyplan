@@ -1,0 +1,12 @@
+[DOCUMENT]
+TITLE: Mobile app verifications
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @verification
+
+[TEXT]
+STATEMENT: >>>
+How each requirement in ``docs/requirements/mobile/`` is verified. Automated tests run with ``flutter test`` in ``mobile_app/``. No verifications have been recorded yet.
+<<<

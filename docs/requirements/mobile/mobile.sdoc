@@ -1,0 +1,12 @@
+[DOCUMENT]
+TITLE: Mobile app requirements
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Requirements for the Flutter app in ``mobile_app/``. Verifications live in ``docs/verifications/mobile/``. No requirements have been recorded yet.
+<<<

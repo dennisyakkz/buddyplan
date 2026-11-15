@@ -1,0 +1,36 @@
+[DOCUMENT]
+TITLE: Backend requirements
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Requirements for the FastAPI backend and web admin in ``backend/``. Verifications live in ``docs/verifications/backend/``.
+<<<
+
+[[SECTION]]
+TITLE: Dashboard API
+
+[REQUIREMENT]
+UID: REQ-BE-001
+STATUS: Active
+TITLE: Dashboard change token
+STATEMENT: >>>
+``GET /api/dashboard/etag`` shall return a value that changes whenever data shown on the dashboard changes: creating, editing, reordering, moving, completing or deleting tasks, creating, editing or deleting agenda items, and changing a person's profile.
+<<<
+RATIONALE: >>>
+The wall tablet only reloads its data when this value changes.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-002
+STATUS: Active
+TITLE: Dashboard range limit
+STATEMENT: >>>
+``GET /api/dashboard`` shall accept date ranges of up to 12 weeks (83 days) and shall reject longer ranges with HTTP 400.
+<<<
+
+[[/SECTION]]

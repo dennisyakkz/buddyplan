@@ -1,0 +1,89 @@
+[DOCUMENT]
+TITLE: Dashboard app verifications
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @verification
+
+[TEXT]
+STATEMENT: >>>
+How each requirement in ``docs/requirements/dashboard/`` is verified. Automated tests run with ``./gradlew testDebugUnitTest`` in ``dashboard_app/``.
+<<<
+
+[[SECTION]]
+TITLE: Data refresh
+
+[VERIFICATION]
+UID: VER-DSH-001
+METHOD: Demonstration
+TITLE: Change check every minute
+STATEMENT: >>>
+With the tablet connected over USB, follow ``adb logcat`` for at least three minutes while nothing changes. Expected: one ``GET /api/dashboard/etag`` per minute and no ``/api/dashboard`` or ``/api/mobile/tasks`` requests.
+<<<
+COMMENT: >>>
+Passed on 2026-11-15 on the Galaxy Tab 2 (debug build of fix/dashboard-live-refresh).
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-001
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-DSH-002
+METHOD: Demonstration
+TITLE: Changes appear without restart
+STATEMENT: >>>
+While following ``adb logcat``, delete, edit and add a task or agenda item in the mobile app or web admin. Expected: after the next etag check the app requests ``/api/dashboard`` and ``/api/mobile/tasks`` and the change is visible on screen.
+<<<
+COMMENT: >>>
+Passed on 2026-11-15 on the Galaxy Tab 2.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-002
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-DSH-003
+METHOD: Inspection
+TITLE: Week rollover
+STATEMENT: >>>
+Review ``DashboardViewModel.rollOverToNewWeekIfNeeded``: when the Monday of today changes and the shown week was the previous current week, the shown week becomes the new current week.
+<<<
+COMMENT: >>>
+Not automated: the view model needs Android. Candidate for a test once the week logic is extracted.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-003
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-DSH-004
+METHOD: Test
+TITLE: Request chunks and cache retention
+STATEMENT: >>>
+Week lists are split into chunks of at most 12 weeks, gaps and duplicates are handled, and only weeks near today or the viewed week are kept.
+<<<
+TEST: >>>
+dashboard_app/app/src/test/java/nl/buddyplan/display/data/WeekDatesTest.kt: chunksFitTheBackendRangeLimit, chunksSplitOnGapsAndDropDuplicates, keepsWeeksNearTodayOrTheViewedWeek
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-004
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-DSH-005
+METHOD: Inspection
+TITLE: Failed refresh is reported
+STATEMENT: >>>
+Review ``DataRepository.refreshWeeksAndTasks``: any failed chunk makes the whole refresh return ``Failed``, so ``DashboardSyncManager`` keeps the cached data and reports ``ConnectionState.Offline``.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-005
+  ROLE: Verifies
+
+[[/SECTION]]

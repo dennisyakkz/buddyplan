@@ -1,0 +1,71 @@
+[DOCUMENT]
+TITLE: Dashboard app requirements
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Requirements for the wall tablet app in ``dashboard_app/`` (Buddyplan Display). Verifications live in ``docs/verifications/dashboard/``.
+<<<
+
+[[SECTION]]
+TITLE: Data refresh
+
+[REQUIREMENT]
+UID: REQ-DSH-001
+STATUS: Active
+TITLE: Periodic change check
+STATEMENT: >>>
+While the dashboard is shown and the server is reachable, the app shall check the server for changes at least once per minute.
+<<<
+RATIONALE: >>>
+The tablet runs for weeks without anyone touching it; it is the family's shared view of the planning.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-002
+STATUS: Active
+TITLE: Show changes without restart
+STATEMENT: >>>
+When a task or agenda item is added, changed or deleted through the mobile app or the web admin, the dashboard shall show the change at the first change check after it, without a restart or user action.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-001
+- TYPE: Parent
+  VALUE: REQ-BE-001
+
+[REQUIREMENT]
+UID: REQ-DSH-003
+STATUS: Active
+TITLE: Follow the current week
+STATEMENT: >>>
+When a new week starts while the dashboard shows the current week, the dashboard shall switch to the new current week.
+<<<
+
+[REQUIREMENT]
+UID: REQ-DSH-004
+STATUS: Active
+TITLE: Request size within server limits
+STATEMENT: >>>
+The app shall request dashboard data in ranges of at most 12 weeks per request, and shall keep a bounded number of cached weeks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-002
+
+[REQUIREMENT]
+UID: REQ-DSH-005
+STATUS: Active
+TITLE: Visible sync failures
+STATEMENT: >>>
+When refreshing fails, the app shall keep showing the cached data and shall show the offline indicator.
+<<<
+RATIONALE: >>>
+Stale data must never look up to date.
+<<<
+
+[[/SECTION]]

@@ -1,0 +1,45 @@
+name: Requirements
+
+on:
+  pull_request:
+    paths:
+      - "docs/requirements/**"
+      - "docs/verifications/**"
+      - "docs/strictdoc_config.py"
+      - "docs/requirements-docs.txt"
+      - ".github/workflows/requirements.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/requirements/**"
+      - "docs/verifications/**"
+      - "docs/strictdoc_config.py"
+      - "docs/requirements-docs.txt"
+      - ".github/workflows/requirements.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  strictdoc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: docs/requirements-docs.txt
+
+      - name: Install StrictDoc
+        run: pip install -r docs/requirements-docs.txt
+
+      # Fails on syntax errors, grammar violations and links to unknown UIDs.
+      - name: Export requirements and verifications
+        run: strictdoc export docs --output-dir strictdoc-output
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: requirements-html
+          path: strictdoc-output/html
