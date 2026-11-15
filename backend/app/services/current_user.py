@@ -31,6 +31,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
             db.commit()
             user = service.get(token_record.person_id)
             if user:
+                request.state.device_type = token_record.device_type
                 return user
 
     # Session-based auth (used by the web UI)
@@ -47,3 +48,8 @@ def require_admin(user=Depends(get_current_user)):
     if not getattr(user, "is_admin", False):
         raise HTTPException(403, "Admin rechten vereist")
     return user
+
+
+def is_wall_tablet(request: Request) -> bool:
+    """True when the request uses a token issued to a wall tablet (device type 'dashboard')."""
+    return getattr(request.state, "device_type", None) == "dashboard"
