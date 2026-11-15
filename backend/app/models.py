@@ -1,7 +1,7 @@
 import json
 from datetime import UTC, date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, false, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -68,6 +68,10 @@ class PersonCalendarFeed(Base):
     color: Mapped[str | None] = mapped_column(String(20), nullable=True)
     show_times: Mapped[bool] = mapped_column(Boolean, default=False)
     hide_title: Mapped[bool] = mapped_column(Boolean, default=False)
+    # voetbal.nl feeds (REQ-BE-044..046): detected on sync; titles are shaped when shown
+    is_voetbal: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    home_away_mode: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    own_team: Mapped[str | None] = mapped_column(String(100), nullable=True)
     etag: Mapped[str | None] = mapped_column(String(255), nullable=True)
     last_modified: Mapped[str | None] = mapped_column(String(100), nullable=True)
     last_synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

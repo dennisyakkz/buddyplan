@@ -74,6 +74,24 @@ function showFeedEditModal(feed, onSave) {
     const interval = feed.sync_interval_minutes || 60;
     const showTimes = feed.show_times || false;
     const hideTitle = feed.hide_title || false;
+    // voetbal.nl feeds (REQ-BE-044..046): only shown once the backend recognised the feed
+    const voetbalOptions = feed.is_voetbal ? `
+            <div class="form-group">
+                <div class="toggle">
+                    <div>
+                        <div style="font-weight:600;font-size:14px">Uit/thuis-modus</div>
+                        <div style="color:#888;font-size:12px;margin-top:2px">Wedstrijden tonen als "Voetbal thuis tegen …" of "Voetbal uit tegen …" in plaats van de titel uit de feed</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="feed-edit-home-away" ${feed.home_away_mode ? "checked" : ""}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Eigen team <small style="font-weight:400;color:#888">(staat het vooraan in de wedstrijd, dan is het een thuiswedstrijd)</small></label>
+                <input type="text" id="feed-edit-own-team" value="${escapeHtml(feed.own_team || "")}" maxlength="100" placeholder="bv. FC Voorbeeld MO15-4">
+            </div>` : "";
     showModal(`
         <h2>Externe agenda bewerken</h2>
         <form id="feed-edit-form">
@@ -128,6 +146,7 @@ function showFeedEditModal(feed, onSave) {
                     </label>
                 </div>
             </div>
+            ${voetbalOptions}
             <div class="modal-actions">
                 <button type="button" class="btn" onclick="hideModal()">Annuleren</button>
                 <button type="submit" class="btn btn-primary">Opslaan</button>
@@ -156,8 +175,13 @@ function showFeedEditModal(feed, onSave) {
         const syncInterval = parseInt(document.getElementById("feed-edit-interval").value);
         const showTimesVal = document.getElementById("feed-edit-show-times").checked;
         const hideTitleVal = document.getElementById("feed-edit-hide-title").checked;
+        const payload = { url, label, prefix, color, sync_interval_minutes: syncInterval, show_times: showTimesVal, hide_title: hideTitleVal };
+        if (feed.is_voetbal) {
+            payload.home_away_mode = document.getElementById("feed-edit-home-away").checked;
+            payload.own_team = document.getElementById("feed-edit-own-team").value.trim();
+        }
         hideModal();
-        await onSave({ url, label, prefix, color, sync_interval_minutes: syncInterval, show_times: showTimesVal, hide_title: hideTitleVal });
+        await onSave(payload);
     });
 }
 
