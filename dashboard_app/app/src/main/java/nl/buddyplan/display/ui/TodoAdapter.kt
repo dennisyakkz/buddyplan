@@ -43,10 +43,12 @@ class TodoAdapter(
         notifyDataSetChanged()
     }
 
-    fun markCompleted(id: String) {
+    /** Shows a task as done or open; copies, so the dashboard data itself stays untouched. */
+    fun setCompleted(id: String, completed: Boolean) {
+        allItems = allItems.map { if (it.id == id) it.copy(completed = completed) else it }
         val index = items.indexOfFirst { it.id == id }
         if (index < 0) return
-        items[index].completed = true
+        items[index] = items[index].copy(completed = completed)
         notifyItemChanged(index)
     }
 

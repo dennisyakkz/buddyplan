@@ -6,3 +6,5 @@ sealed class SyncResult {
     object Failed : SyncResult()
     object AuthRequired : SyncResult()
 }
+
+enum class CompletionResult { Done, NotAllowed, Failed }

@@ -86,10 +86,7 @@ UID: REQ-BE-022
 STATUS: Draft
 TITLE: Task managers
 STATEMENT: >>>
-The task system shall be enabled per person, with a list of people who may manage that person's tasks. Only those people shall be able to create, edit, move, reorder, delete or complete that person's tasks.
-<<<
-COMMENT: >>>
-Completing also requires manager rights, so the account a wall tablet is logged in with must manage the tasks it should be able to complete.
+The task system shall be enabled per person, with a list of people who may manage that person's tasks. Only those people shall be able to create, edit, move, reorder or delete that person's tasks. Completing tasks follows REQ-BE-024.
 <<<
 
 [REQUIREMENT]
@@ -99,6 +96,23 @@ TITLE: Own profile
 STATEMENT: >>>
 A logged-in user shall be able to change their own name, e-mail address, password and profile colour.
 <<<
+
+[REQUIREMENT]
+UID: REQ-BE-024
+STATUS: Active
+TITLE: Who may complete tasks
+STATEMENT: >>>
+A task occurrence shall be marked as done only when requested by the person the task belongs to, by one of that person's task managers, by an administrator, or by a device logged in as a wall tablet. Other requests shall get HTTP 403 with a Dutch error message.
+<<<
+RATIONALE: >>>
+Children tick off their own tasks on their phone or on the shared wall tablet without needing rights to change them.
+<<<
+COMMENT: >>>
+'Logged in as a wall tablet' means the token was issued with device type 'dashboard' (REQ-BE-012). The device type is declared by the client at login.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-022
 
 [[/SECTION]]
 

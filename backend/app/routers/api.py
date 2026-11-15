@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.icons import load_icons
 from app.services.color_palette import normalize_stored_color
-from app.services.current_user import get_current_user, require_admin
+from app.services.current_user import get_current_user, is_wall_tablet, require_admin
 from app.services.dashboard_service import AgendaService, DashboardService, PersonService, TaskService
 from app.services.ical_sync_service import sync_feed, sync_feed_from_content
 from app.services.ical_validation import validate_ical_feed
@@ -540,9 +540,22 @@ def delete_task(task_id: int, user=Depends(get_current_user), db: Session = Depe
     return {"ok": True}
 
 
+def _may_complete_task(task, user, request: Request, db: Session) -> bool:
+    """REQ-BE-024: the owner, their task managers, administrators and wall tablets."""
+    if task.person_id is None:
+        return False
+    return (
+        task.person_id == user.id
+        or getattr(user, "is_admin", False)
+        or is_wall_tablet(request)
+        or PersonService(db).can_manage_tasks(task.person_id, user.id)
+    )
+
+
 @router.post("/tasks/{task_id}/complete")
 def complete_task(
     task_id: int,
+    request: Request,
     date_str: str | None = Query(None, alias="date"),
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -551,8 +564,8 @@ def complete_task(
     existing = TaskService(db).get(task_id)
     if not existing:
         raise HTTPException(404, "Taak niet gevonden")
-    if existing.person_id is None or not PersonService(db).can_manage_tasks(existing.person_id, user.id):
-        raise HTTPException(403, "Geen rechten om taken te beheren voor deze gebruiker")
+    if not _may_complete_task(existing, user, request, db):
+        raise HTTPException(403, "Geen rechten om deze taak af te vinken")
     if not TaskService(db).mark_complete(task_id, target):
         raise HTTPException(404, "Taak niet gevonden")
     return {"ok": True}

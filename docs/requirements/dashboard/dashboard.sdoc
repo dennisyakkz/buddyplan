@@ -70,11 +70,13 @@ UID: REQ-DSH-022
 STATUS: Draft
 TITLE: Complete with one tap
 STATEMENT: >>>
-Tapping an open task shall show it with a 'done' button; confirming shall mark today's occurrence as done.
+Tapping an open task shall show it with a 'done' button; confirming shall mark today's occurrence as done. When the server refuses, the app shall show the task as open again and tell the user it could not be completed.
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-BE-032
+- TYPE: Parent
+  VALUE: REQ-BE-024
 
 [REQUIREMENT]
 UID: REQ-DSH-023

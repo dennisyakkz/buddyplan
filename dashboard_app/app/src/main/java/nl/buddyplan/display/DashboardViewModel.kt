@@ -3,6 +3,7 @@ package nl.buddyplan.display
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import nl.buddyplan.display.data.CompletionResult
 import nl.buddyplan.display.data.ConnectionState
 import nl.buddyplan.display.data.DashboardData
 import nl.buddyplan.display.data.DashboardSyncManager
@@ -89,9 +90,15 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun reportCompletion(taskId: String) {
+    fun reportCompletion(taskId: String, onResult: (CompletionResult) -> Unit) {
         viewModelScope.launch {
-            DataRepository.reportCompletion(getApplication(), taskId)
+            val result = DataRepository.reportCompletion(getApplication(), taskId)
+            if (result == CompletionResult.Done) {
+                DataRepository.getCachedDashboard(_uiState.value.currentWeekStart)?.let { data ->
+                    _uiState.update { it.copy(dashboard = data) }
+                }
+            }
+            onResult(result)
         }
     }
 

@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
@@ -19,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import nl.buddyplan.display.data.CompletionResult
 import nl.buddyplan.display.data.ConnectionState
 import nl.buddyplan.display.data.DataRepository
 import nl.buddyplan.display.data.DayCalendarEvent
@@ -437,8 +439,16 @@ class MainActivity : AppCompatActivity() {
         buttonDone.setOnClickListener {
             selectedTodo?.let { todo ->
                 if (!todo.completed) {
-                    todoAdapter.markCompleted(todo.id)
-                    viewModel.reportCompletion(todo.id)
+                    todoAdapter.setCompleted(todo.id, true)
+                    viewModel.reportCompletion(todo.id) { result ->
+                        val message = when (result) {
+                            CompletionResult.Done -> return@reportCompletion
+                            CompletionResult.NotAllowed -> "Je mag deze taak niet afvinken."
+                            CompletionResult.Failed -> "Afvinken is niet gelukt. Probeer het later opnieuw."
+                        }
+                        todoAdapter.setCompleted(todo.id, false)
+                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                    }
                 }
             }
             hideTaskOverlay()

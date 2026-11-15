@@ -45,3 +45,23 @@ RELATIONS:
   ROLE: Verifies
 
 [[/SECTION]]
+
+[[SECTION]]
+TITLE: Tasks
+
+[VERIFICATION]
+UID: VER-BE-003
+METHOD: Test
+TITLE: Who may complete tasks
+STATEMENT: >>>
+The task's own person (without manager rights), a task manager, an administrator and a wall tablet token can complete a task; another user on a phone gets HTTP 403 with a Dutch message and the task stays open. The own person still cannot edit the task.
+<<<
+TEST: >>>
+backend/tests/test_task_completion.py
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-024
+  ROLE: Verifies
+
+[[/SECTION]]
