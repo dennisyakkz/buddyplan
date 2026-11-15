@@ -37,4 +37,4 @@ When the user asks for a release, do all of this without asking for each step. O
 2. `gh release create vX.Y.Z --target main --title "vX.Y.Z" --generate-notes`. Always use exactly `vX.Y.Z` as the tag and the title.
 3. `gh run watch` on the `publish-backend.yml` run it triggers. It pushes `ghcr.io/dennisyakkz/buddyplan-backend:X.Y.Z` and `:latest`.
 4. Tell the user to set `BUDDYPLAN_VERSION=X.Y.Z` on the OpenMediaVault host and run `docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d`.
-5. If Flutter or the Android SDK is available, offer to build the APKs (`flutter build apk --release`, `./gradlew assembleRelease`). Never commit them. The dashboard APK is uploaded through the web admin for self-upgrade.
+5. If Flutter or the Android SDK is available, offer to build the APKs (`flutter build apk --release`, `./gradlew assembleRelease`). Never commit them. The dashboard APK is uploaded through the web admin for self-upgrade. Release builds need the signing key from `~/.gradle/gradle.properties` (README → APK signing); never put it in the repo.
