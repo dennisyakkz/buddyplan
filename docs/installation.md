@@ -86,6 +86,8 @@ cd dashboard_app
 Output: `app/build/outputs/apk/release/app-release.apk`  
 Package ID: `nl.buddyplan.display`
 
+Both release builds need the signing key described in [README → APK signing](../README.md#apk-signing).
+
 ### Configure clients
 
 1. Install each APK on the target device.

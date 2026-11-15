@@ -14,6 +14,7 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 - Work on feature branches and merge through PRs. Don't commit directly to `main`.
 - Commit messages are one short imperative sentence ending in a period, e.g. `Fix agenda colors, times, edit flow, and false offline banner.`
 - Never commit APKs (`*.apk` is gitignored).
+- APKs are signed with a keystore outside the repo, configured through `BUDDYPLAN_KEYSTORE*` / `BUDDYPLAN_KEY_*` in `~/.gradle/gradle.properties` (see README). Never commit keystores or passwords: the repo is public.
 
 ## Backend
 - Run it locally with `cd backend && docker compose up --build` (port 8000, reads `backend/.env`).

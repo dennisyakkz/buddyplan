@@ -16,21 +16,19 @@ android {
         versionName = "1.0"
     }
 
-    signingConfigs {
-        // Debug keystore is for self-hosted/dev APK builds only; use your own release keystore in production.
-        create("release") {
-            val debugKeystore = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            storeFile = debugKeystore
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
-    }
+    // The signing key never lives in this (public) repo. Put BUDDYPLAN_KEYSTORE,
+    // BUDDYPLAN_KEYSTORE_PASSWORD, BUDDYPLAN_KEY_ALIAS and BUDDYPLAN_KEY_PASSWORD in
+    // ~/.gradle/gradle.properties (or the environment). Debug builds use the same key when it is
+    // configured, so a test APK installs over the release app on the tablet and vice versa.
+    val releaseSigning = signingConfigs.create("buddyplan").takeIf { configureBuddyplanSigning(it) }
 
     buildTypes {
+        debug {
+            releaseSigning?.let { signingConfig = it }
+        }
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = releaseSigning
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -70,4 +68,27 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
+}
+
+fun signingValue(name: String): String? =
+    (project.findProperty(name) as String?)?.takeIf { it.isNotBlank() } ?: System.getenv(name)?.takeIf { it.isNotBlank() }
+
+fun configureBuddyplanSigning(config: com.android.build.api.dsl.ApkSigningConfig): Boolean {
+    val keystore = signingValue("BUDDYPLAN_KEYSTORE") ?: return false
+    config.storeFile = file(keystore)
+    config.storePassword = signingValue("BUDDYPLAN_KEYSTORE_PASSWORD")
+    config.keyAlias = signingValue("BUDDYPLAN_KEY_ALIAS")
+    config.keyPassword = signingValue("BUDDYPLAN_KEY_PASSWORD")
+    return true
+}
+
+// Fail loudly instead of producing an unsigned (uninstallable) release APK.
+gradle.taskGraph.whenReady {
+    if (signingValue("BUDDYPLAN_KEYSTORE") == null && allTasks.any { it.name.startsWith("assembleRelease") || it.name.startsWith("bundleRelease") }) {
+        throw GradleException(
+            "Release builds need the Buddyplan signing key: set BUDDYPLAN_KEYSTORE, " +
+                "BUDDYPLAN_KEYSTORE_PASSWORD, BUDDYPLAN_KEY_ALIAS and BUDDYPLAN_KEY_PASSWORD in " +
+                "~/.gradle/gradle.properties (see README).",
+        )
+    }
 }
