@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ app_name }} - Beheer</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=block">
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=1">
-    <link rel="stylesheet" href="/static/css/style.css?v=13">
+    <link rel="stylesheet" href="{{ static_url('css/tailwind.css') }}">
+    <link rel="stylesheet" href="{{ static_url('css/style.css') }}">
 </head>
 <body class="bg-main text-main font-body{% if page in ['login', 'setup'] %} auth-page{% endif %}">
     {% if page not in ['login', 'setup'] %}
@@ -51,9 +51,9 @@
         <div class="modal" id="modal-content"></div>
     </div>
 
-    <script src="/static/js/icons.js"></script>
-    <script src="/static/js/personal_menu.js"></script>
-    <script src="/static/js/toast.js"></script>
+    <script src="{{ static_url('js/icons.js') }}"></script>
+    <script src="{{ static_url('js/personal_menu.js') }}"></script>
+    <script src="{{ static_url('js/toast.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

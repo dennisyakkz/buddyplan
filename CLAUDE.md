@@ -22,6 +22,7 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 - Alembic migrations run automatically at startup (`app/services/migrate.py`), and `seed_database` runs on every start.
 - Migrations are hand-numbered (`00N_name.py`, with `revision` equal to the file stem) and must use `op.batch_alter_table` because the database is SQLite. Use `/new-migration`.
 - `001_initial_schema` runs `Base.metadata.create_all` from the *current* models, so a fresh database already contains later columns. Later migrations must check that a column or table exists before adding it (see `003_person_profile_color.py`).
+- Templates reference local scripts and stylesheets with `{{ static_url('js/x.js') }}` (content-hashed URL), never a bare `/static/...` path or a hand-bumped `?v=`, or browsers keep stale copies after an update.
 - Tailwind CSS is prebuilt. After changing templates, JS class names or `tailwind.config.js`, run `npm run build:css` in `backend/` and commit `app/static/css/tailwind.css`. The Docker image has no Node step.
 - Lint and format with `ruff` (configured in `backend/ruff.toml`). CI (`.github/workflows/backend-tests.yml`, Python 3.11) fails PRs on `ruff check`, `ruff format --check` or `pytest`.
 - Target Python 3.11 (Docker, CI and `ruff.toml`); the local venv may be newer, so avoid 3.12+ syntax and stdlib features.

@@ -100,6 +100,24 @@ RELATIONS:
   ROLE: Verifies
 
 [VERIFICATION]
+UID: VER-BE-008
+METHOD: Test
+TITLE: Web admin loads the current scripts after an update
+STATEMENT: >>>
+Pages load local scripts and stylesheets with a content hash in the URL, so after an update a browser cannot keep using a cached copy of the old feed dialog.
+<<<
+TEST: >>>
+backend/tests/test_web_pages.py: test_scripts_are_versioned_by_content
+<<<
+COMMENT: >>>
+Added after the options were missing in the user admin page: that page loaded admin_user_detail.js without a version and the browser kept the cached pre-0.7.4 script.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-044
+  ROLE: Verifies
+
+[VERIFICATION]
 UID: VER-BE-006
 METHOD: Test
 TITLE: Home/away titles
