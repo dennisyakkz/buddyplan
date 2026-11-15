@@ -31,6 +31,7 @@ from app.services.recurrence import (
     occurs_on_date,
     week_dates,
 )
+from app.services.voetbal_feed import feed_item_title
 
 
 def _hash_password(password: str) -> str:
@@ -428,10 +429,11 @@ class AgendaService:
             person.profile_color if person else None,
             (person.sort_order if person else 0) or 0,
         )
+        feed = feeds.get(item.feed_id) if feeds and item.feed_id else None
         result = {
             "id": item.id,
             "person_id": item.person_id,
-            "title": item.title,
+            "title": feed_item_title(item, feed),
             "repeat_type": item.repeat_type,
             "repeat_weekdays": item.get_weekdays(),
             "anchor_date": item.anchor_date.isoformat() if item.anchor_date else None,
@@ -729,6 +731,9 @@ class PersonService:
         color: str | None = None,
         show_times: bool | None = None,
         hide_title: bool | None = None,
+        *,
+        home_away_mode: bool | None = None,
+        own_team: str | None = None,
     ) -> PersonCalendarFeed | None:
         feed = (
             self.db.query(PersonCalendarFeed)
@@ -752,6 +757,10 @@ class PersonService:
             feed.show_times = show_times
         if hide_title is not None:
             feed.hide_title = hide_title
+        if home_away_mode is not None:
+            feed.home_away_mode = home_away_mode
+        if own_team is not None:
+            feed.own_team = own_team.strip()[:100] or None
         feed.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(feed)
@@ -828,6 +837,9 @@ class PersonService:
             "color": feed.color or "",
             "show_times": bool(feed.show_times),
             "hide_title": bool(feed.hide_title),
+            "is_voetbal": bool(feed.is_voetbal),
+            "home_away_mode": bool(feed.home_away_mode),
+            "own_team": feed.own_team or "",
             "last_synced_at": feed.last_synced_at.isoformat() if feed.last_synced_at else None,
             "last_error": feed.last_error,
         }

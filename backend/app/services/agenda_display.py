@@ -2,6 +2,7 @@
 
 from app.models import AgendaItem, PersonCalendarFeed
 from app.services.color_palette import label_to_badge_classes
+from app.services.voetbal_feed import feed_item_title
 
 
 def build_agenda_display_text(
@@ -25,12 +26,13 @@ def build_agenda_display_text(
         elif item.start_time:
             time_str = item.start_time
 
+    title = feed_item_title(item, feed)
     if hide_title and time_str:
         content = time_str
     elif time_str:
-        content = f"{time_str} {item.title}"
+        content = f"{time_str} {title}"
     else:
-        content = item.title
+        content = title
 
     return f"{prefix_value}: {content}" if prefix_value else content
 
@@ -50,7 +52,7 @@ def build_agenda_event_dict(
         "color": color,
         "color_label": color_label,
         "badge_classes": label_to_badge_classes(color_label),
-        "title": item.title,
+        "title": feed_item_title(item, feed),
         "start_time": item.start_time,
         "end_time": item.end_time,
     }

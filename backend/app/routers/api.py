@@ -10,11 +10,13 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.icons import load_icons
+from app.models import PersonCalendarFeed
 from app.services.color_palette import normalize_stored_color
 from app.services.current_user import get_current_user, is_wall_tablet, require_admin
 from app.services.dashboard_service import AgendaService, DashboardService, PersonService, TaskService
 from app.services.ical_sync_service import sync_feed, sync_feed_from_content
 from app.services.ical_validation import validate_ical_feed
+from app.services.voetbal_feed import feed_item_title
 
 router = APIRouter(prefix="/api")
 
@@ -138,7 +140,7 @@ def mobile_calendar(
                 feed = feed_for_item(item, feeds)
                 prefix = (feed.prefix or "").strip() if feed else ""
                 # Mobile UI renders start/end times separately; keep title clean.
-                title = item.title
+                title = feed_item_title(item, feed)
                 if prefix:
                     title = f"{prefix}: {title}"
                 result.append(
@@ -206,10 +208,11 @@ def mobile_calendar_item(
     item = AgendaService(db).get(item_id)
     if not item:
         raise HTTPException(404, "Agenda-item niet gevonden")
+    feed = db.get(PersonCalendarFeed, item.feed_id) if item.feed_id else None
     return {
         "id": item.id,
         "person_id": item.person_id,
-        "title": item.title,
+        "title": feed_item_title(item, feed),
         "source": item.source,
         "repeat_type": item.repeat_type,
         "repeat_weekdays": item.get_weekdays(),
@@ -310,6 +313,9 @@ class UserFeedCreate(BaseModel):
     color: str = ""
     show_times: bool = False
     hide_title: bool = False
+    # voetbal.nl feeds only; None leaves the stored value unchanged (REQ-BE-045, REQ-BE-046)
+    home_away_mode: bool | None = None
+    own_team: str | None = None
 
 
 class AdminUserCreate(BaseModel):
@@ -822,6 +828,17 @@ def revoke_my_device(
     return {"ok": True}
 
 
+def _import_new_feed(db: Session, service: PersonService, feed, content: bytes) -> dict:
+    """Import the content fetched during validation, so items and voetbal.nl detection are immediate."""
+    try:
+        sync_feed_from_content(db, feed.id, content)
+    except Exception as exc:
+        db.refresh(feed)
+        return {**service.feed_to_dict(feed), "sync_warning": str(exc)}
+    db.refresh(feed)
+    return service.feed_to_dict(feed)
+
+
 @router.post("/me/feeds")
 def add_my_feed(data: UserFeedCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
     url = data.url.strip()
@@ -830,7 +847,7 @@ def add_my_feed(data: UserFeedCreate, user=Depends(get_current_user), db: Sessio
     if not url.startswith(("http://", "https://", "webcal://")):
         raise HTTPException(400, "Ongeldige URL")
     try:
-        validate_ical_feed(url)
+        content = validate_ical_feed(url)
     except Exception as exc:
         raise HTTPException(400, f"iCal test faalde: {exc}") from exc
     service = PersonService(db)
@@ -840,7 +857,7 @@ def add_my_feed(data: UserFeedCreate, user=Depends(get_current_user), db: Sessio
     )
     if not feed:
         raise HTTPException(404, "Gebruiker niet gevonden")
-    return service.feed_to_dict(feed)
+    return _import_new_feed(db, service, feed, content)
 
 
 @router.put("/me/feeds/{feed_id}")
@@ -861,7 +878,17 @@ def update_my_feed(feed_id: int, data: UserFeedCreate, user=Depends(get_current_
             raise HTTPException(400, f"iCal test faalde: {exc}") from exc
     interval = data.sync_interval_minutes if data.sync_interval_minutes in {15, 60, 1440} else 60
     feed = service.update_feed(
-        user.id, feed_id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title
+        user.id,
+        feed_id,
+        url,
+        data.label,
+        interval,
+        data.prefix,
+        data.color,
+        data.show_times,
+        data.hide_title,
+        home_away_mode=data.home_away_mode,
+        own_team=data.own_team,
     )
     if not feed:
         raise HTTPException(404, "Kalender niet gevonden")
@@ -1051,7 +1078,7 @@ def admin_add_user_feed(
     if not url.startswith(("http://", "https://", "webcal://")):
         raise HTTPException(400, "Ongeldige URL")
     try:
-        validate_ical_feed(url)
+        content = validate_ical_feed(url)
     except Exception as exc:
         raise HTTPException(400, f"iCal test faalde: {exc}") from exc
     interval = data.sync_interval_minutes if data.sync_interval_minutes in {15, 60, 1440} else 60
@@ -1061,7 +1088,7 @@ def admin_add_user_feed(
     )
     if not feed:
         raise HTTPException(404, "Gebruiker niet gevonden")
-    return service.feed_to_dict(feed)
+    return _import_new_feed(db, service, feed, content)
 
 
 @router.put("/admin/users/{user_id}/feeds/{feed_id}")
@@ -1088,7 +1115,17 @@ def admin_update_user_feed(
             raise HTTPException(400, f"iCal test faalde: {exc}") from exc
     interval = data.sync_interval_minutes if data.sync_interval_minutes in {15, 60, 1440} else 60
     feed = service.update_feed(
-        user_id, feed_id, url, data.label, interval, data.prefix, data.color, data.show_times, data.hide_title
+        user_id,
+        feed_id,
+        url,
+        data.label,
+        interval,
+        data.prefix,
+        data.color,
+        data.show_times,
+        data.hide_title,
+        home_away_mode=data.home_away_mode,
+        own_team=data.own_team,
     )
     if not feed:
         raise HTTPException(404, "Kalender niet gevonden")

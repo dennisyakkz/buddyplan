@@ -65,3 +65,68 @@ RELATIONS:
   ROLE: Verifies
 
 [[/SECTION]]
+
+[[SECTION]]
+TITLE: Agenda
+
+[VERIFICATION]
+UID: VER-BE-004
+METHOD: Test
+TITLE: voetbal.nl feeds are recognised
+STATEMENT: >>>
+Feeds are recognised by calendar name or organiser, also right after adding one through the API; other feeds are not.
+<<<
+TEST: >>>
+backend/tests/test_voetbal_feed.py: test_recognises_voetbal_feeds_by_name_or_organiser, test_adding_a_feed_recognises_it_immediately, test_regular_feeds_are_not_changed
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-044
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-005
+METHOD: Demonstration
+TITLE: voetbal.nl options in the web admin
+STATEMENT: >>>
+Open the feed settings of a voetbal.nl feed in the profile page and in the user admin page: the home/away switch and the own team field are shown, and saving them changes the titles. For another feed the options are not shown.
+<<<
+COMMENT: >>>
+Not automated: browser UI. Not yet performed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-044
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-006
+METHOD: Test
+TITLE: Home/away titles
+STATEMENT: >>>
+Matches show as 'Voetbal thuis/uit tegen <opponent>' in the mobile API and the dashboard; with the mode off, and for other items, the feed title is shown; the prefix still applies.
+<<<
+TEST: >>>
+backend/tests/test_voetbal_feed.py: test_home_and_away_titles, test_titles_follow_the_home_away_mode, test_prefix_still_applies, test_dashboard_shows_the_shaped_title
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-045
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-007
+METHOD: Test
+TITLE: Own team detection
+STATEMENT: >>>
+The own team is the name found in the most match titles (also when not in every title), is filled in on sync and on adding a feed, and an edited own team is kept on later syncs.
+<<<
+TEST: >>>
+backend/tests/test_voetbal_feed.py: test_own_team_is_the_name_in_most_matches, test_sync_marks_the_feed_and_fills_the_own_team, test_edited_own_team_is_kept_on_the_next_sync
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-046
+  ROLE: Verifies
+
+[[/SECTION]]

@@ -173,6 +173,51 @@ A person shall be able to subscribe to iCal feeds (HTTPS or webcal URL) with a l
 <<<
 
 [REQUIREMENT]
+UID: REQ-BE-044
+STATUS: Draft
+TITLE: Recognise voetbal.nl feeds
+STATEMENT: >>>
+When an iCal feed is added or synchronised, the backend shall recognise whether it is a voetbal.nl feed: the calendar name (X-WR-CALNAME) or the event organiser names Voetbal.nl. Only for voetbal.nl feeds the feed settings in the web admin shall show the options of REQ-BE-045 and REQ-BE-046.
+<<<
+RATIONALE: >>>
+The feeds are served by data.sportlink.com (webcal or https, with a personal token), which also serves other sports, so the URL alone does not tell it is football.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-041
+
+[REQUIREMENT]
+UID: REQ-BE-045
+STATUS: Active
+TITLE: Home/away mode
+STATEMENT: >>>
+A voetbal.nl feed shall have a home/away mode, enabled by default for new feeds. When it is enabled, a match is shown with the title 'Voetbal thuis tegen <opponent>' or 'Voetbal uit tegen <opponent>'. When it is disabled, or for an item that is not a match of the own team (for example a training or a match without the own team), the title from the feed is shown unchanged. The feed prefix still applies.
+<<<
+RATIONALE: >>>
+Feed titles like "VV 't Dorp MO15-2-FC Voorbeeld MO15-4" are long and hard to read on the wall tablet; what matters is home or away and against whom.
+<<<
+COMMENT: >>>
+Titles are shaped when shown, not when imported, so changing the mode or the team name takes effect immediately on all clients without a re-sync.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-044
+
+[REQUIREMENT]
+UID: REQ-BE-046
+STATUS: Active
+TITLE: Own team
+STATEMENT: >>>
+A voetbal.nl feed shall have an 'own team' text field, editable in the feed settings. When the feed is recognised as a voetbal.nl feed and the field is empty, the backend shall fill it with the team name that occurs in the most match titles of the feed. A match title has the form '<home team>-<away team>'; it is a home match when it starts with the own team followed by '-', and an away match when it ends with '-' followed by the own team. The opponent is the rest of the title. A title that matches neither is not a match of the own team.
+<<<
+COMMENT: >>>
+Team names contain hyphens themselves (e.g. 'VV 't Dorp MO15-2-FC Voorbeeld MO15-4'), so titles cannot simply be split on '-': every split is a candidate and the name found in the most titles wins (the longest one when several are equally common). Once set, the field is never overwritten by the backend.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-044
+
+[REQUIREMENT]
 UID: REQ-BE-042
 STATUS: Draft
 TITLE: Google Calendar

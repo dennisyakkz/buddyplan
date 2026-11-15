@@ -8,6 +8,7 @@ from icalendar import Calendar
 from sqlalchemy.orm import Session
 
 from app.models import AgendaItem, PersonCalendarFeed, utcnow
+from app.services.voetbal_feed import apply_feed_detection
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,7 @@ def _do_sync(db: Session, feed: PersonCalendarFeed, *, force_full: bool = False)
             raise ValueError("Agenda-server gaf geen data terug. Probeer later opnieuw.")
 
         calendar = Calendar.from_ical(response.content)
+        apply_feed_detection(feed, calendar)
         new_items = _items_from_calendar(feed, calendar)
 
         if use_conditional and len(new_items) == 0:
@@ -155,6 +157,7 @@ def sync_feed_from_content(db: Session, feed_id: int, content: bytes) -> int:
     _sync_lock.acquire()
     try:
         calendar = Calendar.from_ical(content)
+        apply_feed_detection(feed, calendar)
         new_items = _items_from_calendar(feed, calendar)
         imported = _replace_feed_items(db, feed, new_items)
         feed.last_synced_at = utcnow()
