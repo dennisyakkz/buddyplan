@@ -1,4 +1,6 @@
+import hashlib
 from datetime import UTC
+from functools import lru_cache
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -12,6 +14,21 @@ from app.services.dashboard_service import PersonService
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
 templates.env.globals["app_name"] = APP_NAME_DISPLAY
+
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
+
+@lru_cache
+def static_url(path: str) -> str:
+    """URL for a static file with a content hash, so browsers fetch it again after every change."""
+    try:
+        digest = hashlib.sha256((STATIC_DIR / path).read_bytes()).hexdigest()[:10]
+    except OSError:
+        return f"/static/{path}"
+    return f"/static/{path}?v={digest}"
+
+
+templates.env.globals["static_url"] = static_url
 
 
 def _login_or_setup_url() -> str:

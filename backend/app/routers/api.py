@@ -313,9 +313,11 @@ class UserFeedCreate(BaseModel):
     color: str = ""
     show_times: bool = False
     hide_title: bool = False
-    # voetbal.nl feeds only; None leaves the stored value unchanged (REQ-BE-045, REQ-BE-046)
+    # voetbal.nl feeds only; None leaves the stored value unchanged (REQ-BE-045..048)
     home_away_mode: bool | None = None
     own_team: str | None = None
+    referee_compact: bool | None = None
+    club: str | None = None
 
 
 class AdminUserCreate(BaseModel):
@@ -889,6 +891,8 @@ def update_my_feed(feed_id: int, data: UserFeedCreate, user=Depends(get_current_
         data.hide_title,
         home_away_mode=data.home_away_mode,
         own_team=data.own_team,
+        referee_compact=data.referee_compact,
+        club=data.club,
     )
     if not feed:
         raise HTTPException(404, "Kalender niet gevonden")
@@ -1126,6 +1130,8 @@ def admin_update_user_feed(
         data.hide_title,
         home_away_mode=data.home_away_mode,
         own_team=data.own_team,
+        referee_compact=data.referee_compact,
+        club=data.club,
     )
     if not feed:
         raise HTTPException(404, "Kalender niet gevonden")

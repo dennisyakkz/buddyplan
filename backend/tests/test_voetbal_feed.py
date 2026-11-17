@@ -1,4 +1,4 @@
-"""REQ-BE-044..046: voetbal.nl feeds (served by data.sportlink.com)."""
+"""REQ-BE-044..049 and REQ-BE-051: voetbal.nl feeds (served by data.sportlink.com)."""
 
 from datetime import date, timedelta
 
@@ -6,10 +6,18 @@ import pytest
 from icalendar import Calendar
 
 from app.database import SessionLocal
-from app.models import PersonCalendarFeed
+from app.models import AgendaItem, PersonCalendarFeed
 from app.services.dashboard_service import PersonService
 from app.services.ical_sync_service import sync_feed_from_content
-from app.services.voetbal_feed import detect_own_team, home_away_title, is_voetbal_calendar
+from app.services.voetbal_feed import (
+    club_from_team,
+    detect_own_team,
+    drop_refereed_duplicates,
+    home_away_title,
+    is_voetbal_calendar,
+    referee_home_team,
+    referee_title,
+)
 
 OWN = "FC Voorbeeld MO15-4"
 DAY = date.today() + timedelta(days=3)
@@ -196,3 +204,125 @@ def test_adding_a_feed_recognises_it_immediately(client, make_user, monkeypatch)
     data = response.json()
     assert data["is_voetbal"] and data["home_away_mode"] and data["own_team"] == OWN
     assert "Voetbal thuis tegen Kockendam MO15-1" in shown_titles(client, headers, person["id"])
+
+
+# --- referee compact mode, club and start time only (REQ-BE-047..049) --------------------------
+
+REFEREE = "Scheidsrechter, FC Voorbeeld JO13-2-SV Tegenstander JO13-1"
+REFEREE_SENIOR = "Scheidsrechter, FC Voorbeeld 3-S.V. Elders 2"
+
+
+def test_referee_home_team():
+    assert referee_home_team(REFEREE) == "FC Voorbeeld JO13-2"
+    assert referee_home_team(REFEREE_SENIOR) == "FC Voorbeeld 3"
+    assert referee_home_team("scheidsrechter: VV 't Dorp O14-5 - FC Voorbeeld O14-4") == "VV 't Dorp O14-5"
+    assert referee_home_team(f"{OWN}-SV Tegenstander MO15-5") is None
+    assert referee_home_team("Scheidsrechtersoverleg") is None
+
+
+def test_club_from_own_team():
+    assert club_from_team(OWN) == "FC Voorbeeld"
+    assert club_from_team("VV 't Dorp 1") == "VV 't Dorp"
+    assert club_from_team("Voorbeeld") == "Voorbeeld"
+    assert club_from_team(None) == ""
+
+
+def test_referee_title_without_club():
+    assert referee_title(REFEREE, "FC Voorbeeld") == "Fluiten JO13-2"
+    assert referee_title(REFEREE, "fc voorbeeld") == "Fluiten JO13-2"
+    assert referee_title(REFEREE, "") == "Fluiten FC Voorbeeld JO13-2"
+    assert referee_title(REFEREE, "SV Tegenstander") == "Fluiten FC Voorbeeld JO13-2"
+    assert referee_title("Training", "FC Voorbeeld") is None
+
+
+@pytest.fixture
+def referee_feed(make_user):
+    person, headers = make_user("Scheids")
+    db = SessionLocal()
+    try:
+        feed = PersonService(db).add_feed(person["id"], "https://data.example.test/ical-person?token=y", "Voetbal")
+        summaries = [MATCHES[1], MATCHES[0], REFEREE.replace(",", "\\,"), "Training"]
+        sync_feed_from_content(db, feed.id, feed_content(summaries))
+        return feed.id, person, headers
+    finally:
+        db.close()
+
+
+def test_referee_titles_follow_the_compact_mode(client, referee_feed):
+    feed_id, person, headers = referee_feed
+    assert stored_feed(feed_id).referee_compact is False
+    assert REFEREE in shown_titles(client, headers, person["id"])
+
+    update(client, headers, feed_id, referee_compact=True, club="", prefix="Sam")
+    assert shown_titles(client, headers, person["id"]) == {
+        "Sam: Voetbal thuis tegen SV Tegenstander MO15-5",
+        "Sam: Voetbal uit tegen VV 't Dorp MO15-2",
+        "Sam: Fluiten FC Voorbeeld JO13-2",
+        "Sam: Training",
+    }
+
+
+def test_club_is_suggested_and_editable(client, referee_feed):
+    feed_id, person, headers = referee_feed
+    feed = next(f for f in client.get("/api/me", headers=headers).json()["feeds"] if f["id"] == feed_id)
+    assert feed["club"] == "FC Voorbeeld"
+
+    data = update(client, headers, feed_id, referee_compact=True, club=feed["club"])
+    assert data["referee_compact"] and data["club"] == "FC Voorbeeld"
+    assert "Fluiten JO13-2" in shown_titles(client, headers, person["id"])
+
+    data = update(client, headers, feed_id, club="")
+    assert data["club"] == ""  # cleared on purpose: not suggested again
+    assert "Fluiten FC Voorbeeld JO13-2" in shown_titles(client, headers, person["id"])
+
+
+def test_voetbal_items_have_no_end_time(referee_feed, make_user):
+    feed_id, _person, _headers = referee_feed
+    other, _ = make_user("Andere")
+    db = SessionLocal()
+    try:
+        items = db.query(AgendaItem).filter(AgendaItem.feed_id == feed_id).all()
+        assert len(items) == 4
+        assert all(i.start_time == "10:00" and i.end_time is None for i in items)
+
+        school = PersonService(db).add_feed(other["id"], "https://example.test/school.ics", "School")
+        content = feed_content(["Les"], calname="School", organizer="CN=School:MAILTO:a@b.c")
+        sync_feed_from_content(db, school.id, content)
+        regular = db.query(AgendaItem).filter(AgendaItem.feed_id == school.id).one()
+        assert (regular.start_time, regular.end_time) == ("10:00", "12:00")
+    finally:
+        db.close()
+
+
+# --- duplicate match and referee duty (REQ-BE-051) ---------------------------------------------
+
+
+def test_referee_duty_replaces_the_same_match():
+    from types import SimpleNamespace as Item
+
+    match = f"{OWN}-SV Tegenstander MO15-5"
+    items = [
+        Item(title=match, anchor_date=DAY, start_time="10:00"),
+        Item(title=f"Scheidsrechter, {match.upper()} ", anchor_date=DAY, start_time="10:00"),
+        Item(title=match, anchor_date=DAY + timedelta(days=7), start_time="10:00"),  # other day
+        Item(title=MATCHES[0], anchor_date=DAY, start_time="10:00"),  # other match
+        Item(title=f"Scheidsrechter, {MATCHES[2]}", anchor_date=DAY, start_time="12:00"),  # no twin
+    ]
+    kept = drop_refereed_duplicates(items)
+    assert [i.title for i in kept] == [i.title for i in items[1:]]
+
+
+def test_import_keeps_only_the_referee_duty(make_user):
+    person, _headers = make_user("Dubbel")
+    match = f"{OWN}-SV Tegenstander MO15-5"
+    content = feed_content([match, "Training"]).replace(
+        b"END:VCALENDAR", event(f"Scheidsrechter\\, {match}", DAY).encode() + b"END:VCALENDAR"
+    )
+    db = SessionLocal()
+    try:
+        feed = PersonService(db).add_feed(person["id"], "https://data.example.test/ical-person?token=z", "Voetbal")
+        sync_feed_from_content(db, feed.id, content)
+        titles = sorted(i.title for i in db.query(AgendaItem).filter(AgendaItem.feed_id == feed.id))
+    finally:
+        db.close()
+    assert titles == [f"Scheidsrechter, {match}", "Training"]

@@ -72,6 +72,9 @@ class PersonCalendarFeed(Base):
     is_voetbal: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     home_away_mode: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     own_team: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # REQ-BE-047, REQ-BE-048: referee duties shown as 'Fluiten <home team>' without the club
+    referee_compact: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    club: Mapped[str | None] = mapped_column(String(100), nullable=True)
     etag: Mapped[str | None] = mapped_column(String(255), nullable=True)
     last_modified: Mapped[str | None] = mapped_column(String(100), nullable=True)
     last_synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

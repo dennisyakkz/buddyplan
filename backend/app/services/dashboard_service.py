@@ -31,7 +31,7 @@ from app.services.recurrence import (
     occurs_on_date,
     week_dates,
 )
-from app.services.voetbal_feed import feed_item_title
+from app.services.voetbal_feed import effective_club, feed_item_title
 
 
 def _hash_password(password: str) -> str:
@@ -734,6 +734,8 @@ class PersonService:
         *,
         home_away_mode: bool | None = None,
         own_team: str | None = None,
+        referee_compact: bool | None = None,
+        club: str | None = None,
     ) -> PersonCalendarFeed | None:
         feed = (
             self.db.query(PersonCalendarFeed)
@@ -761,6 +763,11 @@ class PersonService:
             feed.home_away_mode = home_away_mode
         if own_team is not None:
             feed.own_team = own_team.strip()[:100] or None
+        if referee_compact is not None:
+            feed.referee_compact = referee_compact
+        if club is not None:
+            # '' is kept: a club the user cleared on purpose is not suggested again (REQ-BE-048)
+            feed.club = club.strip()[:100]
         feed.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(feed)
@@ -840,6 +847,8 @@ class PersonService:
             "is_voetbal": bool(feed.is_voetbal),
             "home_away_mode": bool(feed.home_away_mode),
             "own_team": feed.own_team or "",
+            "referee_compact": bool(feed.referee_compact),
+            "club": effective_club(feed),
             "last_synced_at": feed.last_synced_at.isoformat() if feed.last_synced_at else None,
             "last_error": feed.last_error,
         }

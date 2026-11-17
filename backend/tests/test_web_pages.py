@@ -49,3 +49,19 @@ def test_regular_user_is_kept_out_of_admin_pages(browser, make_user):
     response = browser.get("/admin")
     assert response.status_code == 303
     assert response.headers["location"] == "/dashboard"
+
+
+def test_scripts_are_versioned_by_content(browser, make_user):
+    """After an update the browser must fetch changed scripts instead of using a cached copy."""
+    import hashlib
+    import re
+    from pathlib import Path
+
+    person, _ = make_user()
+    browser.post("/login", data={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD})
+    html = browser.get(f"/admin/user/{person['id']}").text
+    script = Path(__file__).resolve().parent.parent / "app" / "static" / "js" / "admin_user_detail.js"
+    digest = hashlib.sha256(script.read_bytes()).hexdigest()[:10]
+    assert f'src="/static/js/admin_user_detail.js?v={digest}"' in html
+    # Every local script and stylesheet carries a version.
+    assert not re.search(r'(src|href)="/static/(js|css)/[^"?]+"', html)

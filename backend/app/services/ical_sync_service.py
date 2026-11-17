@@ -8,7 +8,7 @@ from icalendar import Calendar
 from sqlalchemy.orm import Session
 
 from app.models import AgendaItem, PersonCalendarFeed, utcnow
-from app.services.voetbal_feed import apply_feed_detection
+from app.services.voetbal_feed import apply_feed_detection, drop_refereed_duplicates
 
 logger = logging.getLogger(__name__)
 
@@ -182,6 +182,8 @@ def _items_from_calendar(feed: PersonCalendarFeed, calendar: Calendar) -> list[A
         item = _event_to_agenda_item(feed, component)
         if item:
             items.append(item)
+    if getattr(feed, "is_voetbal", False):
+        items = drop_refereed_duplicates(items)
     return items
 
 
@@ -224,6 +226,8 @@ def _event_to_agenda_item(feed: PersonCalendarFeed, event) -> AgendaItem | None:
 
     dtend = event.get("DTEND")
     end_time = _extract_time(dtend.dt) if dtend else None
+    if getattr(feed, "is_voetbal", False):
+        end_time = None  # REQ-BE-049: voetbal.nl items only have a start time
 
     repeat_type, weekdays, end_date = _parse_recurrence(event, anchor)
 

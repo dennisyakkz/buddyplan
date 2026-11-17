@@ -2,6 +2,9 @@
 
 New behaviour starts with a requirement, not with code.
 
+- Requirements and verifications are always written in **English**, also when the user writes in Dutch. Show them to the user in English too. Only quoted UI strings stay Dutch (e.g. 'Voetbal thuis tegen <opponent>').
+- Use anonymised examples, never real club, team, person or place names from a user's data (e.g. 'FC Club JO15-1', 'SV Other JO15-2').
+
 - Before implementing a new feature or a change in behaviour (backend, mobile app or dashboard app), add or update the requirement in `docs/requirements/<backend|mobile|dashboard>/*.sdoc` with `STATUS: Draft`. Show the new or changed requirement text to the user and get agreement before writing the code.
 - Add the matching verification in `docs/verifications/<app>/*.sdoc` (`Parent` relation to the requirement, `ROLE: Verifies`). Prefer `METHOD: Test` with the test file and test names in `TEST`. Use Demonstration or Inspection only when an automated test is not practical, and say why in `COMMENT`.
 - When the change is done and verified, set the requirement to `STATUS: Active`. A removed behaviour becomes `STATUS: Deprecated`; don't delete it.
