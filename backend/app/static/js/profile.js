@@ -21,7 +21,7 @@ function showFeedEditModal(feed, onSave) {
     const interval = feed.sync_interval_minutes || 60;
     const showTimes = feed.show_times || false;
     const hideTitle = feed.hide_title || false;
-    // voetbal.nl feeds (REQ-BE-044..046): only shown once the backend recognised the feed
+    // voetbal.nl feeds (REQ-BE-044..048): only shown once the backend recognised the feed
     const voetbalOptions = feed.is_voetbal ? `
             <div class="form-group">
                 <div class="toggle">
@@ -38,6 +38,22 @@ function showFeedEditModal(feed, onSave) {
             <div class="form-group">
                 <label>Eigen team <small style="font-weight:400;color:#888">(staat het vooraan in de wedstrijd, dan is het een thuiswedstrijd)</small></label>
                 <input type="text" id="feed-edit-own-team" value="${escapeHtml(feed.own_team || "")}" maxlength="100" placeholder="bv. FC Voorbeeld MO15-4">
+            </div>
+            <div class="form-group">
+                <div class="toggle">
+                    <div>
+                        <div style="font-weight:600;font-size:14px">Scheidsrechter compact</div>
+                        <div style="color:#888;font-size:12px;margin-top:2px">Scheidsrechtersbeurten tonen als "Fluiten …" met alleen het thuisteam</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="feed-edit-referee-compact" ${feed.referee_compact ? "checked" : ""}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group" id="feed-edit-club-row" style="display:${feed.referee_compact ? "" : "none"}">
+                <label>Club <small style="font-weight:400;color:#888">(wordt weggelaten voor het thuisteam)</small></label>
+                <input type="text" id="feed-edit-club" value="${escapeHtml(feed.club || "")}" maxlength="100" placeholder="bv. FC Voorbeeld">
             </div>` : "";
     showModal(`
         <h2>Externe agenda bewerken</h2>
@@ -113,6 +129,11 @@ function showFeedEditModal(feed, onSave) {
             document.getElementById("feed-edit-hide-title").checked = false;
         }
     });
+    if (feed.is_voetbal) {
+        document.getElementById("feed-edit-referee-compact").addEventListener("change", (e) => {
+            document.getElementById("feed-edit-club-row").style.display = e.target.checked ? "" : "none";
+        });
+    }
     document.getElementById("feed-edit-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         const url = document.getElementById("feed-edit-url").value.trim();
@@ -126,6 +147,8 @@ function showFeedEditModal(feed, onSave) {
         if (feed.is_voetbal) {
             payload.home_away_mode = document.getElementById("feed-edit-home-away").checked;
             payload.own_team = document.getElementById("feed-edit-own-team").value.trim();
+            payload.referee_compact = document.getElementById("feed-edit-referee-compact").checked;
+            payload.club = document.getElementById("feed-edit-club").value.trim();
         }
         hideModal();
         await onSave(payload);

@@ -177,7 +177,7 @@ UID: REQ-BE-044
 STATUS: Draft
 TITLE: Recognise voetbal.nl feeds
 STATEMENT: >>>
-When an iCal feed is added or synchronised, the backend shall recognise whether it is a voetbal.nl feed: the calendar name (X-WR-CALNAME) or the event organiser names Voetbal.nl. Only for voetbal.nl feeds the feed settings in the web admin shall show the options of REQ-BE-045 and REQ-BE-046.
+When an iCal feed is added or synchronised, the backend shall recognise whether it is a voetbal.nl feed: the calendar name (X-WR-CALNAME) or the event organiser names Voetbal.nl. Only for voetbal.nl feeds the feed settings in the web admin (own profile and user admin) shall show the options of REQ-BE-045, REQ-BE-046, REQ-BE-047 and REQ-BE-048.
 <<<
 RATIONALE: >>>
 The feeds are served by data.sportlink.com (webcal or https, with a personal token), which also serves other sports, so the URL alone does not tell it is football.
@@ -212,6 +212,62 @@ A voetbal.nl feed shall have an 'own team' text field, editable in the feed sett
 <<<
 COMMENT: >>>
 Team names contain hyphens themselves (e.g. 'VV 't Dorp MO15-2-FC Voorbeeld MO15-4'), so titles cannot simply be split on '-': every split is a candidate and the name found in the most titles wins (the longest one when several are equally common). Once set, the field is never overwritten by the backend.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-044
+
+[REQUIREMENT]
+UID: REQ-BE-047
+STATUS: Active
+TITLE: Referee compact mode
+STATEMENT: >>>
+A voetbal.nl feed shall have a 'Scheidsrechter compact' switch, off by default. When it is on, an item whose title contains the word 'scheidsrechter' (case-insensitive) is shown with the title 'Fluiten <home team>'. The home team is taken from the match in the title (the text after the word 'scheidsrechter' and any following punctuation): it is the part before the '-' that separates the two teams, which is the first '-' that directly follows a digit and is not followed by a digit. For 'Scheidsrechter, FC Club JO15-1-SV Other JO15-2' the home team is 'FC Club JO15-1'. When no home team can be found, the title from the feed is shown unchanged. Items without the word 'scheidsrechter' follow REQ-BE-045. The feed prefix still applies.
+<<<
+RATIONALE: >>>
+Referee duties are listed as 'Scheidsrechter, <home team>-<away team>'; only which match at the own club has to be refereed matters.
+<<<
+COMMENT: >>>
+Like REQ-BE-045, the title is shaped when shown, so switching takes effect immediately without a re-sync.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-044
+
+[REQUIREMENT]
+UID: REQ-BE-048
+STATUS: Active
+TITLE: Club
+STATEMENT: >>>
+A voetbal.nl feed shall have a 'Club' text field, shown in the feed settings only while the referee compact mode (REQ-BE-047) is on. When the field is empty, the backend shall suggest the own team (REQ-BE-046) without its last word when that word contains a digit (the team code), e.g. 'FC Club' for 'FC Club JO15-1'; the user can edit it. In referee compact mode, a home team that starts with the club followed by a space is shown without the club: 'Fluiten FC Club JO15-1' becomes 'Fluiten JO15-1'. An empty club removes nothing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-047
+
+[REQUIREMENT]
+UID: REQ-BE-049
+STATUS: Active
+TITLE: voetbal.nl items have only a start time
+STATEMENT: >>>
+For a voetbal.nl feed the backend shall import only the start time of each item; the end time stays empty. This applies to matches, referee duties and all other items of the feed.
+<<<
+COMMENT: >>>
+Existing items lose their end time on the next synchronisation of the feed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-044
+
+[REQUIREMENT]
+UID: REQ-BE-051
+STATUS: Active
+TITLE: Referee duty replaces the same match
+STATEMENT: >>>
+When importing a voetbal.nl feed, the backend shall detect a match that occurs both as a normal item and as a referee duty: two items with the same start (date and time) where the referee duty's title, without the word 'scheidsrechter' and the punctuation that follows it, equals the normal item's title (case-insensitive, ignoring surrounding whitespace). For example 'FC Club JO15-1-SV Other JO15-2' and 'Scheidsrechter, FC Club JO15-1-SV Other JO15-2' on the same day at 10:00. Only the referee duty shall be imported. This applies whether or not the referee compact mode (REQ-BE-047) is on. Items that differ in start or title are all imported.
+<<<
+RATIONALE: >>>
+When a person both plays in and referees the same match, voetbal.nl lists it twice; on the wall tablet it should show once, as the referee duty.
 <<<
 RELATIONS:
 - TYPE: Parent

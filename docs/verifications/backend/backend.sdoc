@@ -89,7 +89,7 @@ UID: VER-BE-005
 METHOD: Demonstration
 TITLE: voetbal.nl options in the web admin
 STATEMENT: >>>
-Open the feed settings of a voetbal.nl feed in the profile page and in the user admin page: the home/away switch and the own team field are shown, and saving them changes the titles. For another feed the options are not shown.
+Open the feed settings of a voetbal.nl feed in the profile page and in the user admin page: the home/away switch, the own team field and the 'Scheidsrechter compact' switch are shown; the 'Club' field appears only while that switch is on, prefilled from the own team; saving them changes the titles. For another feed the options are not shown.
 <<<
 COMMENT: >>>
 Not automated: browser UI. Not yet performed.
@@ -145,6 +145,66 @@ backend/tests/test_voetbal_feed.py: test_own_team_is_the_name_in_most_matches, t
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-BE-046
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-009
+METHOD: Test
+TITLE: Referee compact titles
+STATEMENT: >>>
+With the mode on, referee items show as 'Fluiten <home team>'; with it off, or for other items, the existing titles are shown; the prefix still applies.
+<<<
+TEST: >>>
+backend/tests/test_voetbal_feed.py: test_referee_home_team, test_referee_titles_follow_the_compact_mode
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-047
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-010
+METHOD: Test
+TITLE: Club suggestion and removal
+STATEMENT: >>>
+The club is suggested from the own team, can be edited, and is removed from the home team in referee compact mode; an empty club removes nothing.
+<<<
+TEST: >>>
+backend/tests/test_voetbal_feed.py: test_club_from_own_team, test_referee_title_without_club, test_club_is_suggested_and_editable
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-048
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-011
+METHOD: Test
+TITLE: voetbal.nl items without end time
+STATEMENT: >>>
+Items of a voetbal.nl feed are imported with a start time and no end time; items of other feeds keep their end time.
+<<<
+TEST: >>>
+backend/tests/test_voetbal_feed.py: test_voetbal_items_have_no_end_time
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-049
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-012
+METHOD: Test
+TITLE: Referee duty replaces the same match
+STATEMENT: >>>
+A normal item with a referee twin at the same start is left out on import; items on another day, other matches and referee duties without a twin are kept.
+<<<
+TEST: >>>
+backend/tests/test_voetbal_feed.py: test_referee_duty_replaces_the_same_match, test_import_keeps_only_the_referee_duty
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-051
   ROLE: Verifies
 
 [[/SECTION]]
