@@ -367,5 +367,8 @@ TITLE: Automatic migrations
 STATEMENT: >>>
 On startup the backend shall bring the database schema up to date without losing existing data.
 <<<
+COMMENT: >>>
+Existing data includes rows that depend on a rebuilt table through an ON DELETE CASCADE foreign key, such as the agenda items imported from a calendar feed. SQLite batch migrations rebuild a table by dropping it, so foreign keys are switched off while migrating and checked afterwards.
+<<<
 
 [[/SECTION]]

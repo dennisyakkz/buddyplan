@@ -31,14 +31,29 @@ def run_migrations_online() -> None:
     connectable = app_engine
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            render_as_batch=True,
-        )
+        # REQ-BE-071: batch migrations rebuild a table by dropping the old one. With foreign keys on,
+        # that drop fires ON DELETE CASCADE and wipes the child rows (e.g. every imported agenda item
+        # of person_calendar_feeds). The pragma only takes effect outside a transaction.
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        connection.commit()
+        try:
+            context.configure(
+                connection=connection,
+                target_metadata=target_metadata,
+                render_as_batch=True,
+            )
 
-        with context.begin_transaction():
-            context.run_migrations()
+            with context.begin_transaction():
+                context.run_migrations()
+
+            violations = connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall()
+            if violations:
+                raise RuntimeError(f"Foreign key violations after migration: {violations[:10]}")
+        finally:
+            connection.rollback()
+            # The connection goes back to the pool; later sessions rely on foreign keys being on.
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+            connection.commit()
 
 
 if context.is_offline_mode():
