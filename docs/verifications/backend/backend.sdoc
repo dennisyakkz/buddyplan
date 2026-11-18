@@ -208,3 +208,23 @@ RELATIONS:
   ROLE: Verifies
 
 [[/SECTION]]
+
+[[SECTION]]
+TITLE: Operations
+
+[VERIFICATION]
+UID: VER-BE-013
+METHOD: Test
+TITLE: Migrations keep imported agenda items
+STATEMENT: >>>
+Migrating down and up again through a migration that rebuilds person_calendar_feeds keeps the imported agenda items of the feed, and foreign keys are on again afterwards.
+<<<
+TEST: >>>
+backend/tests/test_migrations.py: test_migrations_keep_imported_agenda_items
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-071
+  ROLE: Verifies
+
+[[/SECTION]]
