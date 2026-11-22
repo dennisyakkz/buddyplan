@@ -8,6 +8,7 @@ const _keyLoggedInName = 'logged_in_name';
 const _keyDeviceId = 'device_id';
 const _keyPersonEnabled = 'person_enabled';
 const _keyTaskPersonEnabled = 'task_person_enabled';
+const _keyVoiceAutoSend = 'voice_auto_send';
 
 class AppPreferences {
   static SharedPreferences? _prefs;
@@ -46,6 +47,12 @@ class AppPreferences {
       await _p.setString(_keyLoggedInName, name);
     }
   }
+
+  /// 'Spraak direct versturen' in the AI buddy chat, off by default (REQ-MOB-057).
+  static bool get voiceAutoSend => _p.getBool(_keyVoiceAutoSend) ?? false;
+
+  static Future<void> setVoiceAutoSend(bool value) =>
+      _p.setBool(_keyVoiceAutoSend, value);
 
   static String get deviceId {
     var id = _p.getString(_keyDeviceId);

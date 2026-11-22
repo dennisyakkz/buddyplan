@@ -156,7 +156,7 @@ TITLE: AI buddy
 
 [REQUIREMENT]
 UID: REQ-MOB-050
-STATUS: Draft
+STATUS: Active
 TITLE: AI buddy tab
 STATEMENT: >>>
 The bottom navigation shall show a third destination 'AI buddy' next to 'Agenda' and 'Taken' only while the backend reports the AI buddy as configured (REQ-BE-083); otherwise the navigation shows only 'Agenda' and 'Taken'. The app checks this at start-up and with every automatic refresh (REQ-MOB-032). When the AI buddy becomes unavailable while its tab is open, the app switches to 'Agenda'.
@@ -167,7 +167,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: REQ-MOB-051
-STATUS: Draft
+STATUS: Active
 TITLE: Messenger-style chat
 STATEMENT: >>>
 The AI buddy tab shall show the conversation like a messenger app: the user's messages as bubbles on the right, the AI buddy's on the left, each with its time, the newest at the bottom, and a text field with a send button at the bottom. On opening, the app loads the conversation from the backend (REQ-BE-087) and scrolls to the newest message.
@@ -180,7 +180,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: REQ-MOB-052
-STATUS: Draft
+STATUS: Active
 TITLE: Typing indicator
 STATEMENT: >>>
 While the app waits for the AI buddy's answer, it shall show a bubble on the left with animated dots, as messenger apps do when the other side is typing. The send button is disabled until the answer or an error arrives.
@@ -191,7 +191,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: REQ-MOB-053
-STATUS: Draft
+STATUS: Active
 TITLE: Errors and offline
 STATEMENT: >>>
 The chat needs a connection. When the phone is offline or the backend returns an error, the app shall show the Dutch error message below the user's message with a 'Opnieuw' button that sends the message again. Chat messages are not queued for later like other changes (REQ-MOB-031).
@@ -202,7 +202,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: REQ-MOB-054
-STATUS: Draft
+STATUS: Active
 TITLE: Refresh after changes
 STATEMENT: >>>
 After each answer of the AI buddy, the app shall refresh its agenda and task data, so that changes made by the AI buddy (REQ-BE-089) show in the Agenda and Taken tabs right away.
@@ -215,7 +215,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: REQ-MOB-055
-STATUS: Draft
+STATUS: Active
 TITLE: Clear the conversation
 STATEMENT: >>>
 The AI buddy tab shall have an action to clear the conversation, after a confirmation. It clears the conversation on the backend for all of the user's devices.
@@ -223,6 +223,40 @@ The AI buddy tab shall have an action to clear the conversation, after a confirm
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-MOB-051
+
+[REQUIREMENT]
+UID: REQ-MOB-056
+STATUS: Active
+TITLE: Voice input
+STATEMENT: >>>
+While the text field of the AI buddy chat is empty, the send button shall be replaced by a microphone button, as in messenger apps. Tapping it starts speech recognition in Dutch through the phone's speech recognition service, independent of the keyboard. While listening:
+
+- the button shows that the app is listening (animated, with a stop icon) and the text field shows 'Luisteren…';
+- the recognised text appears in the text field as the user speaks;
+- recognition stops after a pause in speaking, or when the user taps the button again.
+
+After recognition stops, the text stays in the text field, where the user can change it and send it with the send button, unless sending automatically is switched on (REQ-MOB-057). Nothing recognised leaves the field empty. The first use asks for microphone permission. When permission is refused, or the phone has no speech recognition, the app shows a Dutch message ('Spraakherkenning is niet beschikbaar op dit toestel' or 'Geef de app toegang tot de microfoon om in te spreken') and the chat keeps working by typing. The microphone button is disabled while the app waits for an answer (REQ-MOB-052).
+<<<
+RATIONALE: >>>
+One tap from the chat instead of opening the keyboard's voice input, with the text visible and correctable before the AI buddy acts on it.
+<<<
+COMMENT: >>>
+Audio goes to the phone's speech recognition service (on most phones Google's), not to the backend or the AI buddy, unless an offline Dutch language pack is installed on the phone; this is the same as the keyboard's voice input.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-051
+
+[REQUIREMENT]
+UID: REQ-MOB-057
+STATUS: Active
+TITLE: Send voice messages automatically
+STATEMENT: >>>
+The menu of the AI buddy tab shall have an on/off option 'Spraak direct versturen', off by default. When on, the recognised text is sent as soon as recognition stops (REQ-MOB-056), without tapping send; nothing recognised sends nothing. The setting is stored on the device and kept after restarting the app.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-056
 
 [[/SECTION]]
 
