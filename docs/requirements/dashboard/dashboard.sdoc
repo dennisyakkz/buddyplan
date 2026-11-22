@@ -220,4 +220,18 @@ RATIONALE: >>>
 Stale data must never look up to date.
 <<<
 
+[REQUIREMENT]
+UID: REQ-DSH-006
+STATUS: Active
+TITLE: Follow the current day
+STATEMENT: >>>
+The week calendar shall mark the current day of the tablet's clock as today (highlighted column). When a new day starts, the dashboard shall mark the new day as today within one minute, also when the dashboard data has not changed.
+<<<
+RATIONALE: >>>
+The tablet runs for weeks without a restart. On days where the data of the new day equals that of the previous day (for example no tasks on both days), nothing triggered a redraw, so the previous day stayed highlighted.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-020
+
 [[/SECTION]]
