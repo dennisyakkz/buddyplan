@@ -201,6 +201,21 @@ def test_search_results_include_the_weekday(client, make_user, configured, gemin
     assert search["items"][0]["weekday"] == "woensdag"
 
 
+def test_text_filter_ignores_spacing(client, make_user, configured, gemini):
+    """A text filter of 'voetbaltraining' missed 'Voetbal training' in production."""
+    person, headers = make_user("Zoeker")
+    pid = person["id"]
+    gemini.call("create_agenda_item", person_id=pid, title="Voetbal training", date=DAY.isoformat()).reply("Gezet!")
+    send(client, headers, "Zet voetbal training erin")
+
+    gemini.call(
+        "search_agenda", start_date=DAY.isoformat(), end_date=DAY.isoformat(), text="voetbaltraining"
+    ).reply("Klaar")
+    send(client, headers, "Wanneer is de voetbaltraining?")
+    search = gemini.tool_results()[-1]
+    assert [i["title"] for i in search["items"]] == ["Voetbal training"]
+
+
 def enable_tasks(person_id: int) -> None:
     """New users have the task system off (REQ-BE-022)."""
     db = SessionLocal()

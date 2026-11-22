@@ -618,12 +618,17 @@ def _search_range(start_date: str, end_date: str) -> tuple[date, date]:
     return start, end
 
 
+def _normalize_for_search(value: str) -> str:
+    """Casefolded with whitespace removed, so 'voetbaltraining' matches 'Voetbal training'."""
+    return "".join(str(value).casefold().split())
+
+
 def _filter(items: list[dict], person_id, text) -> list[dict]:
     if person_id is not None:
         items = [i for i in items if i.get("person_id") == int(person_id)]
     if text:
-        needle = str(text).casefold()
-        items = [i for i in items if needle in str(i.get("title", "")).casefold()]
+        needle = _normalize_for_search(text)
+        items = [i for i in items if needle in _normalize_for_search(i.get("title", ""))]
     return items
 
 
