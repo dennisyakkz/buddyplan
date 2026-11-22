@@ -27,6 +27,10 @@ CONTEXT_MESSAGES_DEFAULT = 20  # REQ-BE-087
 CONTEXT_MESSAGES_MIN = 2
 CONTEXT_MESSAGES_MAX = 100
 MAX_MESSAGE_LENGTH = 4000
+# thinkingLevel is only valid on Gemini 3/4 models; older models error on it (REQ-BE-098).
+# "minimal" is left out: some current Gemini 3/4 models reject it.
+THINKING_LEVELS = ("low", "medium", "high", "xhigh")
+THINKING_CAPABLE_MODEL_PREFIXES = ("gemini-3", "gemini-4")
 SEARCH_MAX_DAYS = 180  # REQ-BE-085, like /api/mobile/calendar
 TZ = ZoneInfo("Europe/Amsterdam")
 
@@ -101,6 +105,8 @@ def config_to_dict(cfg: AiConfig | None) -> dict:
         "has_api_key": bool(cfg and cfg.api_key),
         "api_key_hint": api_key_hint(cfg.api_key if cfg else None),
         "model": (cfg.model if cfg else None) or "",
+        "thinking_level": (cfg.thinking_level if cfg else None) or "",
+        "thinking_levels": list(THINKING_LEVELS),
         "system_prompt": effective_system_prompt(cfg),
         "is_default_prompt": not (cfg and (cfg.system_prompt or "").strip()),
         "default_system_prompt": DEFAULT_SYSTEM_PROMPT,
@@ -118,6 +124,7 @@ def update_config(
     api_key: str | None,
     clear_api_key: bool,
     model: str | None,
+    thinking_level: str | None,
     system_prompt: str | None,
     debug_log_enabled: bool | None = None,
     debug_retention_days: int | None = None,
@@ -135,6 +142,8 @@ def update_config(
             f"Bewaartermijn moet tussen {ai_monitoring.RETENTION_MIN_DAYS} en "
             f"{ai_monitoring.RETENTION_MAX_DAYS} dagen liggen"
         )
+    if thinking_level is not None and thinking_level.strip() and thinking_level.strip().lower() not in THINKING_LEVELS:
+        raise ValueError(f"Thinking moet leeg zijn of één van: {', '.join(THINKING_LEVELS)}")
     cfg = get_config(db)
     if not cfg:
         cfg = AiConfig()
@@ -154,6 +163,8 @@ def update_config(
         cfg.api_key = api_key.strip()[:255]
     if model is not None:
         cfg.model = model.strip()[:100] or None
+    if thinking_level is not None:
+        cfg.thinking_level = thinking_level.strip().lower()[:20] or None
     if system_prompt is not None:
         prompt = system_prompt.strip()
         cfg.system_prompt = None if not prompt or prompt == DEFAULT_SYSTEM_PROMPT.strip() else prompt
@@ -215,6 +226,9 @@ def generate(
         # After the tool budget is spent the model must answer in text (REQ-BE-088).
         "toolConfig": {"functionCallingConfig": {"mode": "AUTO" if allow_tools else "NONE"}},
     }
+    # thinkingLevel errors on models older than Gemini 3, so only Gemini 3/4 models get it (REQ-BE-098).
+    if cfg.thinking_level and cfg.model.startswith(THINKING_CAPABLE_MODEL_PREFIXES):
+        body["generationConfig"] = {"thinkingConfig": {"thinkingLevel": cfg.thinking_level.upper()}}
     for delay in (*RETRY_DELAYS_SECONDS, None):
         try:
             return _generate_once(cfg, body, log)

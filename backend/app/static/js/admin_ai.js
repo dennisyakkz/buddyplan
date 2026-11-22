@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const keyInput = document.getElementById("ai-api-key");
     const keyHint = document.getElementById("ai-api-key-hint");
     const modelSelect = document.getElementById("ai-model");
+    const thinkingSelect = document.getElementById("ai-thinking-level");
     const promptInput = document.getElementById("ai-system-prompt");
     const promptState = document.getElementById("ai-prompt-state");
     const enabledInput = document.getElementById("ai-enabled");
@@ -29,6 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         keyInput.value = "";
         keyHint.textContent = cfg.has_api_key ? `(ingesteld: ${cfg.api_key_hint})` : "(niet ingesteld)";
         promptInput.value = cfg.system_prompt;
+        thinkingSelect.value = cfg.thinking_level || "";
         enabledInput.checked = cfg.enabled;
         contextInput.value = cfg.context_messages;
         debugEnabledInput.checked = cfg.debug_log_enabled;
@@ -97,6 +99,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     api_key: keyInput.value.trim() || null,
                     clear_api_key: clearKey,
                     model: modelSelect.value,
+                    thinking_level: thinkingSelect.value,
                     system_prompt: promptInput.value,
                     enabled: enabledInput.checked,
                     context_messages: parseInt(contextInput.value, 10),

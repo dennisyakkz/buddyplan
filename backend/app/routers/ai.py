@@ -24,6 +24,8 @@ class AiConfigUpdate(BaseModel):
     api_key: str | None = None
     clear_api_key: bool = False
     model: str | None = None
+    # Empty means the model's own default; only applied for Gemini 3/4 models (REQ-BE-098).
+    thinking_level: str | None = None
     # Empty restores the default prompt (REQ-BE-082).
     system_prompt: str | None = None
     # Debug log (REQ-BE-092, REQ-BE-093); missing keeps the current setting.
@@ -88,6 +90,7 @@ def admin_update_ai_config(data: AiConfigUpdate, _admin=Depends(require_admin), 
             api_key=data.api_key,
             clear_api_key=data.clear_api_key,
             model=data.model,
+            thinking_level=data.thinking_level,
             system_prompt=data.system_prompt,
             debug_log_enabled=data.debug_log_enabled,
             debug_retention_days=data.debug_retention_days,

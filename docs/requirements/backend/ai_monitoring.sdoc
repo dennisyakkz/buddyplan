@@ -82,10 +82,10 @@ UID: REQ-BE-095
 STATUS: Draft
 TITLE: Model prices
 STATEMENT: >>>
-An administrator shall be able to maintain prices per model on an 'AI-prijzen' page: an input price and an output price in euros per 1 million tokens, valid from a date. A model can have several prices over time; adding a new price keeps the older ones, and a single price can be deleted. The page lists every model that has a price, appears in the call records, or is the configured model, and marks models without a price.
+An administrator shall be able to maintain prices per model on an 'AI-prijzen' page: an input price and an output price in US dollars per 1 million tokens, valid from a date. A model can have several prices over time; adding a new price keeps the older ones, and a single price can be deleted. The page lists every model that has a price, appears in the call records, or is the configured model, and marks models without a price.
 <<<
 RATIONALE: >>>
-Prices change over time; a price with a start date keeps the costs of earlier calls correct. Gemini publishes prices in US dollars; the administrator enters the amount they actually pay.
+Prices change over time; a price with a start date keeps the costs of earlier calls correct. Gemini publishes its prices in US dollars, which is what the administrator enters here.
 <<<
 RELATIONS:
 - TYPE: Parent

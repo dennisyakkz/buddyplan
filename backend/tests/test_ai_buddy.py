@@ -57,7 +57,7 @@ def configured(client, admin_headers):
     client.put(
         "/api/admin/ai/config",
         headers=admin_headers,
-        json={"clear_api_key": True, "model": "", "enabled": False, "context_messages": 20},
+        json={"clear_api_key": True, "model": "", "thinking_level": "", "enabled": False, "context_messages": 20},
     )
 
 
@@ -394,3 +394,46 @@ def test_new_settings_start_switched_off(client, admin_headers):
     ).json()
     assert cfg["enabled"] is False and cfg["configured"] is False and cfg["context_messages"] == 20
     client.put("/api/admin/ai/config", headers=admin_headers, json={"clear_api_key": True, "model": ""})
+
+
+def test_thinking_level_is_validated_and_saved(client, admin_headers, configured):
+    """REQ-BE-098: a thinking level is one of the known values, or empty for the model's default."""
+    cfg = client.put("/api/admin/ai/config", headers=admin_headers, json={"thinking_level": "high"}).json()
+    assert cfg["thinking_level"] == "high"
+    assert cfg["thinking_levels"] == ["low", "medium", "high", "xhigh"]
+    assert client.get("/api/admin/ai/config", headers=admin_headers).json()["thinking_level"] == "high"
+
+    response = client.put("/api/admin/ai/config", headers=admin_headers, json={"thinking_level": "ultra"})
+    assert response.status_code == 400
+
+    cfg = client.put("/api/admin/ai/config", headers=admin_headers, json={"thinking_level": ""}).json()
+    assert cfg["thinking_level"] == ""
+
+
+def test_thinking_level_only_sent_to_gemini_3_and_4_models(client, admin_headers, make_user, configured, monkeypatch):
+    """REQ-BE-098: thinkingLevel errors on older models, so it is only sent for Gemini 3/4 models."""
+    _person, headers = make_user("Denker")
+    requests_seen = []
+
+    class Response:
+        status_code = 200
+        text = '{"candidates": [{"content": {"parts": [{"text": "ok"}]}}]}'
+
+        def json(self):
+            return {"candidates": [{"content": {"parts": [{"text": "ok"}]}}]}
+
+    def post(*_args, **kwargs):
+        requests_seen.append(kwargs["json"])
+        return Response()
+
+    monkeypatch.setattr(ai_buddy.requests, "post", post)
+
+    client.put(
+        "/api/admin/ai/config", headers=admin_headers, json={"model": "gemini-test", "thinking_level": "high"}
+    )
+    assert send(client, headers, "Hoi").status_code == 200
+    assert "generationConfig" not in requests_seen[-1]
+
+    client.put("/api/admin/ai/config", headers=admin_headers, json={"model": "gemini-3-flash-preview"})
+    assert send(client, headers, "Hoi nog een keer").status_code == 200
+    assert requests_seen[-1]["generationConfig"] == {"thinkingConfig": {"thinkingLevel": "HIGH"}}

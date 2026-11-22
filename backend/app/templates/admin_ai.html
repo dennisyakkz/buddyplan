@@ -42,6 +42,16 @@
                 </button>
             </div>
             <div class="form-group">
+                <label for="ai-thinking-level">Thinking <span class="hint">(alleen van invloed op Gemini 3- en 4-modellen; overige modellen negeren dit)</span></label>
+                <select id="ai-thinking-level">
+                    <option value="">Standaard (door het model bepaald)</option>
+                    <option value="low">Laag</option>
+                    <option value="medium">Gemiddeld</option>
+                    <option value="high">Hoog</option>
+                    <option value="xhigh">Extra hoog</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="ai-system-prompt">Systeemprompt <span class="hint" id="ai-prompt-state"></span></label>
                 <textarea id="ai-system-prompt" rows="14"></textarea>
                 <button type="button" class="btn btn-small btn-secondary" id="btn-reset-prompt" style="margin-top:4px">Standaard herstellen</button>

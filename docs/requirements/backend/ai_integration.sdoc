@@ -45,6 +45,20 @@ RELATIONS:
   VALUE: REQ-BE-081
 
 [REQUIREMENT]
+UID: REQ-BE-098
+STATUS: Draft
+TITLE: Thinking level
+STATEMENT: >>>
+On the settings page (REQ-BE-081), right after the model, an administrator shall be able to set a thinking level (standard, low, medium, high or extra high) for the AI buddy. Standard means the model's own default. The backend shall only send the chosen level to Gemini 3 and 4 models; other models ignore the setting.
+<<<
+RATIONALE: >>>
+Sending a thinking level to a model older than Gemini 3 is rejected by the Gemini API as an error, so it is limited to the model generations that support it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-081
+
+[REQUIREMENT]
 UID: REQ-BE-083
 STATUS: Draft
 TITLE: Unavailable until configured

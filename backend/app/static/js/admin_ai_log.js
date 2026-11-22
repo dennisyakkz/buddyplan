@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <td class="num">${aiFormatNumber(c.output_tokens)}</td>
                     <td class="num">${aiFormatNumber(c.thinking_tokens)}</td>
                     <td class="num">${aiFormatDuration(c.duration_ms)}</td>
-                    <td class="num">${aiFormatEuro(c.cost_eur)}</td>
+                    <td class="num">${aiFormatUsd(c.cost_eur)}</td>
                     <td>${c.has_content ? '<span class="material-symbols-rounded bp-icon-inline" title="Verzoek en antwoord bewaard">description</span>' : ""}</td>
                 </tr>`).join("");
         }
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <h2>Aanroep #${c.id}</h2>
                 <p>${escapeHtml(aiFormatTime(c.created_at))} · ${c.person ? escapeHtml(c.person.name) : "Verwijderde gebruiker"}
                    · ${escapeHtml(c.model)} · ${aiStatusBadge(c.status)}${c.http_status ? ` · HTTP ${c.http_status}` : ""}
-                   · ${aiFormatDuration(c.duration_ms)} · ${aiFormatEuro(c.cost_eur)}</p>
+                   · ${aiFormatDuration(c.duration_ms)} · ${aiFormatUsd(c.cost_eur)}</p>
                 <p class="ai-muted">Tokens: ${aiFormatNumber(c.prompt_tokens)} input (${aiFormatNumber(c.cached_tokens)} uit cache),
                    ${aiFormatNumber(c.output_tokens)} output, ${aiFormatNumber(c.thinking_tokens)} denken</p>
                 ${c.error_message ? `<p class="ai-error">${escapeHtml(c.error_message)}</p>` : ""}

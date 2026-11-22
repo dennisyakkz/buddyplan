@@ -29,12 +29,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             </h3>
             ${m.prices.length ? `
             <div class="ai-table-wrap"><table class="ai-table">
-                <thead><tr><th>Geldig vanaf</th><th class="num">Input (€ per 1M)</th><th class="num">Output (€ per 1M)</th><th></th></tr></thead>
+                <thead><tr><th>Geldig vanaf</th><th class="num">Input ($ per 1M)</th><th class="num">Output ($ per 1M)</th><th></th></tr></thead>
                 <tbody>${m.prices.map(p => `
                     <tr>
                         <td>${escapeHtml(p.valid_from)}${m.current_price && m.current_price.id === p.id ? ' <span class="ai-muted">(huidig)</span>' : ""}</td>
-                        <td class="num">${aiFormatEuro(p.input_price_per_1m)}</td>
-                        <td class="num">${aiFormatEuro(p.output_price_per_1m)}</td>
+                        <td class="num">${aiFormatUsd(p.input_price_per_1m)}</td>
+                        <td class="num">${aiFormatUsd(p.output_price_per_1m)}</td>
                         <td class="num"><button type="button" class="btn btn-small btn-danger" data-delete="${p.id}">Verwijderen</button></td>
                     </tr>`).join("")}
                 </tbody>

@@ -316,6 +316,8 @@ class AiConfig(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     api_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
     model: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # None means the model's own default; only sent to Gemini 3/4 models (REQ-BE-098)
+    thinking_level: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # None means the default system prompt shipped with the backend
     system_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Off until an administrator switches it on (REQ-BE-081); messages sent as context (REQ-BE-087)
@@ -382,7 +384,7 @@ class AiCall(Base):
 
 
 class AiModelPrice(Base):
-    """Price of a Gemini model in euros per 1M tokens, valid from a date (REQ-BE-095)."""
+    """Price of a Gemini model in US dollars per 1M tokens, valid from a date (REQ-BE-095)."""
 
     __tablename__ = "ai_model_prices"
 

@@ -1,9 +1,9 @@
 // Shared helpers for the AI monitoring pages (REQ-BE-094, REQ-BE-095, REQ-BE-097)
-const aiEuro = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 4 });
+const aiUsd = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 4 });
 const aiNumber = new Intl.NumberFormat("nl-NL");
 
-function aiFormatEuro(value) {
-    return value === null || value === undefined ? "onbekend" : aiEuro.format(value);
+function aiFormatUsd(value) {
+    return value === null || value === undefined ? "onbekend" : aiUsd.format(value);
 }
 
 function aiFormatNumber(value) {

@@ -55,6 +55,21 @@ backend/tests/test_ai_buddy.py: test_admin_sets_key_model_and_prompt, test_conte
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-BE-082
+
+[VERIFICATION]
+UID: VER-BE-032
+METHOD: Test
+TITLE: Thinking level
+STATEMENT: >>>
+The thinking level is one of the known values or empty, is saved and read back, and is only sent to Gemini 3 and 4 models; other models never receive it.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_thinking_level_is_validated_and_saved, test_thinking_level_only_sent_to_gemini_3_and_4_models
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-098
+  ROLE: Verifies
   ROLE: Verifies
 
 [VERIFICATION]
