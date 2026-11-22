@@ -1,0 +1,28 @@
+[DOCUMENT]
+TITLE: Afvalwijzer (optional)
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Waste collection schedule and waste tasks. UIDs: REQ-BE-060 .. 069.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-060
+STATUS: Draft
+TITLE: Waste collection schedule
+STATEMENT: >>>
+When configured with a Dutch postcode and house number, the backend shall fetch the collection schedule from mijnafvalwijzer.nl.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-061
+STATUS: Draft
+TITLE: Waste tasks
+STATEMENT: >>>
+Per waste type an administrator shall be able to choose who puts the bin out and who brings it back in, and when (the day before, the same day or the day after). The backend shall create these as normal tasks, on request and automatically every Sunday at 02:00 for the coming week.
+<<<

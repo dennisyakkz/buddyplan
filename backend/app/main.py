@@ -8,7 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import APP_NAME, env_secret
 from app.database import Base, SessionLocal, engine
-from app.routers import api, pages
+from app.routers import ai, api, pages
 from app.services.migrate import run_migrations
 from app.services.scheduler import start_scheduler, stop_scheduler
 from app.services.seed import seed_database
@@ -51,6 +51,7 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     app.include_router(pages.router)
     app.include_router(api.router)
+    app.include_router(ai.router)
 
     return app
 

@@ -8,5 +8,106 @@ IMPORT_FROM_FILE: @verification
 
 [TEXT]
 STATEMENT: >>>
-How each requirement in ``docs/requirements/mobile/`` is verified. Automated tests run with ``flutter test`` in ``mobile_app/``. No verifications have been recorded yet.
+How each requirement in ``docs/requirements/mobile/`` is verified. Automated tests run with ``flutter test`` in ``mobile_app/``.
 <<<
+
+[[SECTION]]
+TITLE: AI buddy
+
+[VERIFICATION]
+UID: VER-MOB-001
+METHOD: Test
+TITLE: AI buddy tab follows the backend
+STATEMENT: >>>
+The tab count follows the backend status, and an open AI buddy tab falls back to Agenda when it disappears.
+<<<
+TEST: >>>
+mobile_app/test/ai_buddy_test.dart: only shown while the backend has the AI buddy configured, an open AI buddy tab falls back to Agenda when it disappears
+<<<
+COMMENT: >>>
+The widget layout of the navigation is not covered: the app cannot be pumped in widget tests (CLAUDE.md).
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-050
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-MOB-002
+METHOD: Test
+TITLE: Chat shows the conversation
+STATEMENT: >>>
+The conversation is loaded from the backend and a sent message is followed by the answer, both with the backend's ids and times.
+<<<
+TEST: >>>
+mobile_app/test/ai_buddy_test.dart: loads the conversation from the backend, shows the message and the typing state while waiting, parses the backend message format
+<<<
+COMMENT: >>>
+Bubble layout is checked by hand on a phone.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-051
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-MOB-003
+METHOD: Test
+TITLE: Typing state while waiting
+STATEMENT: >>>
+While the answer is pending the chat state is 'sending', which shows the typing bubble and disables sending.
+<<<
+TEST: >>>
+mobile_app/test/ai_buddy_test.dart: shows the message and the typing state while waiting
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-052
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-MOB-004
+METHOD: Test
+TITLE: Failed messages can be sent again
+STATEMENT: >>>
+An offline failure keeps the message with a Dutch error; retrying sends the same text and shows the answer.
+<<<
+TEST: >>>
+mobile_app/test/ai_buddy_test.dart: a failed message shows the error and can be sent again
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-053
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-MOB-005
+METHOD: Test
+TITLE: Reload after answers
+STATEMENT: >>>
+Every answer bumps the refresh signal the agenda and task screens listen to; a failure does not.
+<<<
+TEST: >>>
+mobile_app/test/ai_buddy_test.dart: every answer asks the agenda and task screens to reload, a failed message does not trigger a reload
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-054
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-MOB-006
+METHOD: Test
+TITLE: Clear the conversation
+STATEMENT: >>>
+Clearing empties the conversation in the app and on the backend.
+<<<
+TEST: >>>
+mobile_app/test/ai_buddy_test.dart: clearing empties the conversation on the backend
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-055
+  ROLE: Verifies
+
+[[/SECTION]]

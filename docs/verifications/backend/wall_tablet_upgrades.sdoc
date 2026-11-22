@@ -1,0 +1,13 @@
+[DOCUMENT]
+TITLE: Wall tablet upgrades
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @verification
+
+[TEXT]
+STATEMENT: >>>
+How the requirements in ``docs/requirements/backend/wall_tablet_upgrades.sdoc`` are verified.
+<<<
+

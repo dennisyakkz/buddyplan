@@ -40,6 +40,7 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 
 ## Requirements
 - Formal requirements live in `docs/requirements/<backend|mobile|dashboard>/*.sdoc` (UIDs `REQ-BE-`, `REQ-MOB-`, `REQ-DSH-`) and how each is verified in `docs/verifications/<app>/*.sdoc` (`VER-...`, linked with a `Parent` relation and `ROLE: Verifies`). Format is StrictDoc 0.30 (`[[SECTION]]`, grammars imported as `@requirement` / `@verification` via `docs/strictdoc_config.py`).
+- Backend requirements are split into one document per feature (`docs/requirements/backend/<feature>.sdoc`, each with a UID block of ten). `backend.sdoc` is the index: it lists the features and includes each file with `[DOCUMENT_FROM_FILE]`, so the export shows one document. `docs/verifications/backend/` mirrors the same file names. A new feature gets a requirements file and a verifications file, both added to their index.
 - Validate with `pip install -r docs/requirements-docs.txt` and `strictdoc export docs --output-dir /tmp/sdoc` (fails on unknown UIDs); `python docs/requirements_coverage.py` lists requirements without a verification. CI: `.github/workflows/requirements.yml`. Write requirements before new behaviour: see `.claude/rules/requirements-first.md`.
 
 ## Cross-cutting
@@ -47,7 +48,7 @@ Neither app has a compiled-in backend URL. The user enters it in each app's sett
 - The brand palette lives in `brand/brandbook.md` and is mirrored in `backend/tailwind.config.js`, `mobile_app/lib/ui/buddyplan_colors.dart` and `dashboard_app/app/src/main/res/values{,-night}/colors.xml`. Keep all of them in sync.
 - Version numbers (mobile `pubspec.yaml`, dashboard `versionName`/`versionCode`, `BUDDYPLAN_VERSION` in compose/README/docs) match the latest `vX.Y.Z` tag. Change them only with `scripts/bump_version.py` (`--check` verifies them).
 - The material-icons JSON is duplicated in `backend/app/static/data/` and `mobile_app/assets/data/`. Update both copies.
-- API changes affect both apps. Check the mobile (`/api/mobile/*`, `/api/tasks`, `/api/agenda`, `/api/app/*`) and dashboard (`/api/dashboard*`, `/api/app/*`, `/api/mobile/tasks`, `/api/tasks/{id}/complete`) clients.
+- API changes affect both apps. Check the mobile (`/api/mobile/*`, `/api/tasks`, `/api/agenda`, `/api/app/*`, `/api/ai/*`) and dashboard (`/api/dashboard*`, `/api/app/*`, `/api/mobile/tasks`, `/api/tasks/{id}/complete`) clients.
 
 ## Release
 - Publishing a GitHub Release tagged `vX.Y.Z` triggers `.github/workflows/publish-backend.yml`, which pushes `ghcr.io/dennisyakkz/buddyplan-backend:X.Y.Z`.

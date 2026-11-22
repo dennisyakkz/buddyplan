@@ -680,6 +680,10 @@ class PersonService:
         person = self.get(person_id)
         if not person:
             return False
+        from app.services.ai_monitoring import forget_person
+
+        # AI call records keep their tokens and costs, without the person or their content (REQ-BE-093)
+        forget_person(self.db, person_id)
         self.db.delete(person)
         self.db.commit()
         return True

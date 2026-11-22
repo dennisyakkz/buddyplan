@@ -1,0 +1,21 @@
+{# Admin navigation panel (REQ-BE-072) #}
+{% set path = request.url.path %}
+{% set sections = [
+    ('/admin', 'Gebruikers', 'group'),
+    ('/admin/afvalwijzer', 'Afvalwijzer', 'delete'),
+    ('/admin/google-calendar-api', 'Google Calendar API', 'calendar_month'),
+    ('/admin/ai', 'AI buddy', 'smart_toy'),
+    ('/admin/upgrades', 'Upgrades', 'system_update'),
+] %}
+<nav class="admin-nav" aria-label="Admin">
+    {% for href, label, icon in sections %}
+    {% if href == '/admin' %}
+    {% set active = path == '/admin' or path.startswith('/admin/user') %}
+    {% else %}
+    {% set active = path == href or path.startswith(href ~ '/') %}
+    {% endif %}
+    <a href="{{ href }}" class="{{ 'active' if active }}"{% if active %} aria-current="page"{% endif %}>
+        <span class="material-symbols-rounded bp-icon-inline">{{ icon }}</span>{{ label }}
+    </a>
+    {% endfor %}
+</nav>

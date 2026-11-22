@@ -30,9 +30,6 @@
                 <div class="nav-dropdown-menu hidden" id="personal-dropdown">
                     <a href="/profile">Profiel</a>
                     <a href="/admin" class="hidden" id="admin-link">Admin</a>
-                    <a href="/admin/afvalwijzer" class="hidden" id="afvalwijzer-link">Afvalwijzer</a>
-                    <a href="/admin/google-calendar-api" class="hidden" id="google-calendar-link">Google Calendar API</a>
-                    <a href="/admin/upgrades" class="hidden" id="upgrades-link">Upgrades</a>
                     <div class="dropdown-sep"></div>
                     <a href="/logout">Uitloggen</a>
                 </div>
@@ -42,7 +39,9 @@
     {% endif %}
 
     <main class="main-content{% if page in ['login', 'setup'] %} auth-main{% endif %}">
+        {% if page == 'admin' %}<div class="admin-layout">{% include "_admin_nav.html" %}<div class="admin-body">{% endif %}
         {% block content %}{% endblock %}
+        {% if page == 'admin' %}</div></div>{% endif %}
     </main>
 
     <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>

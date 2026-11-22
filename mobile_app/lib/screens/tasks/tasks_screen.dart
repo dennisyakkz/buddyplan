@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/ai_provider.dart';
 import '../../models/person.dart';
 import '../../models/task_item.dart';
 import '../../providers/tasks_provider.dart';
@@ -59,9 +60,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
   }
 
   void _loadCurrentRange() {
-    final start = _view == TasksView.week
-        ? _monday(_focusedDay)
-        : _focusedDay;
+    final start = _view == TasksView.week ? _monday(_focusedDay) : _focusedDay;
     final end = _view == TasksView.week
         ? _monday(_focusedDay).add(const Duration(days: 6))
         : _focusedDay;
@@ -69,9 +68,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
   }
 
   Future<void> _refreshCurrentRange() async {
-    final start = _view == TasksView.week
-        ? _monday(_focusedDay)
-        : _focusedDay;
+    final start = _view == TasksView.week ? _monday(_focusedDay) : _focusedDay;
     final end = _view == TasksView.week
         ? _monday(_focusedDay).add(const Duration(days: 6))
         : _focusedDay;
@@ -83,13 +80,14 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
     ]);
   }
 
-  DateTime _monday(DateTime d) =>
-      d.subtract(Duration(days: d.weekday - 1));
+  DateTime _monday(DateTime d) => d.subtract(Duration(days: d.weekday - 1));
 
   String get _viewLabel => _view == TasksView.day ? 'Dag' : 'Week';
 
   @override
   Widget build(BuildContext context) {
+    // REQ-MOB-054: reload after the AI buddy answered; it may have changed data.
+    ref.listen(dataRefreshProvider, (_, __) => _refreshCurrentRange());
     final tasksState = ref.watch(tasksProvider);
     final taskUsersState = ref.watch(taskUsersProvider);
     final taskUsersNotifier = ref.read(taskUsersProvider.notifier);
@@ -166,9 +164,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
       );
     }
 
-    final visibleTasks = tasksState.tasks
-        .where((t) => enabledIds.contains(t.personId))
-        .toList();
+    final visibleTasks =
+        tasksState.tasks.where((t) => enabledIds.contains(t.personId)).toList();
     final filteredState = TasksState(
       tasks: visibleTasks,
       isLoading: tasksState.isLoading,
@@ -198,8 +195,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
         );
       case TasksView.week:
         final monday = _monday(_focusedDay);
-        final days =
-            List.generate(7, (i) => monday.add(Duration(days: i)));
+        final days = List.generate(7, (i) => monday.add(Duration(days: i)));
         return WeekTasksView(
           days: days,
           tasksForDay: (day) => filteredState.tasksForDay(day),
@@ -257,10 +253,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
               child: Text('Weergave',
                   style: Theme.of(context).textTheme.titleSmall),
             ),
-            _viewTile(
-                context, TasksView.day, Icons.today, 'Dag – vandaag'),
-            _viewTile(
-                context, TasksView.week, Icons.view_week, 'Week'),
+            _viewTile(context, TasksView.day, Icons.today, 'Dag – vandaag'),
+            _viewTile(context, TasksView.week, Icons.view_week, 'Week'),
             const Divider(),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
@@ -279,8 +273,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
                       : taskUsersState.users.isEmpty
                           ? const Padding(
                               padding: EdgeInsets.all(16),
-                              child: Text(
-                                  'Geen gebruikers met taken gevonden.'),
+                              child:
+                                  Text('Geen gebruikers met taken gevonden.'),
                             )
                           : ListView(
                               children: taskUsersState.users

@@ -1,7 +1,7 @@
 import json
 from datetime import UTC, date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, false, true
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, false, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -306,3 +306,89 @@ class DashboardUpgrade(Base):
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     file_path: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class AiConfig(Base):
+    """AI buddy settings (REQ-BE-081, REQ-BE-082); a single row."""
+
+    __tablename__ = "ai_config"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    api_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    model: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # None means the default system prompt shipped with the backend
+    system_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Off until an administrator switches it on (REQ-BE-081); messages sent as context (REQ-BE-087)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    context_messages: Mapped[int] = mapped_column(Integer, default=20, server_default="20")
+    # Debug log with full request and response bodies (REQ-BE-092, REQ-BE-093)
+    debug_log_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    debug_retention_days: Mapped[int] = mapped_column(Integer, default=7, server_default="7")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class AiMessage(Base):
+    """One message of a user's conversation with the AI buddy (REQ-BE-087)."""
+
+    __tablename__ = "ai_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    person_id: Mapped[int] = mapped_column(ForeignKey("persons.id", ondelete="CASCADE"), index=True)
+    role: Mapped[str] = mapped_column(String(20), nullable=False)  # "user" or "assistant"
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class AiPendingDeletion(Base):
+    """A deletion the AI buddy proposed and the user still has to confirm (REQ-BE-086)."""
+
+    __tablename__ = "ai_pending_deletions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    person_id: Mapped[int] = mapped_column(ForeignKey("persons.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(20), nullable=False)  # "agenda" or "task"
+    item_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    # The user message during which the deletion was proposed; confirming needs a later message.
+    proposed_in_message_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class AiCall(Base):
+    """One generateContent call to Gemini (REQ-BE-091); bodies only while debugging (REQ-BE-092)."""
+
+    __tablename__ = "ai_calls"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    # SET NULL keeps tokens and costs when a person or a conversation is deleted (REQ-BE-093)
+    person_id: Mapped[int | None] = mapped_column(
+        ForeignKey("persons.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    message_id: Mapped[int | None] = mapped_column(
+        ForeignKey("ai_messages.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    activity: Mapped[str] = mapped_column(String(30), nullable=False)
+    model: Mapped[str] = mapped_column(String(100), nullable=False)
+    status: Mapped[str] = mapped_column(String(10), nullable=False)  # "ok", "empty" or "error"
+    http_status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    thinking_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cached_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    request_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    response_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class AiModelPrice(Base):
+    """Price of a Gemini model in euros per 1M tokens, valid from a date (REQ-BE-095)."""
+
+    __tablename__ = "ai_model_prices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    model: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    input_price_per_1m: Mapped[float] = mapped_column(Float, nullable=False)
+    output_price_per_1m: Mapped[float] = mapped_column(Float, nullable=False)
+    valid_from: Mapped[date] = mapped_column(Date, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

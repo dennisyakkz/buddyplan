@@ -1,0 +1,44 @@
+[DOCUMENT]
+TITLE: Tasks
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Tasks, recurrence and completion. UIDs: REQ-BE-030 .. 039.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-030
+STATUS: Draft
+TITLE: Task contents
+STATEMENT: >>>
+A task shall have a title, an optional description, a person, a date and an icon.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-031
+STATUS: Draft
+TITLE: Recurrence
+STATEMENT: >>>
+Tasks and agenda items shall support the repeat types once, daily, weekly, every two weeks and selected weekdays, with an optional end date. A repeating item shall not occur before its start date or after its end date.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-032
+STATUS: Draft
+TITLE: Completion per occurrence
+STATEMENT: >>>
+Completing a repeating task shall mark only the occurrence on the given date as done.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-033
+STATUS: Draft
+TITLE: Move and reorder
+STATEMENT: >>>
+Task managers shall be able to move a task to another date and to set the order of tasks within a day.
+<<<

@@ -1,0 +1,13 @@
+[DOCUMENT]
+TITLE: Setup and authentication
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @verification
+
+[TEXT]
+STATEMENT: >>>
+How the requirements in ``docs/requirements/backend/setup_auth.sdoc`` are verified.
+<<<
+

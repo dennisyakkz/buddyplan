@@ -1,0 +1,42 @@
+[DOCUMENT]
+TITLE: General
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Cross-cutting: language, migrations, admin navigation. UIDs: REQ-BE-070 .. 079.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-070
+STATUS: Draft
+TITLE: Dutch interface
+STATEMENT: >>>
+All user-facing text, including API error messages, shall be in Dutch.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-071
+STATUS: Draft
+TITLE: Automatic migrations
+STATEMENT: >>>
+On startup the backend shall bring the database schema up to date without losing existing data.
+<<<
+COMMENT: >>>
+Existing data includes rows that depend on a rebuilt table through an ON DELETE CASCADE foreign key, such as the agenda items imported from a calendar feed. SQLite batch migrations rebuild a table by dropping it, so foreign keys are switched off while migrating and checked afterwards.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-072
+STATUS: Draft
+TITLE: Admin navigation panel
+STATEMENT: >>>
+Every admin page of the web admin shall show a navigation panel on the left with the admin sections: 'Gebruikers' (/admin), 'Afvalwijzer', 'Google Calendar API', 'AI buddy' and 'Upgrades'. The section of the current page shall be marked as active; the user detail pages count as 'Gebruikers' and the AI log, cost and price pages as 'AI buddy'. On narrow screens the panel shall move above the page content. The personal menu shall keep a single 'Admin' link that opens /admin; the separate links to the other admin sections move to the panel.
+<<<
+COMMENT: >>>
+Only administrators see admin pages (REQ-BE-020), so the panel needs no per-item permission check. The tabs inside the AI buddy section (REQ-BE-090..097) stay as they are.
+<<<

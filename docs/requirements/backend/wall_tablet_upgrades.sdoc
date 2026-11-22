@@ -1,0 +1,20 @@
+[DOCUMENT]
+TITLE: Wall tablet upgrades
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Distribution of the wall tablet APK. UIDs: REQ-BE-050, 052 .. 059.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-050
+STATUS: Draft
+TITLE: Display APK distribution
+STATEMENT: >>>
+An administrator shall be able to upload a new display app APK. The API shall report the uploaded version to the tablets and serve the APK for download to logged-in devices.
+<<<

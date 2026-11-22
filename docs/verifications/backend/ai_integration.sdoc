@@ -1,0 +1,163 @@
+[DOCUMENT]
+TITLE: AI integration
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @verification
+
+[TEXT]
+STATEMENT: >>>
+How the requirements in ``docs/requirements/backend/ai_integration.sdoc`` are verified.
+<<<
+
+[VERIFICATION]
+UID: VER-BE-014
+METHOD: Test
+TITLE: AI buddy answers through Gemini
+STATEMENT: >>>
+A message gets the model's answer, and the conversation is returned in order.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_context_is_always_sent, test_conversation_is_per_user_and_can_be_cleared
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-015
+METHOD: Test
+TITLE: AI settings
+STATEMENT: >>>
+Only administrators read and change the settings; the AI buddy starts switched off and switching it off keeps the other settings; the context size is validated; the key is shown only by its last four characters and an empty key keeps the stored one; the settings page loads for administrators only and states that data goes to Google.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_admin_sets_key_model_and_prompt, test_list_models_keeps_generating_models, test_switch_turns_the_ai_buddy_off, test_new_settings_start_switched_off, test_history_follows_the_context_setting
+backend/tests/test_web_pages.py: test_admin_login_and_logout, test_regular_user_is_kept_out_of_admin_pages
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-081
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-016
+METHOD: Test
+TITLE: Default prompt and fixed context
+STATEMENT: >>>
+The default prompt is used until changed and comes back when cleared; date, caller and people are sent next to an edited prompt.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_admin_sets_key_model_and_prompt, test_context_is_always_sent
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-082
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-017
+METHOD: Test
+TITLE: Unavailable and failing AI buddy
+STATEMENT: >>>
+Without settings, or while switched off, the status is 'not configured' and messages get the Dutch error; connection errors, timeouts and 5xx are tried three times in total after 1 and 2 seconds, 4xx once; a final failure gives the Dutch error, keeps the message, and sending it again does not duplicate it.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_unavailable_until_configured, test_switch_turns_the_ai_buddy_off, test_gemini_failure_keeps_the_message, test_transient_failures_are_retried
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-083
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-018
+METHOD: Test
+TITLE: Tools have the caller's rights
+STATEMENT: >>>
+Creating agenda items or tasks for someone the caller does not manage is refused with the API's Dutch message; imported items cannot be changed or deleted.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_tools_have_the_rights_of_the_caller, test_imported_items_stay_read_only
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-084
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-019
+METHOD: Test
+TITLE: Agenda and task tools
+STATEMENT: >>>
+Agenda items and tasks are created, found by date, person and text, and changed through the tools.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_agenda_tools_create_search_update, test_task_tools_create_search_update
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-085
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-020
+METHOD: Test
+TITLE: Deleting needs a later confirmation
+STATEMENT: >>>
+A delete call, also with confirmed=true, in the same message only asks for confirmation; a confirmed call in the next message deletes.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_delete_needs_confirmation_in_a_later_message
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-086
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-021
+METHOD: Test
+TITLE: Conversation per user
+STATEMENT: >>>
+Each user only sees their own conversation, earlier messages are sent as context up to the configured number (default 20, 2 to 100), and clearing empties it.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_conversation_is_per_user_and_can_be_cleared, test_history_follows_the_context_setting
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-087
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-022
+METHOD: Test
+TITLE: At most ten tool calls
+STATEMENT: >>>
+A model that keeps calling tools gets ten tool results, then a request without tools, whose answer is shown.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_at_most_ten_tool_calls_per_message
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-088
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-023
+METHOD: Test
+TITLE: AI changes reach the wall tablet
+STATEMENT: >>>
+A change made by the AI buddy changes the dashboard etag.
+<<<
+TEST: >>>
+backend/tests/test_ai_buddy.py: test_agenda_tools_create_search_update
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-089
+  ROLE: Verifies

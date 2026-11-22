@@ -1,0 +1,134 @@
+[DOCUMENT]
+TITLE: AI monitoring
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @verification
+
+[TEXT]
+STATEMENT: >>>
+How the requirements in ``docs/requirements/backend/ai_monitoring.sdoc`` are verified. The tests are planned; they are written together with the implementation.
+<<<
+
+[VERIFICATION]
+UID: VER-BE-024
+METHOD: Test
+TITLE: Monitoring is for administrators only
+STATEMENT: >>>
+The call log, price and cost endpoints and pages answer administrators and refuse regular users with HTTP 403.
+<<<
+TEST: >>>
+backend/tests/test_ai_monitoring.py: test_monitoring_endpoints_are_admin_only
+backend/tests/test_web_pages.py: test_regular_user_is_kept_out_of_admin_pages
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-090
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-025
+METHOD: Test
+TITLE: Every Gemini call is recorded
+STATEMENT: >>>
+A message with two tool rounds gives three records linked to that message, with the token counts (thinking and cached tokens included) from ``usageMetadata``; a failing call and a timeout give an ``error`` record; an answer without text or tool call gives an ``empty`` record; a failing log write does not change the reply.
+<<<
+TEST: >>>
+backend/tests/test_ai_monitoring.py: test_each_round_is_recorded_with_tokens, test_failed_call_is_recorded, test_empty_answer_is_recorded, test_log_failure_does_not_break_chat
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-091
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-026
+METHOD: Test
+TITLE: Debug content only while the debug log is on
+STATEMENT: >>>
+With the debug log off a record has no request or response; with it on, both are stored in full and the API key appears in neither; the settings page shows the notice.
+<<<
+TEST: >>>
+backend/tests/test_ai_monitoring.py: test_no_content_while_debug_off, test_full_content_while_debug_on, test_api_key_is_never_stored
+backend/tests/test_web_pages.py: test_ai_settings_page_shows_debug_notice
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-092
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-027
+METHOD: Test
+TITLE: Debug content is removed
+STATEMENT: >>>
+The cleanup job removes content older than the retention period and keeps the tokens; the administrator can clear all content; clearing a conversation removes that user's content only; deleting a person keeps the tokens without the link and the content.
+<<<
+TEST: >>>
+backend/tests/test_ai_monitoring.py: test_retention_removes_old_content, test_admin_clears_all_content, test_clearing_conversation_removes_own_content, test_deleting_person_keeps_costs
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-093
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-028
+METHOD: Test
+TITLE: Call log listing
+STATEMENT: >>>
+The log endpoint returns records newest first in pages of 50, filters on user, status, activity type and date range, groups by user message, and returns the content of a record with debug content.
+<<<
+TEST: >>>
+backend/tests/test_ai_monitoring.py: test_call_log_paging_and_filters, test_call_log_detail_with_content
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-094
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-029
+METHOD: Test
+TITLE: Model prices
+STATEMENT: >>>
+Adding a price keeps earlier prices of the model, a price can be deleted, and the list includes logged and configured models without a price, marked as such.
+<<<
+TEST: >>>
+backend/tests/test_ai_monitoring.py: test_price_history_per_model, test_models_without_price_are_listed
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-095
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-030
+METHOD: Test
+TITLE: Cost calculation
+STATEMENT: >>>
+A call uses the price valid on its day (also around a price change at midnight Europe/Amsterdam), thinking tokens are priced as output, and a call without a price counts as zero and is reported as unpriced.
+<<<
+TEST: >>>
+backend/tests/test_ai_monitoring.py: test_cost_uses_price_of_call_day, test_thinking_tokens_cost_as_output, test_unpriced_calls_are_counted
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-096
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-031
+METHOD: Test
+TITLE: Cost overview
+STATEMENT: >>>
+For a period the overview returns the totals, the breakdowns per activity type, model and user, and the cost per day; without a period it covers the current month.
+<<<
+TEST: >>>
+backend/tests/test_ai_monitoring.py: test_cost_overview_totals_and_breakdowns, test_cost_overview_defaults_to_current_month
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-097
+  ROLE: Verifies

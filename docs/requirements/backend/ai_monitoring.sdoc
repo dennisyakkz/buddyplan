@@ -1,0 +1,114 @@
+[DOCUMENT]
+TITLE: AI monitoring
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Requirements for monitoring the AI buddy (REQ-BE-080): a log of every Gemini call, an optional debug log with the full request and response, model prices, and a cost overview in the web admin. UIDs: REQ-BE-090 .. 099.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-090
+STATUS: Draft
+TITLE: AI monitoring for administrators
+STATEMENT: >>>
+The web admin shall give administrators insight into the AI buddy's use of the Gemini API: a log of the API calls (REQ-BE-094) and a cost overview (REQ-BE-097) based on model prices they maintain (REQ-BE-095). Only administrators can open these pages and their API endpoints; other users get HTTP 403.
+<<<
+RATIONALE: >>>
+The administrator pays for the API key and needs to see what it costs and why an answer went wrong, without guessing from the chat alone.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+
+[REQUIREMENT]
+UID: REQ-BE-091
+STATUS: Draft
+TITLE: Record every Gemini call
+STATEMENT: >>>
+The backend shall store a record of every ``generateContent`` call to Gemini, including each round of a tool loop (REQ-BE-088) and calls that fail or time out. A record holds: the time, the user it was made for, the activity type (``chat`` for the AI buddy), the model, the status (``ok``, ``empty`` when the answer had no text and no tool call, or ``error``), the HTTP status code, the duration in milliseconds, the error message, the user message it belongs to, and the token counts from the response's ``usageMetadata``: prompt tokens, output tokens, thinking tokens and cached prompt tokens. A failure to store the record shall be logged and shall not change the answer the user gets.
+<<<
+RATIONALE: >>>
+Thinking tokens are billed as output by Gemini; without them the costs of thinking models are too low. Linking calls to the user message shows how many rounds one question took.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-090
+
+[REQUIREMENT]
+UID: REQ-BE-092
+STATUS: Draft
+TITLE: Debug log with full request and response
+STATEMENT: >>>
+An administrator shall be able to turn a debug log on and off on the 'AI buddy' settings page; it is off by default. While it is on, each call record (REQ-BE-091) also stores the full request body sent to Gemini (system instruction, conversation, tool declarations and tool results) and the full response body or error body. While it is off, no request or response content is stored. The API key is never stored in a record. The settings page shall state that, while the debug log is on, the chat messages and the agenda and task data in the requests are readable by administrators.
+<<<
+RATIONALE: >>>
+The content is needed to debug wrong answers and tool calls, but it contains the users' conversations (REQ-BE-087), so it is opt-in and visible to everyone through the notice.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-091
+- TYPE: Parent
+  VALUE: REQ-BE-087
+
+[REQUIREMENT]
+UID: REQ-BE-093
+STATUS: Draft
+TITLE: Debug content is temporary
+STATEMENT: >>>
+The backend shall delete the request and response content of call records automatically once it is older than the retention period, which an administrator sets on the 'AI buddy' settings page (1 to 90 days, default 7). An administrator can also delete all debug content at once. When a user clears their conversation (REQ-BE-087), the content of that user's call records is deleted as well. Deleting content keeps the rest of the record, so the cost overview stays complete. When a person is deleted, their call records keep their tokens and costs but lose the link to the person and their content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-092
+
+[REQUIREMENT]
+UID: REQ-BE-094
+STATUS: Draft
+TITLE: AI call log page
+STATEMENT: >>>
+The web admin shall have an 'AI-logboek' page that lists call records newest first, 50 per page, with filters for user, status, activity type and date range. Each row shows the time, user, model, status, token counts, duration and cost (REQ-BE-096). For a record with debug content, the administrator can open the request and the response, formatted as readable JSON. The records of one user message can be shown together.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-090
+
+[REQUIREMENT]
+UID: REQ-BE-095
+STATUS: Draft
+TITLE: Model prices
+STATEMENT: >>>
+An administrator shall be able to maintain prices per model on an 'AI-prijzen' page: an input price and an output price in euros per 1 million tokens, valid from a date. A model can have several prices over time; adding a new price keeps the older ones, and a single price can be deleted. The page lists every model that has a price, appears in the call records, or is the configured model, and marks models without a price.
+<<<
+RATIONALE: >>>
+Prices change over time; a price with a start date keeps the costs of earlier calls correct. Gemini publishes prices in US dollars; the administrator enters the amount they actually pay.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-090
+
+[REQUIREMENT]
+UID: REQ-BE-096
+STATUS: Draft
+TITLE: Cost of a call
+STATEMENT: >>>
+The cost of a call shall be calculated with the price of its model that was valid on the day of the call (Europe/Amsterdam): prompt tokens times the input price plus output and thinking tokens times the output price, divided by 1 million. A call whose model had no valid price has an unknown cost: it counts as zero in totals, and every overview that includes such calls shows how many there are.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-095
+
+[REQUIREMENT]
+UID: REQ-BE-097
+STATUS: Draft
+TITLE: Cost overview page
+STATEMENT: >>>
+The web admin shall have an 'AI-kosten' page for a chosen period (default: the current month, days in Europe/Amsterdam) that shows the total cost, the number of calls, prompt, output and thinking tokens, the number of active users and the average cost per active user; the costs and number of calls per activity type, per model (with its current price) and per user; and the cost per day. Prices of later changes do not change the costs of earlier calls (REQ-BE-096).
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-090

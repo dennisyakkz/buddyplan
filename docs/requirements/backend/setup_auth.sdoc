@@ -1,0 +1,58 @@
+[DOCUMENT]
+TITLE: Setup and authentication
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+First-run setup, web sessions, device tokens and secrets. UIDs: REQ-BE-010 .. 019.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-010
+STATUS: Draft
+TITLE: First-run setup
+STATEMENT: >>>
+While no user with a login exists, the web admin shall offer a setup wizard that creates the first administrator. Once a login user exists, the setup pages shall redirect to the login page.
+<<<
+RATIONALE: >>>
+A fresh installation ships without accounts or default passwords.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-011
+STATUS: Draft
+TITLE: Web sessions
+STATEMENT: >>>
+Web admin pages shall require a logged-in session (cookie ``buddyplan_session``); administrator pages shall additionally require administrator rights.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-012
+STATUS: Draft
+TITLE: API tokens per device
+STATEMENT: >>>
+``POST /api/auth/login`` shall exchange a valid username and password plus a device ID for a bearer token. Logging in again from the same device shall replace that device's token. Tokens shall be stored only as a peppered hash.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-013
+STATUS: Draft
+TITLE: Device revocation
+STATEMENT: >>>
+A user shall be able to list and revoke their own logged-in devices, and an administrator those of any user. Requests with a revoked token shall get HTTP 401.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-014
+STATUS: Draft
+TITLE: Required secrets
+STATEMENT: >>>
+The backend shall refuse to start without ``SESSION_SECRET_KEY`` and ``TOKEN_PEPPER``, unless ``BUDDYPLAN_DEV=1`` is set.
+<<<
+RATIONALE: >>>
+Prevents running production with guessable or missing secrets.
+<<<

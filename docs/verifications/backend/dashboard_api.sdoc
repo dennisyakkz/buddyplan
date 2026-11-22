@@ -1,0 +1,42 @@
+[DOCUMENT]
+TITLE: Dashboard API
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @verification
+
+[TEXT]
+STATEMENT: >>>
+How the requirements in ``docs/requirements/backend/dashboard_api.sdoc`` are verified.
+<<<
+
+[VERIFICATION]
+UID: VER-BE-001
+METHOD: Test
+TITLE: Every change changes the etag
+STATEMENT: >>>
+Each kind of task, agenda and profile change made through the API produces a different ``/api/dashboard/etag`` value.
+<<<
+TEST: >>>
+backend/tests/test_dashboard_sync.py: test_every_task_change_changes_the_etag, test_every_agenda_change_changes_the_etag, test_changing_a_profile_color_changes_the_etag
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-001
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-002
+METHOD: Test
+TITLE: Range limit
+STATEMENT: >>>
+A 12-week range returns 12 weeks; a 13-week range returns HTTP 400.
+<<<
+TEST: >>>
+backend/tests/test_dashboard_sync.py: test_dashboard_range_is_limited_to_twelve_weeks
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-002
+  ROLE: Verifies

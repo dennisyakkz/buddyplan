@@ -88,8 +88,32 @@ def start_scheduler() -> BackgroundScheduler:
         max_instances=1,
     )
 
+    def ai_debug_purge_job():
+        from app.services.ai_monitoring import purge_old_content
+
+        db = SessionLocal()
+        try:
+            purge_old_content(db)
+        except Exception:
+            logger.exception("Removing old AI debug content failed")
+        finally:
+            db.close()
+
+    # Remove AI debug content older than the retention period (REQ-BE-093), hourly so it never lingers a day.
+    _scheduler.add_job(
+        ai_debug_purge_job,
+        "interval",
+        hours=1,
+        id="ai_debug_purge",
+        replace_existing=True,
+        max_instances=1,
+    )
+
     _scheduler.start()
-    logger.info("Scheduler started (iCal every 5 min, Google Calendar every 10 min, afvalwijzer every Sunday 02:00)")
+    logger.info(
+        "Scheduler started (iCal every 5 min, Google Calendar every 10 min, afvalwijzer every Sunday 02:00, "
+        "AI debug cleanup hourly)"
+    )
     return _scheduler
 
 

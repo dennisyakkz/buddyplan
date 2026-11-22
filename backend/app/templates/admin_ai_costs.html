@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>AI buddy</h1>
+</div>
+{% include "_ai_tabs.html" %}
+
+<section class="settings-section">
+    <h2>AI-kosten</h2>
+    <p class="hint">Kosten worden berekend met de prijs die gold op de dag van elke aanroep. Prijzen beheer je op <a href="/admin/ai/prices">AI-prijzen</a>.</p>
+    <form class="ai-filters" id="ai-cost-period">
+        <div class="form-group">
+            <label for="c-from">Van</label>
+            <input type="date" id="c-from">
+        </div>
+        <div class="form-group">
+            <label for="c-to">Tot en met</label>
+            <input type="date" id="c-to">
+        </div>
+        <button type="button" class="btn btn-secondary btn-small" id="c-month">Deze maand</button>
+    </form>
+    <p class="ai-notice hidden" id="ai-cost-unpriced"></p>
+    <div class="ai-stats" id="ai-cost-stats"></div>
+</section>
+
+<section class="settings-section">
+    <h2>Kosten per dag</h2>
+    <div class="ai-day-chart" id="ai-cost-days"></div>
+    <div class="ai-day-labels"><span id="ai-cost-day-first"></span><span id="ai-cost-day-last"></span></div>
+</section>
+
+<section class="settings-section">
+    <h2>Per gebruiker</h2>
+    <div class="ai-table-wrap"><table class="ai-table" id="ai-cost-users"></table></div>
+</section>
+
+<section class="settings-section">
+    <h2>Per model</h2>
+    <div class="ai-table-wrap"><table class="ai-table" id="ai-cost-models"></table></div>
+</section>
+
+<section class="settings-section">
+    <h2>Per activiteit</h2>
+    <div class="ai-table-wrap"><table class="ai-table" id="ai-cost-activities"></table></div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ static_url('js/ai_monitoring.js') }}"></script>
+<script src="{{ static_url('js/admin_ai_costs.js') }}"></script>
+{% endblock %}

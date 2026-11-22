@@ -148,6 +148,38 @@ def admin_google_calendar_page(request: Request):
     return templates.TemplateResponse("admin_google_calendar.html", {"request": request, "page": "admin"})
 
 
+@router.get("/admin/ai", response_class=HTMLResponse)
+def admin_ai_page(request: Request):
+    redirect = _require_admin(request)
+    if redirect:
+        return redirect
+    return templates.TemplateResponse("admin_ai.html", {"request": request, "page": "admin", "ai_tab": "settings"})
+
+
+@router.get("/admin/ai/log", response_class=HTMLResponse)
+def admin_ai_log_page(request: Request):
+    redirect = _require_admin(request)
+    if redirect:
+        return redirect
+    return templates.TemplateResponse("admin_ai_log.html", {"request": request, "page": "admin", "ai_tab": "log"})
+
+
+@router.get("/admin/ai/costs", response_class=HTMLResponse)
+def admin_ai_costs_page(request: Request):
+    redirect = _require_admin(request)
+    if redirect:
+        return redirect
+    return templates.TemplateResponse("admin_ai_costs.html", {"request": request, "page": "admin", "ai_tab": "costs"})
+
+
+@router.get("/admin/ai/prices", response_class=HTMLResponse)
+def admin_ai_prices_page(request: Request):
+    redirect = _require_admin(request)
+    if redirect:
+        return redirect
+    return templates.TemplateResponse("admin_ai_prices.html", {"request": request, "page": "admin", "ai_tab": "prices"})
+
+
 @router.get("/admin/upgrades", response_class=HTMLResponse)
 def admin_upgrades_page(request: Request):
     redirect = _require_admin(request)

@@ -8,367 +8,74 @@ IMPORT_FROM_FILE: @requirement
 
 [TEXT]
 STATEMENT: >>>
-Requirements for the FastAPI backend and web admin in ``backend/``. Verifications live in ``docs/verifications/backend/``.
+Requirements for the FastAPI backend and web admin in ``backend/``, split into one document per feature. This index includes all feature documents, so the export shows them as one document with a chapter per feature. Verifications live in ``docs/verifications/backend/`` with the same file names.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Feature
+     - File
+     - UIDs
+   * - Dashboard API
+     - ``dashboard_api.sdoc``
+     - REQ-BE-001 .. 009
+   * - Setup and authentication
+     - ``setup_auth.sdoc``
+     - REQ-BE-010 .. 019
+   * - People and permissions
+     - ``people_permissions.sdoc``
+     - REQ-BE-020 .. 029
+   * - Tasks
+     - ``tasks.sdoc``
+     - REQ-BE-030 .. 039
+   * - Agenda
+     - ``agenda.sdoc``
+     - REQ-BE-040 .. 049, REQ-BE-051
+   * - Wall tablet upgrades
+     - ``wall_tablet_upgrades.sdoc``
+     - REQ-BE-050, 052 .. 059
+   * - Afvalwijzer (optional)
+     - ``afvalwijzer.sdoc``
+     - REQ-BE-060 .. 069
+   * - AI integration
+     - ``ai_integration.sdoc``
+     - REQ-BE-080 .. 089
+   * - AI monitoring
+     - ``ai_monitoring.sdoc``
+     - REQ-BE-090 .. 099
+   * - General
+     - ``general.sdoc``
+     - REQ-BE-070 .. 079
+
+UIDs are permanent: a requirement keeps its UID when it moves. Each feature has a block of ten numbers; when a block is full, take the next free number and keep the requirement in its feature document (e.g. REQ-BE-051 belongs to Agenda). A feature-level requirement can be the ``Parent`` of the detailed requirements below it.
 <<<
 
-[[SECTION]]
-TITLE: Setup and authentication
+[DOCUMENT_FROM_FILE]
+FILE: dashboard_api.sdoc
 
-[REQUIREMENT]
-UID: REQ-BE-010
-STATUS: Draft
-TITLE: First-run setup
-STATEMENT: >>>
-While no user with a login exists, the web admin shall offer a setup wizard that creates the first administrator. Once a login user exists, the setup pages shall redirect to the login page.
-<<<
-RATIONALE: >>>
-A fresh installation ships without accounts or default passwords.
-<<<
+[DOCUMENT_FROM_FILE]
+FILE: setup_auth.sdoc
 
-[REQUIREMENT]
-UID: REQ-BE-011
-STATUS: Draft
-TITLE: Web sessions
-STATEMENT: >>>
-Web admin pages shall require a logged-in session (cookie ``buddyplan_session``); administrator pages shall additionally require administrator rights.
-<<<
+[DOCUMENT_FROM_FILE]
+FILE: people_permissions.sdoc
 
-[REQUIREMENT]
-UID: REQ-BE-012
-STATUS: Draft
-TITLE: API tokens per device
-STATEMENT: >>>
-``POST /api/auth/login`` shall exchange a valid username and password plus a device ID for a bearer token. Logging in again from the same device shall replace that device's token. Tokens shall be stored only as a peppered hash.
-<<<
+[DOCUMENT_FROM_FILE]
+FILE: tasks.sdoc
 
-[REQUIREMENT]
-UID: REQ-BE-013
-STATUS: Draft
-TITLE: Device revocation
-STATEMENT: >>>
-A user shall be able to list and revoke their own logged-in devices, and an administrator those of any user. Requests with a revoked token shall get HTTP 401.
-<<<
+[DOCUMENT_FROM_FILE]
+FILE: agenda.sdoc
 
-[REQUIREMENT]
-UID: REQ-BE-014
-STATUS: Draft
-TITLE: Required secrets
-STATEMENT: >>>
-The backend shall refuse to start without ``SESSION_SECRET_KEY`` and ``TOKEN_PEPPER``, unless ``BUDDYPLAN_DEV=1`` is set.
-<<<
-RATIONALE: >>>
-Prevents running production with guessable or missing secrets.
-<<<
+[DOCUMENT_FROM_FILE]
+FILE: wall_tablet_upgrades.sdoc
 
-[[/SECTION]]
+[DOCUMENT_FROM_FILE]
+FILE: afvalwijzer.sdoc
 
-[[SECTION]]
-TITLE: People and permissions
+[DOCUMENT_FROM_FILE]
+FILE: ai_integration.sdoc
 
-[REQUIREMENT]
-UID: REQ-BE-020
-STATUS: Draft
-TITLE: User management
-STATEMENT: >>>
-An administrator shall be able to create, edit, reorder and delete people, and set per person whether they can log in and whether they are an administrator.
-<<<
+[DOCUMENT_FROM_FILE]
+FILE: ai_monitoring.sdoc
 
-[REQUIREMENT]
-UID: REQ-BE-021
-STATUS: Draft
-TITLE: Agenda managers
-STATEMENT: >>>
-Each person shall have a list of people who may manage their agenda, by default the person themself. Only those people shall be able to create, edit or delete that person's agenda items.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-022
-STATUS: Draft
-TITLE: Task managers
-STATEMENT: >>>
-The task system shall be enabled per person, with a list of people who may manage that person's tasks. Only those people shall be able to create, edit, move, reorder or delete that person's tasks. Completing tasks follows REQ-BE-024.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-023
-STATUS: Draft
-TITLE: Own profile
-STATEMENT: >>>
-A logged-in user shall be able to change their own name, e-mail address, password and profile colour.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-024
-STATUS: Active
-TITLE: Who may complete tasks
-STATEMENT: >>>
-A task occurrence shall be marked as done only when requested by the person the task belongs to, by one of that person's task managers, by an administrator, or by a device logged in as a wall tablet. Other requests shall get HTTP 403 with a Dutch error message.
-<<<
-RATIONALE: >>>
-Children tick off their own tasks on their phone or on the shared wall tablet without needing rights to change them.
-<<<
-COMMENT: >>>
-'Logged in as a wall tablet' means the token was issued with device type 'dashboard' (REQ-BE-012). The device type is declared by the client at login.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-022
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: Tasks
-
-[REQUIREMENT]
-UID: REQ-BE-030
-STATUS: Draft
-TITLE: Task contents
-STATEMENT: >>>
-A task shall have a title, an optional description, a person, a date and an icon.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-031
-STATUS: Draft
-TITLE: Recurrence
-STATEMENT: >>>
-Tasks and agenda items shall support the repeat types once, daily, weekly, every two weeks and selected weekdays, with an optional end date. A repeating item shall not occur before its start date or after its end date.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-032
-STATUS: Draft
-TITLE: Completion per occurrence
-STATEMENT: >>>
-Completing a repeating task shall mark only the occurrence on the given date as done.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-033
-STATUS: Draft
-TITLE: Move and reorder
-STATEMENT: >>>
-Task managers shall be able to move a task to another date and to set the order of tasks within a day.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: Agenda
-
-[REQUIREMENT]
-UID: REQ-BE-040
-STATUS: Draft
-TITLE: Manual agenda items
-STATEMENT: >>>
-Agenda managers shall be able to create, edit and delete agenda items with a title, date, optional start and end time and the repeat options of REQ-BE-031.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-041
-STATUS: Draft
-TITLE: iCal feeds
-STATEMENT: >>>
-A person shall be able to subscribe to iCal feeds (HTTPS or webcal URL) with a label, sync interval (15 minutes, 1 hour or 1 day), title prefix, colour and the choice to show times. The backend shall import the feeds in the background, honouring each feed's interval, including repeating events.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-044
-STATUS: Draft
-TITLE: Recognise voetbal.nl feeds
-STATEMENT: >>>
-When an iCal feed is added or synchronised, the backend shall recognise whether it is a voetbal.nl feed: the calendar name (X-WR-CALNAME) or the event organiser names Voetbal.nl. Only for voetbal.nl feeds the feed settings in the web admin (own profile and user admin) shall show the options of REQ-BE-045, REQ-BE-046, REQ-BE-047 and REQ-BE-048.
-<<<
-RATIONALE: >>>
-The feeds are served by data.sportlink.com (webcal or https, with a personal token), which also serves other sports, so the URL alone does not tell it is football.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-041
-
-[REQUIREMENT]
-UID: REQ-BE-045
-STATUS: Active
-TITLE: Home/away mode
-STATEMENT: >>>
-A voetbal.nl feed shall have a home/away mode, enabled by default for new feeds. When it is enabled, a match is shown with the title 'Voetbal thuis tegen <opponent>' or 'Voetbal uit tegen <opponent>'. When it is disabled, or for an item that is not a match of the own team (for example a training or a match without the own team), the title from the feed is shown unchanged. The feed prefix still applies.
-<<<
-RATIONALE: >>>
-Feed titles like "VV 't Dorp MO15-2-FC Voorbeeld MO15-4" are long and hard to read on the wall tablet; what matters is home or away and against whom.
-<<<
-COMMENT: >>>
-Titles are shaped when shown, not when imported, so changing the mode or the team name takes effect immediately on all clients without a re-sync.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-044
-
-[REQUIREMENT]
-UID: REQ-BE-046
-STATUS: Active
-TITLE: Own team
-STATEMENT: >>>
-A voetbal.nl feed shall have an 'own team' text field, editable in the feed settings. When the feed is recognised as a voetbal.nl feed and the field is empty, the backend shall fill it with the team name that occurs in the most match titles of the feed. A match title has the form '<home team>-<away team>'; it is a home match when it starts with the own team followed by '-', and an away match when it ends with '-' followed by the own team. The opponent is the rest of the title. A title that matches neither is not a match of the own team.
-<<<
-COMMENT: >>>
-Team names contain hyphens themselves (e.g. 'VV 't Dorp MO15-2-FC Voorbeeld MO15-4'), so titles cannot simply be split on '-': every split is a candidate and the name found in the most titles wins (the longest one when several are equally common). Once set, the field is never overwritten by the backend.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-044
-
-[REQUIREMENT]
-UID: REQ-BE-047
-STATUS: Active
-TITLE: Referee compact mode
-STATEMENT: >>>
-A voetbal.nl feed shall have a 'Scheidsrechter compact' switch, off by default. When it is on, an item whose title contains the word 'scheidsrechter' (case-insensitive) is shown with the title 'Fluiten <home team>'. The home team is taken from the match in the title (the text after the word 'scheidsrechter' and any following punctuation): it is the part before the '-' that separates the two teams, which is the first '-' that directly follows a digit and is not followed by a digit. For 'Scheidsrechter, FC Club JO15-1-SV Other JO15-2' the home team is 'FC Club JO15-1'. When no home team can be found, the title from the feed is shown unchanged. Items without the word 'scheidsrechter' follow REQ-BE-045. The feed prefix still applies.
-<<<
-RATIONALE: >>>
-Referee duties are listed as 'Scheidsrechter, <home team>-<away team>'; only which match at the own club has to be refereed matters.
-<<<
-COMMENT: >>>
-Like REQ-BE-045, the title is shaped when shown, so switching takes effect immediately without a re-sync.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-044
-
-[REQUIREMENT]
-UID: REQ-BE-048
-STATUS: Active
-TITLE: Club
-STATEMENT: >>>
-A voetbal.nl feed shall have a 'Club' text field, shown in the feed settings only while the referee compact mode (REQ-BE-047) is on. When the field is empty, the backend shall suggest the own team (REQ-BE-046) without its last word when that word contains a digit (the team code), e.g. 'FC Club' for 'FC Club JO15-1'; the user can edit it. In referee compact mode, a home team that starts with the club followed by a space is shown without the club: 'Fluiten FC Club JO15-1' becomes 'Fluiten JO15-1'. An empty club removes nothing.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-047
-
-[REQUIREMENT]
-UID: REQ-BE-049
-STATUS: Active
-TITLE: voetbal.nl items have only a start time
-STATEMENT: >>>
-For a voetbal.nl feed the backend shall import only the start time of each item; the end time stays empty. This applies to matches, referee duties and all other items of the feed.
-<<<
-COMMENT: >>>
-Existing items lose their end time on the next synchronisation of the feed.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-044
-
-[REQUIREMENT]
-UID: REQ-BE-051
-STATUS: Active
-TITLE: Referee duty replaces the same match
-STATEMENT: >>>
-When importing a voetbal.nl feed, the backend shall detect a match that occurs both as a normal item and as a referee duty: two items with the same start (date and time) where the referee duty's title, without the word 'scheidsrechter' and the punctuation that follows it, equals the normal item's title (case-insensitive, ignoring surrounding whitespace). For example 'FC Club JO15-1-SV Other JO15-2' and 'Scheidsrechter, FC Club JO15-1-SV Other JO15-2' on the same day at 10:00. Only the referee duty shall be imported. This applies whether or not the referee compact mode (REQ-BE-047) is on. Items that differ in start or title are all imported.
-<<<
-RATIONALE: >>>
-When a person both plays in and referees the same match, voetbal.nl lists it twice; on the wall tablet it should show once, as the referee duty.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-044
-
-[REQUIREMENT]
-UID: REQ-BE-042
-STATUS: Draft
-TITLE: Google Calendar
-STATEMENT: >>>
-Once an administrator has configured OAuth credentials, a person shall be able to connect their Google account, choose which calendars to import and filter events by colour. The backend shall sync the chosen calendars about every 10 minutes.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-043
-STATUS: Draft
-TITLE: Imported items are read-only
-STATEMENT: >>>
-Agenda items imported from iCal or Google shall not be editable through Buddyplan (HTTP 403).
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: Dashboard API
-
-[REQUIREMENT]
-UID: REQ-BE-001
-STATUS: Active
-TITLE: Dashboard change token
-STATEMENT: >>>
-``GET /api/dashboard/etag`` shall return a value that changes whenever data shown on the dashboard changes: creating, editing, reordering, moving, completing or deleting tasks, creating, editing or deleting agenda items, and changing a person's profile.
-<<<
-RATIONALE: >>>
-The wall tablet only reloads its data when this value changes.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-002
-STATUS: Active
-TITLE: Dashboard range limit
-STATEMENT: >>>
-``GET /api/dashboard`` shall accept date ranges of up to 12 weeks (83 days) and shall reject longer ranges with HTTP 400.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: Wall tablet upgrades
-
-[REQUIREMENT]
-UID: REQ-BE-050
-STATUS: Draft
-TITLE: Display APK distribution
-STATEMENT: >>>
-An administrator shall be able to upload a new display app APK. The API shall report the uploaded version to the tablets and serve the APK for download to logged-in devices.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: Afvalwijzer (optional)
-
-[REQUIREMENT]
-UID: REQ-BE-060
-STATUS: Draft
-TITLE: Waste collection schedule
-STATEMENT: >>>
-When configured with a Dutch postcode and house number, the backend shall fetch the collection schedule from mijnafvalwijzer.nl.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-061
-STATUS: Draft
-TITLE: Waste tasks
-STATEMENT: >>>
-Per waste type an administrator shall be able to choose who puts the bin out and who brings it back in, and when (the day before, the same day or the day after). The backend shall create these as normal tasks, on request and automatically every Sunday at 02:00 for the coming week.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: General
-
-[REQUIREMENT]
-UID: REQ-BE-070
-STATUS: Draft
-TITLE: Dutch interface
-STATEMENT: >>>
-All user-facing text, including API error messages, shall be in Dutch.
-<<<
-
-[REQUIREMENT]
-UID: REQ-BE-071
-STATUS: Draft
-TITLE: Automatic migrations
-STATEMENT: >>>
-On startup the backend shall bring the database schema up to date without losing existing data.
-<<<
-COMMENT: >>>
-Existing data includes rows that depend on a rebuilt table through an ON DELETE CASCADE foreign key, such as the agenda items imported from a calendar feed. SQLite batch migrations rebuild a table by dropping it, so foreign keys are switched off while migrating and checked afterwards.
-<<<
-
-[[/SECTION]]
+[DOCUMENT_FROM_FILE]
+FILE: general.sdoc

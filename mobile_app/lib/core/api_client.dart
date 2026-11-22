@@ -129,14 +129,14 @@ class ApiClient {
 
   Future<Map<String, dynamic>> createTask(
       int personId, Map<String, dynamic> data) async {
-    final resp = await dio
-        .post('/api/tasks', data: data, queryParameters: {'person_id': personId});
+    final resp = await dio.post('/api/tasks',
+        data: data, queryParameters: {'person_id': personId});
     return resp.data as Map<String, dynamic>;
   }
 
   Future<void> completeTask(String taskId, String date) async {
-    await dio.post('/api/tasks/$taskId/complete',
-        queryParameters: {'date': date});
+    await dio
+        .post('/api/tasks/$taskId/complete', queryParameters: {'date': date});
   }
 
   Future<Map<String, dynamic>> fetchTaskDetail(int taskId) async {
@@ -161,5 +161,34 @@ class ApiClient {
   Future<List<dynamic>> fetchAppUsers() async {
     final resp = await dio.get('/api/app/users');
     return resp.data as List<dynamic>;
+  }
+
+  // ------------------------------------------------------------------
+  // AI buddy (REQ-MOB-050..055)
+  // ------------------------------------------------------------------
+
+  Future<bool> fetchAiConfigured() async {
+    final resp = await dio.get('/api/ai/status');
+    return (resp.data as Map<String, dynamic>)['configured'] == true;
+  }
+
+  Future<List<dynamic>> fetchAiMessages() async {
+    final resp = await dio.get('/api/ai/messages');
+    return resp.data as List<dynamic>;
+  }
+
+  /// The AI buddy may call several tools; each Gemini call can take up to three
+  /// attempts of a minute (REQ-BE-083).
+  Future<Map<String, dynamic>> sendAiMessage(String text) async {
+    final resp = await dio.post(
+      '/api/ai/messages',
+      data: {'text': text},
+      options: Options(receiveTimeout: const Duration(minutes: 5)),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<void> clearAiMessages() async {
+    await dio.delete('/api/ai/messages');
   }
 }

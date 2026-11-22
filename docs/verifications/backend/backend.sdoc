@@ -8,223 +8,35 @@ IMPORT_FROM_FILE: @verification
 
 [TEXT]
 STATEMENT: >>>
-How each requirement in ``docs/requirements/backend/`` is verified. Automated tests run with ``pytest`` in ``backend/``.
+How each requirement in ``docs/requirements/backend/`` is verified, one document per feature with the same file name as its requirements document. Automated tests run with ``pytest`` in ``backend/``.
 <<<
 
-[[SECTION]]
-TITLE: Dashboard API
+[DOCUMENT_FROM_FILE]
+FILE: dashboard_api.sdoc
 
-[VERIFICATION]
-UID: VER-BE-001
-METHOD: Test
-TITLE: Every change changes the etag
-STATEMENT: >>>
-Each kind of task, agenda and profile change made through the API produces a different ``/api/dashboard/etag`` value.
-<<<
-TEST: >>>
-backend/tests/test_dashboard_sync.py: test_every_task_change_changes_the_etag, test_every_agenda_change_changes_the_etag, test_changing_a_profile_color_changes_the_etag
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-001
-  ROLE: Verifies
+[DOCUMENT_FROM_FILE]
+FILE: setup_auth.sdoc
 
-[VERIFICATION]
-UID: VER-BE-002
-METHOD: Test
-TITLE: Range limit
-STATEMENT: >>>
-A 12-week range returns 12 weeks; a 13-week range returns HTTP 400.
-<<<
-TEST: >>>
-backend/tests/test_dashboard_sync.py: test_dashboard_range_is_limited_to_twelve_weeks
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-002
-  ROLE: Verifies
+[DOCUMENT_FROM_FILE]
+FILE: people_permissions.sdoc
 
-[[/SECTION]]
+[DOCUMENT_FROM_FILE]
+FILE: tasks.sdoc
 
-[[SECTION]]
-TITLE: Tasks
+[DOCUMENT_FROM_FILE]
+FILE: agenda.sdoc
 
-[VERIFICATION]
-UID: VER-BE-003
-METHOD: Test
-TITLE: Who may complete tasks
-STATEMENT: >>>
-The task's own person (without manager rights), a task manager, an administrator and a wall tablet token can complete a task; another user on a phone gets HTTP 403 with a Dutch message and the task stays open. The own person still cannot edit the task.
-<<<
-TEST: >>>
-backend/tests/test_task_completion.py
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-024
-  ROLE: Verifies
+[DOCUMENT_FROM_FILE]
+FILE: wall_tablet_upgrades.sdoc
 
-[[/SECTION]]
+[DOCUMENT_FROM_FILE]
+FILE: afvalwijzer.sdoc
 
-[[SECTION]]
-TITLE: Agenda
+[DOCUMENT_FROM_FILE]
+FILE: ai_integration.sdoc
 
-[VERIFICATION]
-UID: VER-BE-004
-METHOD: Test
-TITLE: voetbal.nl feeds are recognised
-STATEMENT: >>>
-Feeds are recognised by calendar name or organiser, also right after adding one through the API; other feeds are not.
-<<<
-TEST: >>>
-backend/tests/test_voetbal_feed.py: test_recognises_voetbal_feeds_by_name_or_organiser, test_adding_a_feed_recognises_it_immediately, test_regular_feeds_are_not_changed
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-044
-  ROLE: Verifies
+[DOCUMENT_FROM_FILE]
+FILE: ai_monitoring.sdoc
 
-[VERIFICATION]
-UID: VER-BE-005
-METHOD: Demonstration
-TITLE: voetbal.nl options in the web admin
-STATEMENT: >>>
-Open the feed settings of a voetbal.nl feed in the profile page and in the user admin page: the home/away switch, the own team field and the 'Scheidsrechter compact' switch are shown; the 'Club' field appears only while that switch is on, prefilled from the own team; saving them changes the titles. For another feed the options are not shown.
-<<<
-COMMENT: >>>
-Not automated: browser UI. Not yet performed.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-044
-  ROLE: Verifies
-
-[VERIFICATION]
-UID: VER-BE-008
-METHOD: Test
-TITLE: Web admin loads the current scripts after an update
-STATEMENT: >>>
-Pages load local scripts and stylesheets with a content hash in the URL, so after an update a browser cannot keep using a cached copy of the old feed dialog.
-<<<
-TEST: >>>
-backend/tests/test_web_pages.py: test_scripts_are_versioned_by_content
-<<<
-COMMENT: >>>
-Added after the options were missing in the user admin page: that page loaded admin_user_detail.js without a version and the browser kept the cached pre-0.7.4 script.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-044
-  ROLE: Verifies
-
-[VERIFICATION]
-UID: VER-BE-006
-METHOD: Test
-TITLE: Home/away titles
-STATEMENT: >>>
-Matches show as 'Voetbal thuis/uit tegen <opponent>' in the mobile API and the dashboard; with the mode off, and for other items, the feed title is shown; the prefix still applies.
-<<<
-TEST: >>>
-backend/tests/test_voetbal_feed.py: test_home_and_away_titles, test_titles_follow_the_home_away_mode, test_prefix_still_applies, test_dashboard_shows_the_shaped_title
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-045
-  ROLE: Verifies
-
-[VERIFICATION]
-UID: VER-BE-007
-METHOD: Test
-TITLE: Own team detection
-STATEMENT: >>>
-The own team is the name found in the most match titles (also when not in every title), is filled in on sync and on adding a feed, and an edited own team is kept on later syncs.
-<<<
-TEST: >>>
-backend/tests/test_voetbal_feed.py: test_own_team_is_the_name_in_most_matches, test_sync_marks_the_feed_and_fills_the_own_team, test_edited_own_team_is_kept_on_the_next_sync
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-046
-  ROLE: Verifies
-
-[VERIFICATION]
-UID: VER-BE-009
-METHOD: Test
-TITLE: Referee compact titles
-STATEMENT: >>>
-With the mode on, referee items show as 'Fluiten <home team>'; with it off, or for other items, the existing titles are shown; the prefix still applies.
-<<<
-TEST: >>>
-backend/tests/test_voetbal_feed.py: test_referee_home_team, test_referee_titles_follow_the_compact_mode
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-047
-  ROLE: Verifies
-
-[VERIFICATION]
-UID: VER-BE-010
-METHOD: Test
-TITLE: Club suggestion and removal
-STATEMENT: >>>
-The club is suggested from the own team, can be edited, and is removed from the home team in referee compact mode; an empty club removes nothing.
-<<<
-TEST: >>>
-backend/tests/test_voetbal_feed.py: test_club_from_own_team, test_referee_title_without_club, test_club_is_suggested_and_editable
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-048
-  ROLE: Verifies
-
-[VERIFICATION]
-UID: VER-BE-011
-METHOD: Test
-TITLE: voetbal.nl items without end time
-STATEMENT: >>>
-Items of a voetbal.nl feed are imported with a start time and no end time; items of other feeds keep their end time.
-<<<
-TEST: >>>
-backend/tests/test_voetbal_feed.py: test_voetbal_items_have_no_end_time
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-049
-  ROLE: Verifies
-
-[VERIFICATION]
-UID: VER-BE-012
-METHOD: Test
-TITLE: Referee duty replaces the same match
-STATEMENT: >>>
-A normal item with a referee twin at the same start is left out on import; items on another day, other matches and referee duties without a twin are kept.
-<<<
-TEST: >>>
-backend/tests/test_voetbal_feed.py: test_referee_duty_replaces_the_same_match, test_import_keeps_only_the_referee_duty
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-051
-  ROLE: Verifies
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: Operations
-
-[VERIFICATION]
-UID: VER-BE-013
-METHOD: Test
-TITLE: Migrations keep imported agenda items
-STATEMENT: >>>
-Migrating down and up again through a migration that rebuilds person_calendar_feeds keeps the imported agenda items of the feed, and foreign keys are on again afterwards.
-<<<
-TEST: >>>
-backend/tests/test_migrations.py: test_migrations_keep_imported_agenda_items
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: REQ-BE-071
-  ROLE: Verifies
-
-[[/SECTION]]
+[DOCUMENT_FROM_FILE]
+FILE: general.sdoc

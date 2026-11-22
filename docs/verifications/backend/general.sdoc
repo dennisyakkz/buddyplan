@@ -1,0 +1,42 @@
+[DOCUMENT]
+TITLE: General
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @verification
+
+[TEXT]
+STATEMENT: >>>
+How the requirements in ``docs/requirements/backend/general.sdoc`` are verified.
+<<<
+
+[VERIFICATION]
+UID: VER-BE-013
+METHOD: Test
+TITLE: Migrations keep imported agenda items
+STATEMENT: >>>
+Migrating down and up again through a migration that rebuilds person_calendar_feeds keeps the imported agenda items of the feed, and foreign keys are on again afterwards.
+<<<
+TEST: >>>
+backend/tests/test_migrations.py: test_migrations_keep_imported_agenda_items
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-071
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-BE-032
+METHOD: Test
+TITLE: Admin pages show the navigation panel
+STATEMENT: >>>
+Each admin page contains the navigation panel with links to all admin sections, with the section of that page marked active, and the personal menu no longer lists the separate admin sections. Non-admin pages have no panel.
+<<<
+TEST: >>>
+backend/tests/test_web_pages.py: test_admin_pages_show_navigation_panel
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-072
+  ROLE: Verifies

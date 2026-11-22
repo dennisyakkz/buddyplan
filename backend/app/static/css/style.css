@@ -1413,3 +1413,53 @@ body {
     font-size: 15px;
     line-height: 1.5;
 }
+
+/* AI monitoring (REQ-BE-090..097) */
+.ai-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.ai-tabs a { padding: 8px 14px; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 600; }
+.ai-tabs a:hover { color: var(--text); }
+.ai-tabs a.active { color: var(--primary); border-bottom-color: var(--primary); }
+.ai-notice { background: var(--accent-light); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; }
+.ai-checkbox { display: flex !important; align-items: center; gap: 8px; font-weight: 600; }
+.ai-checkbox input { width: auto !important; }
+.ai-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 16px; }
+.ai-filters .form-group { margin-bottom: 0; min-width: 140px; }
+.ai-table-wrap { overflow-x: auto; }
+.ai-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ai-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.ai-table td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; font-variant-numeric: tabular-nums; }
+.ai-table .num { text-align: right; white-space: nowrap; }
+.ai-table tr.ai-clickable { cursor: pointer; }
+.ai-table tr.ai-clickable:hover td { background: var(--primary-light); }
+.ai-badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.ai-badge-ok { background: rgba(67, 160, 71, .15); color: var(--success); }
+.ai-badge-empty { background: var(--accent-light); color: var(--accent); }
+.ai-badge-error { background: rgba(229, 57, 53, .15); color: var(--danger); }
+.ai-muted { color: var(--text-muted); }
+.ai-error { color: var(--danger); font-size: 13px; }
+.ai-pager { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 12px; }
+.ai-json { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 12px; max-height: 50vh; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+.modal.ai-modal-wide { max-width: min(960px, 95vw); width: 95vw; }
+.ai-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.ai-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.ai-stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+.ai-stat-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ai-day-chart { display: flex; align-items: flex-end; gap: 2px; height: 120px; border-bottom: 1px solid var(--border); }
+.ai-day-chart .bar { flex: 1; background: var(--primary); border-radius: 2px 2px 0 0; min-height: 1px; }
+.ai-day-chart .bar.zero { background: var(--border); }
+.ai-day-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.ai-price-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-top: 8px; }
+.ai-price-form .form-group { margin-bottom: 0; }
+
+/* Admin navigation panel (REQ-BE-072) */
+.admin-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; align-items: start; }
+.admin-nav { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 16px; padding: 8px; background: var(--surface); box-shadow: var(--shadow); border: 1px solid var(--border); border-radius: 12px; }
+.admin-nav a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; }
+.admin-nav a:hover { color: var(--text); background: var(--bg); }
+.admin-nav a.active { color: var(--primary); background: var(--primary-light); }
+.admin-body { min-width: 0; }
+@media (max-width: 800px) {
+    .admin-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .admin-nav { position: static; flex-direction: row; overflow-x: auto; }
+    .admin-nav a { white-space: nowrap; }
+}

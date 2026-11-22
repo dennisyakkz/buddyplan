@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/ai_provider.dart';
 import '../../core/preferences.dart';
 import '../../models/calendar_event.dart';
 import '../../models/person.dart';
@@ -121,10 +122,11 @@ class _AgendaScreenState extends ConsumerState<AgendaScreen>
 
   @override
   Widget build(BuildContext context) {
+    // REQ-MOB-054: reload after the AI buddy answered; it may have changed data.
+    ref.listen(dataRefreshProvider, (_, __) => _refreshCurrentRange());
     final personsState = ref.watch(personsProvider);
     final calState = ref.watch(calendarProvider);
-    final canManageAny =
-        personsState.persons.any((p) => p.canManageAgenda);
+    final canManageAny = personsState.persons.any((p) => p.canManageAgenda);
 
     return PopScope(
       canPop: !(_view == AgendaView.day && _returnView != null),
@@ -134,35 +136,35 @@ class _AgendaScreenState extends ConsumerState<AgendaScreen>
         }
       },
       child: Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: (_view == AgendaView.day && _returnView != null)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _popToPreviousView,
-                tooltip: 'Terug',
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: (_view == AgendaView.day && _returnView != null)
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: _popToPreviousView,
+                  tooltip: 'Terug',
+                )
+              : null,
+          title: Text(_viewLabel),
+          actions: [
+            Builder(
+              builder: (scaffoldContext) => IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => Scaffold.of(scaffoldContext).openEndDrawer(),
+                tooltip: 'Menu',
+              ),
+            ),
+          ],
+        ),
+        endDrawer: _buildDrawer(context, personsState),
+        body: _buildBody(calState, personsState),
+        floatingActionButton: canManageAny
+            ? FloatingActionButton(
+                onPressed: () => _openAddEvent(context),
+                child: const Icon(Icons.add),
               )
             : null,
-        title: Text(_viewLabel),
-        actions: [
-          Builder(
-            builder: (scaffoldContext) => IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(scaffoldContext).openEndDrawer(),
-              tooltip: 'Menu',
-            ),
-          ),
-        ],
       ),
-      endDrawer: _buildDrawer(context, personsState),
-      body: _buildBody(calState, personsState),
-      floatingActionButton: canManageAny
-          ? FloatingActionButton(
-              onPressed: () => _openAddEvent(context),
-              child: const Icon(Icons.add),
-            )
-          : null,
-    ),
     );
   }
 
@@ -326,7 +328,8 @@ class _AgendaScreenState extends ConsumerState<AgendaScreen>
               child: Text('Weergave',
                   style: Theme.of(context).textTheme.titleSmall),
             ),
-            _viewTile(context, AgendaView.planning, Icons.view_agenda, 'Planning'),
+            _viewTile(
+                context, AgendaView.planning, Icons.view_agenda, 'Planning'),
             _viewTile(context, AgendaView.day, Icons.today, 'Dag'),
             _viewTile(context, AgendaView.week, Icons.view_week, 'Week'),
             _viewTile(context, AgendaView.month, Icons.calendar_month, 'Maand'),
@@ -351,10 +354,8 @@ class _AgendaScreenState extends ConsumerState<AgendaScreen>
               title: const Text('Instellingen'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const SettingsScreen()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()));
               },
             ),
           ],

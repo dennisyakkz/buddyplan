@@ -1,0 +1,134 @@
+[DOCUMENT]
+TITLE: AI integration
+OPTIONS:
+  VIEW_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: @requirement
+
+[TEXT]
+STATEMENT: >>>
+Requirements for the AI integration feature. UIDs: REQ-BE-080 .. 089. Requirements in the mobile and dashboard apps that build on it get a ``Parent`` relation to a requirement here.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-080
+STATUS: Draft
+TITLE: AI buddy
+STATEMENT: >>>
+The backend shall offer an AI assistant, the 'AI buddy', that a logged-in user can chat with through the API. The AI buddy answers questions about agenda items and tasks and carries out instructions on them by calling tools (REQ-BE-085), using a Google Gemini model.
+<<<
+RATIONALE: >>>
+Family members can plan in plain language ('put football training for FC Club JO15-1 on Tuesdays at 18:00') instead of filling in forms.
+<<<
+
+[REQUIREMENT]
+UID: REQ-BE-081
+STATUS: Draft
+TITLE: AI settings in the web admin
+STATEMENT: >>>
+An administrator shall be able to switch the AI buddy on and off, and set the Gemini API key, the model, the system prompt and the number of earlier messages sent as context (REQ-BE-087) on an 'AI buddy' settings page in the web admin. The AI buddy is off until an administrator switches it on; switching it off keeps all other settings. The model is chosen from the models available to the API key, as listed by the Gemini API. After saving, the API key is never shown again in full (only its last four characters). The page shall state that chat messages, and the agenda and task data the AI buddy reads, are sent to Google.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+
+[REQUIREMENT]
+UID: REQ-BE-082
+STATUS: Draft
+TITLE: Default system prompt
+STATEMENT: >>>
+The backend shall ship a default system prompt in Dutch, which is used until an administrator changes it. The administrator can edit it and restore the default. Independent of the editable prompt, the backend shall give the model the current date, time and weekday (Europe/Amsterdam), the name of the calling user, and the names of the people in the planner, so that editing the prompt cannot remove that context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-081
+
+[REQUIREMENT]
+UID: REQ-BE-083
+STATUS: Draft
+TITLE: Unavailable until configured
+STATEMENT: >>>
+While the AI buddy is switched off (REQ-BE-081), or no API key or no model is set, the AI buddy shall be unavailable: the API reports it as not configured, and chat requests get a Dutch error message. A Gemini call that fails with a connection error, a timeout (no answer within 60 seconds) or an HTTP 5xx status shall be tried again up to two more times, after 1 and after 2 seconds; HTTP 4xx errors are not retried. When the last attempt fails, the request shall get a Dutch error message and the user's message is kept. Each attempt is recorded as a separate call (REQ-BE-091).
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+
+[REQUIREMENT]
+UID: REQ-BE-084
+STATUS: Draft
+TITLE: Same rights as the calling user
+STATEMENT: >>>
+Every tool call shall run with the rights of the user who sent the message, with the same checks as the REST API: the AI buddy can read what that user can read, create, change and delete agenda items only for people the user manages (REQ-BE-021), create, change and delete tasks only for people the user manages (REQ-BE-022), and cannot change imported agenda items (REQ-BE-043). A refused tool call returns the Dutch error message to the model, so that it can explain it to the user.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+- TYPE: Parent
+  VALUE: REQ-BE-021
+- TYPE: Parent
+  VALUE: REQ-BE-022
+
+[REQUIREMENT]
+UID: REQ-BE-085
+STATUS: Draft
+TITLE: Agenda and task tools
+STATEMENT: >>>
+The AI buddy shall have tools to search, read, create, change and delete agenda items and tasks. Searching filters on a date range (at most 180 days, like the mobile API), person and text in the title. Creating and changing support the same fields as the REST API, including start and end time and repeat options.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+
+[REQUIREMENT]
+UID: REQ-BE-086
+STATUS: Draft
+TITLE: Confirm before deleting
+STATEMENT: >>>
+The AI buddy shall delete an agenda item or task only after the user confirmed that specific deletion in the chat. The delete tool first returns what would be deleted; the deletion only happens when the model calls it again with that confirmation after the user's reply.
+<<<
+RATIONALE: >>>
+A misunderstood instruction must not silently remove someone's planning.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-085
+
+[REQUIREMENT]
+UID: REQ-BE-087
+STATUS: Draft
+TITLE: Conversation per user
+STATEMENT: >>>
+The backend shall keep one conversation per user, so that it can be shown again on any of the user's devices and the AI buddy has the earlier messages as context: the last N messages including the new one, where N is set by an administrator (REQ-BE-081) between 2 and 100, default 20. The user can clear their conversation. Other users, administrators included, cannot read it through the app or the web admin, except in the AI call log while an administrator has turned the debug log on (REQ-BE-092).
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+
+[REQUIREMENT]
+UID: REQ-BE-088
+STATUS: Draft
+TITLE: Bounded tool use
+STATEMENT: >>>
+For one user message the backend shall make at most 10 tool calls; after that it asks the model for a final answer without tools.
+<<<
+RATIONALE: >>>
+Protects against loops that keep calling tools and run up API costs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+
+[REQUIREMENT]
+UID: REQ-BE-089
+STATUS: Draft
+TITLE: Changes are normal changes
+STATEMENT: >>>
+Agenda items and tasks created, changed or deleted by the AI buddy shall be stored like changes through the REST API, so they show up on the wall tablet (REQ-BE-001) and in the apps without further action.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-BE-080
+- TYPE: Parent
+  VALUE: REQ-BE-001
