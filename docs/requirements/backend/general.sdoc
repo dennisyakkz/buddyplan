@@ -32,7 +32,7 @@ Existing data includes rows that depend on a rebuilt table through an ON DELETE 
 
 [REQUIREMENT]
 UID: REQ-BE-072
-STATUS: Draft
+STATUS: Active
 TITLE: Admin navigation panel
 STATEMENT: >>>
 Every admin page of the web admin shall show a navigation panel on the left with the admin sections: 'Gebruikers' (/admin), 'Afvalwijzer', 'Google Calendar API', 'AI buddy' and 'Upgrades'. The section of the current page shall be marked as active; the user detail pages count as 'Gebruikers' and the AI log, cost and price pages as 'AI buddy'. On narrow screens the panel shall move above the page content. The personal menu shall keep a single 'Admin' link that opens /admin; the separate links to the other admin sections move to the panel.
