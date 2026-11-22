@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../models/ai_message.dart';
 import '../../providers/ai_provider.dart';
+import '../../providers/voice_provider.dart';
 
-/// Messenger-style chat with the AI buddy (REQ-MOB-051..053, REQ-MOB-055).
+/// Messenger-style chat with the AI buddy (REQ-MOB-051..053, REQ-MOB-055..057).
 class AiChatScreen extends ConsumerStatefulWidget {
   const AiChatScreen({super.key});
 
@@ -26,6 +27,12 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(aiChatProvider.notifier).load();
     });
+  }
+
+  @override
+  void deactivate() {
+    ref.read(voiceProvider.notifier).stopListening();
+    super.deactivate();
   }
 
   @override
@@ -63,9 +70,29 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     if (ok == true) await ref.read(aiChatProvider.notifier).clear();
   }
 
+  /// Puts the recognised text in the text field, and shows why voice input is
+  /// not possible (REQ-MOB-056).
+  void _onVoice(VoiceState? previous, VoiceState next) {
+    if (previous?.revision != next.revision) {
+      _input.value = TextEditingValue(
+        text: next.text,
+        selection: TextSelection.collapsed(offset: next.text.length),
+      );
+    }
+    if (next.message != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(next.message!)));
+      ref.read(voiceProvider.notifier).clearMessage();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen(voiceProvider, _onVoice);
     final chat = ref.watch(aiChatProvider);
+    final voice = ref.watch(voiceProvider);
+    final autoSend = ref.watch(voiceAutoSendProvider);
     // Newest at the bottom: the list is reversed, so index 0 is the bottom row.
     final rows = <Widget>[
       if (chat.isSending) const _TypingBubble(),
@@ -84,9 +111,18 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'clear') _confirmClear();
+              if (value == 'auto-send') {
+                ref.read(voiceAutoSendProvider.notifier).set(!autoSend);
+              }
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'clear', child: Text('Gesprek wissen')),
+            itemBuilder: (_) => [
+              CheckedPopupMenuItem(
+                value: 'auto-send',
+                checked: autoSend,
+                child: const Text('Spraak direct versturen'),
+              ),
+              const PopupMenuItem(
+                  value: 'clear', child: Text('Gesprek wissen')),
             ],
           ),
         ],
@@ -109,6 +145,12 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             controller: _input,
             canSend: _hasText && !chat.isSending,
             onSend: _send,
+            showMicrophone: showMicrophone(
+                hasText: _hasText, isListening: voice.isListening),
+            isListening: voice.isListening,
+            onMicrophone: chat.isSending
+                ? null
+                : () => ref.read(voiceProvider.notifier).toggle(),
           ),
         ],
       ),
@@ -294,11 +336,17 @@ class _InputBar extends StatelessWidget {
   final TextEditingController controller;
   final bool canSend;
   final VoidCallback onSend;
+  final bool showMicrophone;
+  final bool isListening;
+  final VoidCallback? onMicrophone;
 
   const _InputBar({
     required this.controller,
     required this.canSend,
     required this.onSend,
+    required this.showMicrophone,
+    required this.isListening,
+    required this.onMicrophone,
   });
 
   @override
@@ -317,25 +365,105 @@ class _InputBar extends StatelessWidget {
                 maxLines: 5,
                 maxLength: 4000,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  hintText: 'Bericht',
+                readOnly: isListening,
+                decoration: InputDecoration(
+                  hintText: isListening ? 'Luisteren…' : 'Bericht',
                   counterText: '',
-                  border: OutlineInputBorder(
+                  border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(24))),
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
               ),
             ),
             const SizedBox(width: 6),
-            IconButton.filled(
-              onPressed: canSend ? onSend : null,
-              icon: const Icon(Icons.send),
-              tooltip: 'Versturen',
-            ),
+            if (showMicrophone)
+              _MicrophoneButton(
+                  isListening: isListening, onPressed: onMicrophone)
+            else
+              IconButton.filled(
+                onPressed: canSend ? onSend : null,
+                icon: const Icon(Icons.send),
+                tooltip: 'Versturen',
+              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Starts voice input; while listening it pulses and shows a stop icon (REQ-MOB-056).
+class _MicrophoneButton extends StatefulWidget {
+  final bool isListening;
+  final VoidCallback? onPressed;
+
+  const _MicrophoneButton({required this.isListening, required this.onPressed});
+
+  @override
+  State<_MicrophoneButton> createState() => _MicrophoneButtonState();
+}
+
+class _MicrophoneButtonState extends State<_MicrophoneButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isListening) _pulse.repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(covariant _MicrophoneButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isListening && !_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
+    } else if (!widget.isListening && _pulse.isAnimating) {
+      _pulse
+        ..stop()
+        ..value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final button = IconButton.filled(
+      onPressed: widget.onPressed,
+      style: widget.isListening
+          ? IconButton.styleFrom(
+              backgroundColor: scheme.error, foregroundColor: scheme.onError)
+          : null,
+      icon: Icon(widget.isListening ? Icons.stop : Icons.mic),
+      tooltip: widget.isListening ? 'Stoppen met luisteren' : 'Inspreken',
+    );
+    if (!widget.isListening) return button;
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, child) => DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: scheme.error.withValues(alpha: 0.35),
+              blurRadius: 4 + 10 * _pulse.value,
+              spreadRadius: 1 + 4 * _pulse.value,
+            ),
+          ],
+        ),
+        child: child,
+      ),
+      child: button,
     );
   }
 }

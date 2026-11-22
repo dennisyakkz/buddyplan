@@ -110,4 +110,49 @@ RELATIONS:
   VALUE: REQ-MOB-055
   ROLE: Verifies
 
+[VERIFICATION]
+UID: VER-MOB-007
+METHOD: Test
+TITLE: Voice input fills the text field
+STATEMENT: >>>
+With a fake speech service: the microphone shows only while the text field is empty and no answer is awaited; listening shows partial text in the field; stopping keeps the final text without sending it; nothing recognised leaves the field empty; refused permission and missing speech recognition give the Dutch messages.
+<<<
+TEST: >>>
+mobile_app/test/ai_voice_test.dart: microphone only on an empty field, partial results fill the field, final text is kept and not sent, nothing recognised leaves the field empty, refused permission shows a message, no speech recognition shows a message
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-056
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-MOB-008
+METHOD: Demonstration
+TITLE: Voice input on a phone
+STATEMENT: >>>
+On an Android phone: the first tap asks for microphone permission; speaking Dutch shows the text while speaking; recognition stops after a pause; the text can be changed and sent.
+<<<
+COMMENT: >>>
+The real speech recognition service and the permission dialog only exist on a device, so this part cannot run in flutter test.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-056
+  ROLE: Verifies
+
+[VERIFICATION]
+UID: VER-MOB-009
+METHOD: Test
+TITLE: Sending voice messages automatically
+STATEMENT: >>>
+The setting is off by default and survives a restart; when on, the final recognised text is sent once recognition stops, and nothing recognised sends nothing; when off, nothing is sent.
+<<<
+TEST: >>>
+mobile_app/test/ai_voice_test.dart: auto-send is off by default and is stored, auto-send sends the final text, auto-send with nothing recognised sends nothing
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-MOB-057
+  ROLE: Verifies
+
 [[/SECTION]]
