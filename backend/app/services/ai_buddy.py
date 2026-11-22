@@ -6,7 +6,7 @@ rights of the calling user and refusals carry the API's Dutch error messages (RE
 
 import logging
 import time
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -32,6 +32,9 @@ MAX_MESSAGE_LENGTH = 4000
 THINKING_LEVELS = ("low", "medium", "high", "xhigh")
 THINKING_CAPABLE_MODEL_PREFIXES = ("gemini-3", "gemini-4")
 SEARCH_MAX_DAYS = 180  # REQ-BE-085, like /api/mobile/calendar
+# What a search returns depends on the length of its range, first and last day included (REQ-BE-085).
+SEARCH_ALL_DAYS = 14  # up to here: everything, keywords ignored
+SEARCH_FALLBACK_DAYS = 31  # up to here: keywords, falling back to everything when nothing matches
 TZ = ZoneInfo("Europe/Amsterdam")
 
 NOT_CONFIGURED_MESSAGE = "De AI buddy is nog niet ingesteld door de beheerder."
@@ -306,6 +309,7 @@ def context_text(db: Session, user, now: datetime | None = None) -> str:
         "Context (automatisch toegevoegd door Buddyplan):",
         f"- Nu is het {WEEKDAYS_NL[now.weekday()]} {now.day} {MONTHS_NL[now.month - 1]} {now.year}, "
         f"{now:%H:%M} (Europe/Amsterdam). Vandaag is {now.date().isoformat()}.",
+        f"- {_week_line(now.date())}",
         f"- Je praat met {user.name} (person_id {user.id}).",
         "- Mensen in de planner (person_id: naam; mag de gebruiker hun agenda / taken beheren):",
     ]
@@ -314,6 +318,22 @@ def context_text(db: Session, user, now: datetime | None = None) -> str:
         tasks = "ja" if service.can_manage_tasks(person.id, user.id) else "nee"
         lines.append(f"  - {person.id}: {person.name} (agenda: {agenda}, taken: {tasks})")
     return "\n".join(lines)
+
+
+def _week_line(today: date) -> str:
+    """This week and next week, Monday to Sunday, like the agenda (REQ-BE-082)."""
+    monday = today - timedelta(days=today.weekday())
+    next_monday = monday + timedelta(days=7)
+
+    def span(start: date) -> str:
+        end = start + timedelta(days=6)
+        return f"maandag {_day_month(start)} t/m zondag {_day_month(end)} ({start.isoformat()} t/m {end.isoformat()})"
+
+    return f"Deze week loopt van {span(monday)}; volgende week van {span(next_monday)}."
+
+
+def _day_month(day: date) -> str:
+    return f"{day.day} {MONTHS_NL[day.month - 1]}"
 
 
 # --- tools (REQ-BE-084, REQ-BE-085, REQ-BE-086) ----------------------------------------------------
@@ -337,7 +357,13 @@ _SEARCH_PARAMS = {
         "start_date": _DATE,
         "end_date": {"type": "string", "description": "Laatste datum (JJJJ-MM-DD), max 180 dagen na start_date."},
         "person_id": {"type": "integer", "description": "Alleen voor deze persoon (optioneel)."},
-        "text": {"type": "string", "description": "Alleen items met deze tekst in de titel (optioneel)."},
+        "keywords": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Zoekwoorden; een item past als de titel minstens één ervan bevat (hoofdletters en "
+            "spaties tellen niet). Geef meerdere vormen en synoniemen mee, bijv. ['training', 'trainen', "
+            "'voetbal']. Bij periodes tot 14 dagen genegeerd, verplicht bij periodes langer dan 31 dagen.",
+        },
     },
     "required": ["start_date", "end_date"],
 }
@@ -353,10 +379,20 @@ _DELETE_PARAMS = {
     "required": ["id"],
 }
 
+_SEARCH_RULES = (
+    f"Tot en met {SEARCH_ALL_DAYS} dagen (eerste en laatste dag meegeteld) krijg je alle items in de periode en "
+    "beoordeel je zelf wat bij de vraag past; zoekwoorden worden dan genegeerd. "
+    f"Van {SEARCH_ALL_DAYS + 1} tot en met {SEARCH_FALLBACK_DAYS} dagen krijg je de items die bij een zoekwoord "
+    "passen; past er niets, of geef je geen zoekwoorden, dan krijg je alle items met een notitie. "
+    f"Langer dan {SEARCH_FALLBACK_DAYS} dagen (max {SEARCH_MAX_DAYS}) alleen met zoekwoorden, en alleen de items "
+    "die erbij passen: kies dan ruime zoekwoorden met varianten."
+)
+
 TOOL_DECLARATIONS: list[dict] = [
     {
         "name": "search_agenda",
-        "description": "Zoek agenda-items in een periode. Geeft per dag een regel met id, persoon, titel en tijden.",
+        "description": "Zoek agenda-items in een periode. Geeft per item id, persoon, titel, datum, weekdag en "
+        "tijden. " + _SEARCH_RULES,
         "parameters": _SEARCH_PARAMS,
     },
     {
@@ -409,7 +445,8 @@ TOOL_DECLARATIONS: list[dict] = [
     },
     {
         "name": "search_tasks",
-        "description": "Zoek taken in een periode. Geeft per dag een regel met id, persoon, titel en of de taak af is.",
+        "description": "Zoek taken in een periode. Geeft per taak id, persoon, titel, datum, weekdag en of de taak "
+        "af is. " + _SEARCH_RULES,
         "parameters": _SEARCH_PARAMS,
     },
     {
@@ -483,12 +520,12 @@ class ToolRunner:
 
     # agenda ------------------------------------------------------------------------------------
 
-    def _tool_search_agenda(self, start_date, end_date, person_id=None, text=None):
+    def _tool_search_agenda(self, start_date, end_date, person_id=None, keywords=None, text=None):
         from app.routers.api import mobile_calendar
 
-        start, end = _search_range(start_date, end_date)
+        start, end = _search_range(start_date, end_date, _keywords(keywords, text))
         items = mobile_calendar(start=start, end=end, current_user=self.user, db=self.db)
-        return {"items": _with_weekdays(_filter(items, person_id, text))}
+        return _search_result("items", items, start, end, person_id, _keywords(keywords, text))
 
     def _tool_get_agenda_item(self, id):
         from app.routers.api import mobile_calendar_item
@@ -521,15 +558,15 @@ class ToolRunner:
 
     # tasks -------------------------------------------------------------------------------------
 
-    def _tool_search_tasks(self, start_date, end_date, person_id=None, text=None):
+    def _tool_search_tasks(self, start_date, end_date, person_id=None, keywords=None, text=None):
         from app.routers.api import mobile_tasks
 
-        start, end = _search_range(start_date, end_date)
+        start, end = _search_range(start_date, end_date, _keywords(keywords, text))
         items = mobile_tasks(start=start, end=end, person_id=None, current_user=self.user, db=self.db)
         for item in items:
             item.pop("profile_color", None)
             item.pop("icon", None)
-        return {"tasks": _with_weekdays(_filter(items, person_id, text))}
+        return _search_result("tasks", items, start, end, person_id, _keywords(keywords, text))
 
     def _tool_get_task(self, id):
         from app.routers.api import get_task
@@ -609,13 +646,30 @@ class ToolRunner:
         }
 
 
-def _search_range(start_date: str, end_date: str) -> tuple[date, date]:
+def _search_range(start_date: str, end_date: str, keywords: list[str]) -> tuple[date, date]:
     start, end = date.fromisoformat(start_date), date.fromisoformat(end_date)
     if end < start:
         raise ValueError("end_date ligt voor start_date")
     if (end - start).days > SEARCH_MAX_DAYS:
         raise HTTPException(400, "Datumbereik te groot (max 180 dagen)")
+    if _span_days(start, end) > SEARCH_FALLBACK_DAYS and not keywords:
+        raise HTTPException(
+            400,
+            f"Geef zoekwoorden op, of zoek in een periode van maximaal {SEARCH_FALLBACK_DAYS} dagen",
+        )
     return start, end
+
+
+def _span_days(start: date, end: date) -> int:
+    return (end - start).days + 1
+
+
+def _keywords(keywords, text=None) -> list[str]:
+    """The keywords as a list of normalised words; a single string (or the old 'text') counts as one keyword."""
+    if isinstance(keywords, str):
+        keywords = [keywords]
+    words = [*(keywords or []), *([text] if text else [])]
+    return [n for n in (_normalize_for_search(w) for w in words) if n]
 
 
 def _normalize_for_search(value: str) -> str:
@@ -623,13 +677,23 @@ def _normalize_for_search(value: str) -> str:
     return "".join(str(value).casefold().split())
 
 
-def _filter(items: list[dict], person_id, text) -> list[dict]:
+def _search_result(key: str, items: list[dict], start: date, end: date, person_id, keywords: list[str]) -> dict:
+    """Applies the range rules of REQ-BE-085 to the items of the range."""
     if person_id is not None:
         items = [i for i in items if i.get("person_id") == int(person_id)]
-    if text:
-        needle = _normalize_for_search(text)
-        items = [i for i in items if needle in _normalize_for_search(i.get("title", ""))]
-    return items
+    span = _span_days(start, end)
+    if span <= SEARCH_ALL_DAYS:
+        return {key: _with_weekdays(items)}
+    matching = [i for i in items if any(k in _normalize_for_search(i.get("title", "")) for k in keywords)]
+    if matching or span > SEARCH_FALLBACK_DAYS:
+        return {key: _with_weekdays(matching)}
+    note = (
+        "Geen zoekwoorden opgegeven: dit zijn alle items in de periode."
+        if not keywords
+        else "Geen titel bevat een van de zoekwoorden: dit zijn alle items in de periode. "
+        "Beoordeel zelf welke bij de vraag passen."
+    )
+    return {key: _with_weekdays(items), "note": note}
 
 
 def _with_weekdays(items: list[dict]) -> list[dict]:
