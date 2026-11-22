@@ -106,4 +106,22 @@ RELATIONS:
   VALUE: REQ-DSH-005
   ROLE: Verifies
 
+[VERIFICATION]
+UID: VER-DSH-007
+METHOD: Test
+TITLE: Today follows the clock
+STATEMENT: >>>
+The day tracker reports the screen as outdated once the clock's day differs from the day it was drawn on, and no longer after the redraw. ``MainActivity`` checks it every 30 seconds and redraws the last data with the new day, independent of a data change.
+<<<
+TEST: >>>
+dashboard_app/app/src/test/java/nl/buddyplan/display/data/DayTrackerTest.kt: nothingShownYetIsNotOutdated, sameDayIsNotOutdated, newDayMakesTheScreenOutdatedUntilRedrawn
+<<<
+COMMENT: >>>
+The 30-second loop in ``MainActivity`` is Android code and is not covered by the JVM tests; on the wall tablet a day change logs 'New day started; redrawing today and syncing' (tag MainActivity).
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-DSH-006
+  ROLE: Verifies
+
 [[/SECTION]]

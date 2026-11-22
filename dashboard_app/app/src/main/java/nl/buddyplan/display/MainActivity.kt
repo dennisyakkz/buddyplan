@@ -3,6 +3,7 @@ package nl.buddyplan.display
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
@@ -24,10 +25,10 @@ import nl.buddyplan.display.data.CompletionResult
 import nl.buddyplan.display.data.ConnectionState
 import nl.buddyplan.display.data.DataRepository
 import nl.buddyplan.display.data.DayCalendarEvent
+import nl.buddyplan.display.data.DayTracker
 import nl.buddyplan.display.data.TodoItem
 import nl.buddyplan.display.data.WeekDay
 import nl.buddyplan.display.data.PersonCalendar
-import nl.buddyplan.display.data.WeekDates
 import nl.buddyplan.display.ui.CalendarViewBuilder
 import nl.buddyplan.display.ui.ColorPalette
 import nl.buddyplan.display.ui.DayViewBuilder
@@ -79,6 +80,7 @@ class MainActivity : AppCompatActivity() {
     // The UI state also changes for every sync status update; only redraw (and refetch the user
     // colors) when the dashboard data itself changed.
     private var lastAppliedDashboard: nl.buddyplan.display.data.DashboardData? = null
+    private val dayTracker = DayTracker()
     private var currentWeekDays: List<WeekDay> = emptyList()
     private var currentCalendarPeople: List<PersonCalendar> = emptyList()
     private var dayViewOpen = false
@@ -185,6 +187,17 @@ class MainActivity : AppCompatActivity() {
     private fun observeUiState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // REQ-DSH-006: a new day does not always change the data, so check the clock itself.
+                launch {
+                    while (isActive) {
+                        delay(DAY_CHECK_INTERVAL_MS)
+                        if (dayTracker.isOutdated()) {
+                            Log.i(TAG, "New day started; redrawing today and syncing")
+                            lastAppliedDashboard?.let { applyDashboard(it) }
+                            viewModel.forceSync()
+                        }
+                    }
+                }
                 viewModel.uiState.collect { state ->
                     state.dashboard
                         ?.takeIf { it != lastAppliedDashboard }
@@ -346,7 +359,7 @@ class MainActivity : AppCompatActivity() {
             container = calendarContainer,
             weekDays = weekDays,
             people = people,
-            todayIso = WeekDates.todayIso(),
+            todayIso = dayTracker.markShown(),
             onDayHeaderClick = { dayIndex, weekDay -> openDayView(dayIndex, weekDay, null) },
             onPersonDayClick = { dayIndex, weekDay, person ->
                 openDayView(dayIndex, weekDay, person.name)
@@ -547,5 +560,11 @@ class MainActivity : AppCompatActivity() {
     private fun cancelInstallWatch() {
         installWatchJob?.cancel()
         installWatchJob = null
+    }
+
+    companion object {
+        /** How often the screen checks whether a new day started (REQ-DSH-006: within one minute). */
+        private const val DAY_CHECK_INTERVAL_MS = 30_000L
+        private const val TAG = "MainActivity"
     }
 }
