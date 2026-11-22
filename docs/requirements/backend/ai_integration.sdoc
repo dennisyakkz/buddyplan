@@ -38,7 +38,7 @@ UID: REQ-BE-082
 STATUS: Draft
 TITLE: Default system prompt
 STATEMENT: >>>
-The backend shall ship a default system prompt in Dutch, which is used until an administrator changes it. The administrator can edit it and restore the default. Independent of the editable prompt, the backend shall give the model the current date, time and weekday (Europe/Amsterdam), the name of the calling user, and the names of the people in the planner, so that editing the prompt cannot remove that context.
+The backend shall ship a default system prompt in Dutch, which is used until an administrator changes it. The administrator can edit it and restore the default. Independent of the editable prompt, the backend shall give the model the current date, time and weekday (Europe/Amsterdam), the dates of this week and next week (Monday to Sunday), the name of the calling user, and the names of the people in the planner, so that editing the prompt cannot remove that context.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -89,7 +89,18 @@ UID: REQ-BE-085
 STATUS: Draft
 TITLE: Agenda and task tools
 STATEMENT: >>>
-The AI buddy shall have tools to search, read, create, change and delete agenda items and tasks. Searching filters on a date range (at most 180 days, like the mobile API), person and text in the title. Creating and changing support the same fields as the REST API, including start and end time and repeat options.
+The AI buddy shall have tools to search, read, create, change and delete agenda items and tasks. Searching takes a date range (at most 180 days, like the mobile API), an optional person and optional keywords (a list of words). Creating and changing support the same fields as the REST API, including start and end time and repeat options.
+
+What a search returns depends on the length of the date range (first and last day included):
+
+- Up to 14 days: all items in the range; keywords are ignored.
+- 15 to 31 days: the items whose title contains at least one of the keywords, ignoring case and spaces (keyword 'voetbaltraining' matches 'Voetbal training'). Without keywords, or when no title matches, all items in the range, with a note that no title matched the keywords.
+- 32 to 180 days: only with keywords, and only the matching items. Without keywords the tool returns a Dutch error asking for keywords or a shorter range.
+
+The backend enforces these rules and explains them in the tool descriptions, not in the editable system prompt (REQ-BE-082), so that editing the prompt cannot remove them.
+<<<
+RATIONALE: >>>
+A model picks a single word form as search text ('trainen') and misses titles with another form ('Voetbaltraining'). For short ranges the model gets all items and judges the meaning itself; a household has few items per week, so this costs few tokens. For longer ranges the keywords keep the answer small, and the fallback stops a missed word form from looking like an empty agenda.
 <<<
 RELATIONS:
 - TYPE: Parent

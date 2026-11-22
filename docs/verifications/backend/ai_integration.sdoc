@@ -47,17 +47,18 @@ UID: VER-BE-016
 METHOD: Test
 TITLE: Default prompt and fixed context
 STATEMENT: >>>
-The default prompt is used until changed and comes back when cleared; date, caller and people are sent next to an edited prompt.
+The default prompt is used until changed and comes back when cleared; date, this week and next week, caller and people are sent next to an edited prompt.
 <<<
 TEST: >>>
-backend/tests/test_ai_buddy.py: test_admin_sets_key_model_and_prompt, test_context_is_always_sent
+backend/tests/test_ai_buddy.py: test_admin_sets_key_model_and_prompt, test_context_is_always_sent, test_context_names_this_week_and_next_week
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-BE-082
+  ROLE: Verifies
 
 [VERIFICATION]
-UID: VER-BE-032
+UID: VER-BE-033
 METHOD: Test
 TITLE: Thinking level
 STATEMENT: >>>
@@ -69,7 +70,6 @@ backend/tests/test_ai_buddy.py: test_thinking_level_is_validated_and_saved, test
 RELATIONS:
 - TYPE: Parent
   VALUE: REQ-BE-098
-  ROLE: Verifies
   ROLE: Verifies
 
 [VERIFICATION]
@@ -107,10 +107,10 @@ UID: VER-BE-019
 METHOD: Test
 TITLE: Agenda and task tools
 STATEMENT: >>>
-Agenda items and tasks are created, found by date, person and text, and changed through the tools.
+Agenda items and tasks are created, found by date, person and keywords, and changed through the tools. A search of up to 14 days returns all items whatever the keywords; 15 to 31 days filters on any keyword, ignoring case and spaces, and falls back to all items with a note when nothing matches or no keywords are given; 32 to 180 days needs keywords and has no fallback. The tool descriptions explain the ranges.
 <<<
 TEST: >>>
-backend/tests/test_ai_buddy.py: test_agenda_tools_create_search_update, test_task_tools_create_search_update
+backend/tests/test_ai_buddy.py: test_agenda_tools_create_search_update, test_task_tools_create_search_update, test_text_filter_ignores_spacing, test_short_search_returns_everything, test_month_search_falls_back_to_everything, test_long_search_needs_keywords, test_search_rules_are_in_the_tool_descriptions
 <<<
 RELATIONS:
 - TYPE: Parent

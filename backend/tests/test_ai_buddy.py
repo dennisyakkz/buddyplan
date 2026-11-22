@@ -1,11 +1,11 @@
 """REQ-BE-080..089: the AI buddy. Gemini is replaced by a scripted fake; tools run for real."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import pytest
 
 from app.database import SessionLocal
-from app.models import AgendaItem
+from app.models import AgendaItem, Person
 from app.services import ai_buddy
 from app.services.dashboard_service import PersonService
 
@@ -126,6 +126,22 @@ def test_context_is_always_sent(client, admin_headers, make_user, configured, ge
     assert "Beheerder" in context  # the other people in the planner
 
 
+def test_context_names_this_week_and_next_week(make_user):
+    """'Deze week' on a Sunday was taken as Sunday to Saturday; the context now gives Monday to Sunday (REQ-BE-082)."""
+    person, _headers = make_user("Weekje")
+    db = SessionLocal()
+    try:
+        user = db.get(Person, person["id"])
+        sunday = datetime(2026, 11, 22, 20, 30, tzinfo=ai_buddy.TZ)
+        context = ai_buddy.context_text(db, user, sunday)
+        assert "Deze week loopt van maandag 16 november t/m zondag 22 november (2026-11-16 t/m 2026-11-22)" in context
+        assert "volgende week van maandag 23 november t/m zondag 29 november (2026-11-23 t/m 2026-11-29)" in context
+        wednesday = datetime(2026, 12, 30, 9, 0, tzinfo=ai_buddy.TZ)
+        assert "maandag 28 december t/m zondag 3 januari" in ai_buddy.context_text(db, user, wednesday)
+    finally:
+        db.close()
+
+
 def test_list_models_keeps_generating_models(monkeypatch):
     class Response:
         status_code = 200
@@ -177,9 +193,9 @@ def test_agenda_tools_create_search_update(client, make_user, configured, gemini
     assert created["title"] == "Training" and created["start_time"] == "18:00"
     assert client.get("/api/dashboard/etag", headers=headers).json()["etag"] != etag_before  # REQ-BE-089
 
-    gemini.call("search_agenda", start_date=DAY.isoformat(), end_date=DAY.isoformat(), text="train").call(
-        "update_agenda_item", id=created["id"], title="Training JO15", end_time="19:30"
-    ).reply("Aangepast")
+    gemini.call(
+        "search_agenda", start_date=DAY.isoformat(), end_date=DAY.isoformat(), person_id=pid, keywords=["train"]
+    ).call("update_agenda_item", id=created["id"], title="Training JO15", end_time="19:30").reply("Aangepast")
     send(client, headers, "Maak er JO15 van tot half acht")
     search, update = gemini.tool_results()
     assert [i["id"] for i in search["items"]] == [created["id"]]
@@ -201,19 +217,97 @@ def test_search_results_include_the_weekday(client, make_user, configured, gemin
     assert search["items"][0]["weekday"] == "woensdag"
 
 
+def add_agenda(person_id: int, *items: tuple[str, int]) -> None:
+    """Agenda items (title, days after DAY) straight in the database."""
+    db = SessionLocal()
+    try:
+        for title, offset in items:
+            db.add(
+                AgendaItem(
+                    person_id=person_id, title=title, anchor_date=DAY + timedelta(days=offset), repeat_type="once"
+                )
+            )
+        db.commit()
+    finally:
+        db.close()
+
+
+def search(client, headers, gemini, person_id, tool="search_agenda", days=1, **args):
+    """Runs one search for one person over `days` days from DAY and returns its tool result."""
+    end = DAY + timedelta(days=days - 1)
+    gemini.call(tool, person_id=person_id, start_date=DAY.isoformat(), end_date=end.isoformat(), **args).reply("Klaar")
+    assert send(client, headers, f"Zoek {days} dagen").status_code == 200
+    return gemini.tool_results()[-1]
+
+
 def test_text_filter_ignores_spacing(client, make_user, configured, gemini):
     """A text filter of 'voetbaltraining' missed 'Voetbal training' in production."""
     person, headers = make_user("Zoeker")
-    pid = person["id"]
-    gemini.call("create_agenda_item", person_id=pid, title="Voetbal training", date=DAY.isoformat()).reply("Gezet!")
-    send(client, headers, "Zet voetbal training erin")
+    add_agenda(person["id"], ("Voetbal training", 0), ("Tandarts", 1))
+    result = search(client, headers, gemini, person["id"], days=20, keywords=["voetbaltraining"])
+    assert [i["title"] for i in result["items"]] == ["Voetbal training"]
+    assert "note" not in result
 
-    gemini.call(
-        "search_agenda", start_date=DAY.isoformat(), end_date=DAY.isoformat(), text="voetbaltraining"
-    ).reply("Klaar")
-    send(client, headers, "Wanneer is de voetbaltraining?")
-    search = gemini.tool_results()[-1]
-    assert [i["title"] for i in search["items"]] == ["Voetbal training"]
+
+def test_short_search_returns_everything(client, make_user, configured, gemini):
+    """'trainen' missed 'Voetbaltraining': up to 14 days the model gets everything and judges it (REQ-BE-085)."""
+    person, headers = make_user("Kort")
+    add_agenda(person["id"], ("Voetbaltraining", 0), ("Voetbal training", 2), ("Tandarts", 13), ("Later", 14))
+    result = search(client, headers, gemini, person["id"], days=14, keywords=["trainen"])
+    assert [i["title"] for i in result["items"]] == ["Voetbaltraining", "Voetbal training", "Tandarts"]
+    assert "note" not in result
+
+    enable_tasks(person["id"])
+    gemini.call("create_task", person_id=person["id"], title="Afwas", date=DAY.isoformat()).reply("Ok")
+    send(client, headers, "Taak afwas")
+    tasks = search(client, headers, gemini, person["id"], tool="search_tasks", days=7, keywords=["stofzuigen"])
+    assert [t["title"] for t in tasks["tasks"]] == ["Afwas"]
+
+
+def test_month_search_falls_back_to_everything(client, make_user, configured, gemini):
+    """15 to 31 days: any keyword matches; nothing matching, or no keywords, gives everything with a note."""
+    person, headers = make_user("Maand")
+    add_agenda(person["id"], ("Voetbaltraining", 0), ("Tandarts", 10), ("Zwemmen", 20), ("Te laat", 31))
+
+    result = search(client, headers, gemini, person["id"], days=31, keywords=["zwem", "TANDARTS"])
+    assert [i["title"] for i in result["items"]] == ["Tandarts", "Zwemmen"]
+    assert "note" not in result
+
+    result = search(client, headers, gemini, person["id"], days=31, keywords=["trainen"])
+    assert [i["title"] for i in result["items"]] == ["Voetbaltraining", "Tandarts", "Zwemmen"]
+    assert "Geen titel bevat" in result["note"]
+
+    result = search(client, headers, gemini, person["id"], days=15)
+    assert [i["title"] for i in result["items"]] == ["Voetbaltraining", "Tandarts"]
+    assert "Geen zoekwoorden" in result["note"]
+
+
+def test_long_search_needs_keywords(client, make_user, configured, gemini):
+    """Over 31 days only with keywords and only matches, no fallback; still at most 180 days."""
+    person, headers = make_user("Lang")
+    add_agenda(person["id"], ("Voetbaltraining", 0), ("Tandarts", 40))
+
+    assert search(client, headers, gemini, person["id"], days=32) == {
+        "error": "Geef zoekwoorden op, of zoek in een periode van maximaal 31 dagen"
+    }
+    result = search(client, headers, gemini, person["id"], days=60, keywords=["tand"])
+    assert [i["title"] for i in result["items"]] == ["Tandarts"]
+    result = search(client, headers, gemini, person["id"], days=60, keywords=["trainen"])
+    assert result == {"items": []}
+    assert search(client, headers, gemini, person["id"], days=182, keywords=["tand"]) == {
+        "error": "Datumbereik te groot (max 180 dagen)"
+    }
+
+
+def test_search_rules_are_in_the_tool_descriptions():
+    """The range rules live in the fixed tool descriptions, not in the editable prompt (REQ-BE-085)."""
+    tools = {t["name"]: t for t in ai_buddy.TOOL_DECLARATIONS}
+    for name in ("search_agenda", "search_tasks"):
+        description = tools[name]["description"]
+        assert "Tot en met 14 dagen" in description and "Langer dan 31 dagen" in description, name
+        keywords = tools[name]["parameters"]["properties"]["keywords"]
+        assert keywords["type"] == "array" and keywords["items"] == {"type": "string"}
+    assert "14 dagen" not in ai_buddy.DEFAULT_SYSTEM_PROMPT
 
 
 def enable_tasks(person_id: int) -> None:
@@ -457,9 +551,7 @@ def test_thinking_level_only_sent_to_gemini_3_and_4_models(client, admin_headers
 
     monkeypatch.setattr(ai_buddy.requests, "post", post)
 
-    client.put(
-        "/api/admin/ai/config", headers=admin_headers, json={"model": "gemini-test", "thinking_level": "high"}
-    )
+    client.put("/api/admin/ai/config", headers=admin_headers, json={"model": "gemini-test", "thinking_level": "high"})
     assert send(client, headers, "Hoi").status_code == 200
     assert "generationConfig" not in requests_seen[-1]
 
