@@ -14,64 +14,81 @@
         Let op: chatberichten en de agenda- en taakgegevens die de AI buddy opzoekt, worden naar Google gestuurd.
     </p>
 
-    <form id="ai-config-form">
-        <div class="form-group">
-            <label class="ai-checkbox"><input type="checkbox" id="ai-enabled"> AI buddy aan</label>
-            <span class="hint">Uit: de AI buddy verdwijnt uit de app; de instellingen blijven bewaard.</span>
-        </div>
-        <div class="form-group">
-            <label for="ai-api-key">Gemini API-key <span class="hint" id="ai-api-key-hint"></span></label>
-            <input type="password" id="ai-api-key" maxlength="255" autocomplete="off" placeholder="Leeg laten om de huidige key te houden">
-            <button type="button" class="btn btn-small btn-secondary" id="btn-clear-key" style="margin-top:4px">Key verwijderen</button>
-        </div>
-        <div class="form-group">
-            <label for="ai-model">Model</label>
-            <select id="ai-model"></select>
-            <button type="button" class="btn btn-small" id="btn-load-models" style="margin-top:4px">
-                <span class="material-symbols-rounded bp-icon-inline">refresh</span> Modellen ophalen
-            </button>
-        </div>
-        <div class="form-group">
-            <label for="ai-system-prompt">Systeemprompt <span class="hint" id="ai-prompt-state"></span></label>
-            <textarea id="ai-system-prompt" rows="14"></textarea>
-            <button type="button" class="btn btn-small btn-secondary" id="btn-reset-prompt" style="margin-top:4px">Standaard herstellen</button>
-        </div>
-        <div class="form-group">
-            <label for="ai-context-messages">Aantal berichten als context <span class="hint">(2–100; meer berichten kost meer tokens)</span></label>
-            <input type="number" id="ai-context-messages" min="2" max="100" step="1" required>
-        </div>
-        <p class="hint">
-            Datum en tijd, de naam van wie chat en de mensen in de planner geeft Buddyplan altijd zelf mee; die hoeven niet in de prompt.
-        </p>
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Opslaan</button>
-        </div>
-    </form>
 </div>
 
-<div class="settings-section">
-    <h2>Debug-logboek</h2>
-    <p class="hint">
-        Elke aanroep naar Gemini komt in het <a href="/admin/ai/log">AI-logboek</a>, met tokens, duur en kosten.
-        Met het debug-logboek aan wordt ook het volledige verzoek en antwoord bewaard.
-    </p>
-    <p class="ai-notice">
-        Let op: zolang het debug-logboek aan staat, kunnen beheerders de chatberichten en de agenda- en taakgegevens in de verzoeken lezen.
-    </p>
-    <form id="ai-debug-form">
-        <div class="form-group">
-            <label class="ai-checkbox"><input type="checkbox" id="ai-debug-enabled"> Debug-logboek aan</label>
+<form id="ai-config-form">
+    <div class="settings-section">
+        <div class="toggle" style="margin-bottom:14px">
+            <div>
+                <div style="font-weight:600;font-size:15px">AI buddy aan</div>
+                <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Uit: de AI buddy verdwijnt uit de app; de instellingen blijven bewaard.</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="ai-enabled">
+                <span class="slider"></span>
+            </label>
         </div>
-        <div class="form-group">
-            <label for="ai-debug-retention">Bewaartermijn verzoeken en antwoorden (dagen)</label>
-            <input type="number" id="ai-debug-retention" min="1" max="90" step="1" required>
+        <div id="ai-settings-fields">
+            <div class="form-group">
+                <label for="ai-api-key">Gemini API-key <span class="hint" id="ai-api-key-hint"></span></label>
+                <input type="password" id="ai-api-key" maxlength="255" autocomplete="off" placeholder="Leeg laten om de huidige key te houden">
+                <button type="button" class="btn btn-small btn-secondary" id="btn-clear-key" style="margin-top:4px">Key verwijderen</button>
+            </div>
+            <div class="form-group">
+                <label for="ai-model">Model</label>
+                <select id="ai-model"></select>
+                <button type="button" class="btn btn-small" id="btn-load-models" style="margin-top:4px">
+                    <span class="material-symbols-rounded bp-icon-inline">refresh</span> Modellen ophalen
+                </button>
+            </div>
+            <div class="form-group">
+                <label for="ai-system-prompt">Systeemprompt <span class="hint" id="ai-prompt-state"></span></label>
+                <textarea id="ai-system-prompt" rows="14"></textarea>
+                <button type="button" class="btn btn-small btn-secondary" id="btn-reset-prompt" style="margin-top:4px">Standaard herstellen</button>
+            </div>
+            <div class="form-group">
+                <label for="ai-context-messages">Aantal berichten als context <span class="hint">(2–100; meer berichten kost meer tokens)</span></label>
+                <input type="number" id="ai-context-messages" min="2" max="100" step="1" required>
+            </div>
+            <p class="hint">
+                Datum en tijd, de naam van wie chat en de mensen in de planner geeft Buddyplan altijd zelf mee; die hoeven niet in de prompt.
+            </p>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <h2>Debug-logboek</h2>
+        <p class="hint">
+            Elke aanroep naar Gemini komt in het <a href="/admin/ai/log">AI-logboek</a>, met tokens, duur en kosten.
+            Met het debug-logboek aan wordt ook het volledige verzoek en antwoord bewaard.
+        </p>
+        <p class="ai-notice">
+            Let op: zolang het debug-logboek aan staat, kunnen beheerders de chatberichten en de agenda- en taakgegevens in de verzoeken lezen.
+        </p>
+        <div class="toggle" style="margin-bottom:14px">
+            <div>
+                <div style="font-weight:600;font-size:15px">Debug-logboek aan</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="ai-debug-enabled">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div id="ai-debug-fields">
+            <div class="form-group">
+                <label for="ai-debug-retention">Bewaartermijn verzoeken en antwoorden (dagen)</label>
+                <input type="number" id="ai-debug-retention" min="1" max="90" step="1" required>
+            </div>
         </div>
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Opslaan</button>
             <button type="button" class="btn btn-danger" id="btn-clear-debug">Alle debug-inhoud wissen</button>
         </div>
-    </form>
-</div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Opslaan</button>
+    </div>
+</form>
 {% endblock %}
 
 {% block scripts %}

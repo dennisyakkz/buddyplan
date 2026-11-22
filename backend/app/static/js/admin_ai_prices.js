@@ -14,8 +14,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function render(models) {
-        document.getElementById("p-model-list").innerHTML = models
-            .map(m => `<option value="${escapeHtml(m.model)}">`).join("");
+        const configured = models.find(m => m.configured);
+        modelInput.innerHTML = models
+            .map(m => `<option value="${escapeHtml(m.model)}">${escapeHtml(m.model)}</option>`).join("");
+        if (configured) modelInput.value = configured.model;
         if (!models.length) {
             list.innerHTML = '<p class="ai-muted">Nog geen modellen. Stel een model in of voeg hieronder een prijs toe.</p>';
             return;

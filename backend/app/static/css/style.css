@@ -1420,8 +1420,6 @@ body {
 .ai-tabs a:hover { color: var(--text); }
 .ai-tabs a.active { color: var(--primary); border-bottom-color: var(--primary); }
 .ai-notice { background: var(--accent-light); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; }
-.ai-checkbox { display: flex !important; align-items: center; gap: 8px; font-weight: 600; }
-.ai-checkbox input { width: auto !important; }
 .ai-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 16px; }
 .ai-filters .form-group { margin-bottom: 0; min-width: 140px; }
 .ai-table-wrap { overflow-x: auto; }

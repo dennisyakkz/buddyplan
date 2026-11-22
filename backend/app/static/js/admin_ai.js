@@ -1,14 +1,27 @@
-// AI buddy settings (REQ-BE-081, REQ-BE-082)
+// AI buddy settings (REQ-BE-081, REQ-BE-082, REQ-BE-092, REQ-BE-093): one form, one save button.
 document.addEventListener("DOMContentLoaded", async () => {
+    const form = document.getElementById("ai-config-form");
     const keyInput = document.getElementById("ai-api-key");
     const keyHint = document.getElementById("ai-api-key-hint");
     const modelSelect = document.getElementById("ai-model");
     const promptInput = document.getElementById("ai-system-prompt");
     const promptState = document.getElementById("ai-prompt-state");
     const enabledInput = document.getElementById("ai-enabled");
+    const settingsFields = document.getElementById("ai-settings-fields");
     const contextInput = document.getElementById("ai-context-messages");
+    const debugEnabledInput = document.getElementById("ai-debug-enabled");
+    const debugFields = document.getElementById("ai-debug-fields");
+    const retentionInput = document.getElementById("ai-debug-retention");
     let config = null;
     let clearKey = false;
+
+    function updateSettingsVisibility() {
+        settingsFields.style.display = enabledInput.checked ? "" : "none";
+    }
+
+    function updateDebugVisibility() {
+        debugFields.style.display = debugEnabledInput.checked ? "" : "none";
+    }
 
     function showConfig(cfg) {
         config = cfg;
@@ -18,7 +31,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         promptInput.value = cfg.system_prompt;
         enabledInput.checked = cfg.enabled;
         contextInput.value = cfg.context_messages;
+        debugEnabledInput.checked = cfg.debug_log_enabled;
+        retentionInput.value = cfg.debug_retention_days;
         updatePromptState();
+        updateSettingsVisibility();
+        updateDebugVisibility();
         setModels(cfg.model ? [{ name: cfg.model, display_name: cfg.model }] : [], cfg.model);
     }
 
@@ -61,6 +78,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         keyHint.textContent = "(wordt verwijderd bij opslaan)";
     });
     promptInput.addEventListener("input", updatePromptState);
+    enabledInput.addEventListener("change", updateSettingsVisibility);
+    debugEnabledInput.addEventListener("change", updateDebugVisibility);
 
     try {
         showConfig(await api("/api/admin/ai/config"));
@@ -69,7 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         showToast("Laden mislukt: " + escapeHtml(err.message), "error");
     }
 
-    document.getElementById("ai-config-form").addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
         try {
             const saved = await api("/api/admin/ai/config", {
@@ -81,6 +100,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                     system_prompt: promptInput.value,
                     enabled: enabledInput.checked,
                     context_messages: parseInt(contextInput.value, 10),
+                    debug_log_enabled: debugEnabledInput.checked,
+                    debug_retention_days: parseInt(retentionInput.value, 10),
                 }),
             });
             const selected = modelSelect.value;
@@ -91,42 +112,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? "de AI buddy staat aan"
                 : saved.enabled ? "de AI buddy heeft nog een key en een model nodig" : "de AI buddy staat uit";
             showToast(`Instellingen opgeslagen, ${state}`, "success", 4000);
-        } catch (err) {
-            showToast("Opslaan mislukt: " + escapeHtml(err.message), "error");
-        }
-    });
-});
-
-// Debug log (REQ-BE-092, REQ-BE-093)
-document.addEventListener("DOMContentLoaded", async () => {
-    const form = document.getElementById("ai-debug-form");
-    if (!form) return;
-    const enabled = document.getElementById("ai-debug-enabled");
-    const retention = document.getElementById("ai-debug-retention");
-
-    function show(cfg) {
-        enabled.checked = cfg.debug_log_enabled;
-        retention.value = cfg.debug_retention_days;
-    }
-
-    try {
-        show(await api("/api/admin/ai/config"));
-    } catch (_err) {
-        // the settings form above already reports a failed load
-    }
-
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        try {
-            const saved = await api("/api/admin/ai/config", {
-                method: "PUT",
-                body: JSON.stringify({
-                    debug_log_enabled: enabled.checked,
-                    debug_retention_days: parseInt(retention.value, 10),
-                }),
-            });
-            show(saved);
-            showToast(saved.debug_log_enabled ? "Debug-logboek staat aan" : "Debug-logboek staat uit", "success", 3000);
         } catch (err) {
             showToast("Opslaan mislukt: " + escapeHtml(err.message), "error");
         }
