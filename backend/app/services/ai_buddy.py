@@ -44,6 +44,7 @@ Je helpt de gebruiker met de agenda en de takenlijsten van de mensen in de plann
 - Antwoord altijd in het Nederlands, kort en vriendelijk, zoals in een chatapp.
 - Gebruik de tools om agenda-items en taken op te zoeken, te lezen, aan te maken, te wijzigen en te verwijderen. Verzin nooit gegevens of id's: zoek ze eerst op.
 - Gebruik de datum en tijd uit de context om woorden als 'morgen' of 'volgende week dinsdag' om te zetten naar een datum (JJJJ-MM-DD) en tijden naar UU:MM.
+- Noem je in je antwoord de dag van de week bij een datum, gebruik dan het weekday-veld dat search_agenda en search_tasks meegeven. Reken dit nooit zelf uit: dat gaat te vaak mis.
 - Is niet duidelijk voor wie iets is, voor wanneer, of welk item de gebruiker bedoelt, vraag het dan eerst.
 - Verwijderen gaat in twee stappen: roep de verwijder-tool eerst aan zonder bevestiging, vertel de gebruiker wat er verwijderd wordt en vraag of dat klopt. Pas na een duidelijk 'ja' in het volgende bericht roep je de tool aan met bevestiging.
 - Weigert een tool iets, bijvoorbeeld omdat de gebruiker geen rechten heeft of omdat een item uit een gekoppelde agenda komt, leg dat dan in gewone woorden uit.
@@ -487,7 +488,7 @@ class ToolRunner:
 
         start, end = _search_range(start_date, end_date)
         items = mobile_calendar(start=start, end=end, current_user=self.user, db=self.db)
-        return {"items": _filter(items, person_id, text)}
+        return {"items": _with_weekdays(_filter(items, person_id, text))}
 
     def _tool_get_agenda_item(self, id):
         from app.routers.api import mobile_calendar_item
@@ -528,7 +529,7 @@ class ToolRunner:
         for item in items:
             item.pop("profile_color", None)
             item.pop("icon", None)
-        return {"tasks": _filter(items, person_id, text)}
+        return {"tasks": _with_weekdays(_filter(items, person_id, text))}
 
     def _tool_get_task(self, id):
         from app.routers.api import get_task
@@ -623,6 +624,15 @@ def _filter(items: list[dict], person_id, text) -> list[dict]:
     if text:
         needle = str(text).casefold()
         items = [i for i in items if needle in str(i.get("title", "")).casefold()]
+    return items
+
+
+def _with_weekdays(items: list[dict]) -> list[dict]:
+    """Adds the Dutch weekday name next to each item's date: small models get this wrong
+    when they have to compute it themselves from today's date."""
+    for item in items:
+        if item.get("date"):
+            item["weekday"] = WEEKDAYS_NL[date.fromisoformat(item["date"]).weekday()]
     return items
 
 

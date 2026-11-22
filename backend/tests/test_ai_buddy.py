@@ -187,6 +187,20 @@ def test_agenda_tools_create_search_update(client, make_user, configured, gemini
     assert agenda_titles(pid) == {"Training JO15"}
 
 
+def test_search_results_include_the_weekday(client, make_user, configured, gemini):
+    """A small model computing the weekday itself from a bare date gave a wrong day name in production."""
+    person, headers = make_user("Weekdag")
+    pid = person["id"]
+    wednesday = date(2026, 11, 25)
+    gemini.call("create_agenda_item", person_id=pid, title="Training", date=wednesday.isoformat()).reply("Gezet!")
+    send(client, headers, "Zet training erin")
+
+    gemini.call("search_agenda", start_date=wednesday.isoformat(), end_date=wednesday.isoformat()).reply("Klaar")
+    send(client, headers, "Wanneer is de training?")
+    search = gemini.tool_results()[-1]
+    assert search["items"][0]["weekday"] == "woensdag"
+
+
 def enable_tasks(person_id: int) -> None:
     """New users have the task system off (REQ-BE-022)."""
     db = SessionLocal()
